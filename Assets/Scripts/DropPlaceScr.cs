@@ -27,7 +27,7 @@ public class DropPlaceScr : MonoBehaviour, IDropHandler, IPointerEnterHandler, I
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        if (eventData.pointerDrag == null || Type == FieldType.ENEMY_FIELD)
+        if (eventData.pointerDrag == null || Type == FieldType.ENEMY_FIELD || Type == FieldType.ENEMY_HAND)
             return;
 
         CardMovementScr card = eventData.pointerDrag.GetComponent<CardMovementScr>();

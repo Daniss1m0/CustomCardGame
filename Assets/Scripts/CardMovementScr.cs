@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class Card : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
+public class CardMovementScr : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     private Camera MainCamera;
     private Vector3 offset;
@@ -32,7 +32,6 @@ public class Card : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHand
     public void OnDrag(PointerEventData eventData)
     {
         Vector3 newPos = MainCamera.ScreenToWorldPoint(eventData.position);
-        newPos.z = 0;
         transform.position = newPos + offset;
 
         if (TempCardGO.transform.parent != DefaultTempCardParent)

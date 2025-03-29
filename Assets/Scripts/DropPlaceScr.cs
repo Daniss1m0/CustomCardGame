@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class DropPlace : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPointerExitHandler
+public class DropPlaceScr : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPointerExitHandler
 {
     public void OnDrop(PointerEventData eventData)
     {
-        Card card = eventData.pointerDrag.GetComponent<Card>();
+        CardMovementScr card = eventData.pointerDrag.GetComponent<CardMovementScr>();
         if (card)
             card.DefaultParent = transform;
     }
@@ -17,7 +17,7 @@ public class DropPlace : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoi
         if (eventData.pointerDrag == null)
             return;
 
-        Card card = eventData.pointerDrag.GetComponent<Card>();
+        CardMovementScr card = eventData.pointerDrag.GetComponent<CardMovementScr>();
         if (card)
             card.DefaultTempCardParent = transform;
     }
@@ -27,7 +27,7 @@ public class DropPlace : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoi
         if (eventData.pointerDrag == null)
             return;
 
-        Card card = eventData.pointerDrag.GetComponent<Card>();
+        CardMovementScr card = eventData.pointerDrag.GetComponent<CardMovementScr>();
         if (card && card.DefaultTempCardParent == transform)
             card.DefaultTempCardParent = card.DefaultParent;
     }

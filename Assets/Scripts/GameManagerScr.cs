@@ -78,8 +78,9 @@ public class GameManagerScr : MonoBehaviour
         }
         else
         {
-            cardGO.GetComponent<CardInfoScr>().ShowCardInfo(card);
+            cardGO.GetComponent<CardInfoScr>().ShowCardInfo(card, true);
             PlayerHandCards.Add(cardGO.GetComponent<CardInfoScr>());
+            cardGO.GetComponent<AttackedCard>().enabled = false;
         }
         
         deck.RemoveAt(0);
@@ -132,13 +133,26 @@ public class GameManagerScr : MonoBehaviour
         for (int i = 0; i < count; i++)
         {
             if (EnemyFieldCards.Count > 5)
-                return;
+                return; 
 
-            cards[0].ShowCardInfo(cards[0].SelfCard);
+            cards[0].ShowCardInfo(cards[0].SelfCard, false);
             cards[0].transform.SetParent(EnemyField);
 
             EnemyFieldCards.Add(cards[0]);
             EnemyHandCards.Remove(cards[0]);
+        }
+
+        foreach (var activeCard in EnemyFieldCards.FindAll(x => x.SelfCard.CanAttack))
+        {
+            if (PlayerFieldCards.Count == 0)
+                return;
+            var enemy = PlayerFieldCards[Random.Range(0, PlayerFieldCards.Count)];
+
+            Debug.Log(activeCard.SelfCard.Name + "(" + activeCard.SelfCard.Attack + ";" + activeCard.SelfCard.Defense + "))" + "---> " +
+            enemy.SelfCard.Name + " (" + enemy.SelfCard.Attack + ";" + enemy.SelfCard.Defense + ")");
+
+            activeCard.SelfCard.ChangeAttackState(false);
+            CardsFight(enemy, activeCard);
         }
     }
 
@@ -159,4 +173,35 @@ public class GameManagerScr : MonoBehaviour
         GiveCardToHand(CurrentGame.EnemyDeck, EnemyHand);
         GiveCardToHand(CurrentGame.PlayerDeck, PlayerHand);
     }
+
+    public void CardsFight(CardInfoScr playerCard, CardInfoScr enemyCard)
+    {
+        playerCard.SelfCard.GetDamage(enemyCard.SelfCard.Attack);
+        enemyCard.SelfCard.GetDamage(playerCard.SelfCard.Attack);
+
+        if (!playerCard.SelfCard.IsAlive)
+            DestroyCard(playerCard);
+        else
+            playerCard.RefreshData();
+
+        if (!enemyCard.SelfCard.IsAlive)
+            DestroyCard(enemyCard);
+        else
+            enemyCard.RefreshData();
+    }
+
+    void DestroyCard(CardInfoScr card)
+    {
+        card.GetComponent<CardMovementScr>().OnEndDrag(null);
+
+        if (EnemyFieldCards.Exists(x => x == card))
+            EnemyFieldCards.Remove(card);
+
+        if (PlayerFieldCards.Exists(x => x == card))
+            PlayerFieldCards.Remove(card);
+
+        Destroy(card.gameObject);
+    }
+
+
 }

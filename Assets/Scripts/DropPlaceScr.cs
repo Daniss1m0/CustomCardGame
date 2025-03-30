@@ -21,13 +21,17 @@ public class DropPlaceScr : MonoBehaviour, IDropHandler, IPointerEnterHandler, I
             return;
 
         CardMovementScr card = eventData.pointerDrag.GetComponent<CardMovementScr>();
-        if (card)
+        if (card && card.GameManager.PlayerFieldCards.Count < 7)
+        {
+            card.GameManager.PlayerHandCards.Remove(card.GetComponent<CardInfoScr>());
+            card.GameManager.PlayerFieldCards.Add(card.GetComponent<CardInfoScr>());
             card.DefaultParent = transform;
+        }
     }
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        if (eventData.pointerDrag == null || Type == FieldType.ENEMY_FIELD || Type == FieldType.ENEMY_HAND)
+        if (eventData.pointerDrag == null || Type == FieldType.ENEMY_FIELD || Type == FieldType.ENEMY_HAND || Type == FieldType.SELF_HAND)
             return;
 
         CardMovementScr card = eventData.pointerDrag.GetComponent<CardMovementScr>();

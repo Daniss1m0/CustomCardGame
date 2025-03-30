@@ -6,18 +6,12 @@ using TMPro;
 
 public class Game
 {
-    public List<Card> EnemyDeck, PlayerDeck, EnemyHand, PlayerHand, EnemyField, PlayerField;
+    public List<Card> EnemyDeck, PlayerDeck;
 
     public Game()
     {
         EnemyDeck = GiveDeckCard();
         PlayerDeck = GiveDeckCard();
-
-        EnemyHand = new List<Card>();
-        PlayerHand = new List<Card>();
-
-        EnemyField = new List<Card>();
-        PlayerField = new List<Card>();
     }
 
     List<Card> GiveDeckCard()
@@ -32,11 +26,16 @@ public class Game
 public class GameManagerScr : MonoBehaviour
 {
     public Game CurrentGame;
-    public Transform EnemyHand, PlayerHand;
+    public Transform EnemyHand, PlayerHand, EnemyField, PlayerField;
     public GameObject CardPref;
     int Turn, TurnTime = 30;
     public TextMeshProUGUI TurnTimeTxt;
     public Button EndTurnBtn;
+
+    public List<CardInfoScr> PlayerHandCards = new List<CardInfoScr>(), 
+                             PlayerFieldCards = new List<CardInfoScr>(), 
+                             EnemyHandCards = new List<CardInfoScr>(), 
+                             EnemyFieldCards = new List<CardInfoScr>();
 
     public bool IsPlayerTurn 
     {
@@ -71,11 +70,17 @@ public class GameManagerScr : MonoBehaviour
 
         Card card = deck[0];
         GameObject cardGO = Instantiate(CardPref, hand, false);
-        
+
         if (hand == EnemyHand)
+        {
             cardGO.GetComponent<CardInfoScr>().HideCardInfo(card);
+            EnemyHandCards.Add(cardGO.GetComponent<CardInfoScr>());
+        }
         else
+        {
             cardGO.GetComponent<CardInfoScr>().ShowCardInfo(card);
+            PlayerHandCards.Add(cardGO.GetComponent<CardInfoScr>());
+        }
         
         deck.RemoveAt(0);
     }
@@ -100,9 +105,29 @@ public class GameManagerScr : MonoBehaviour
                 TurnTimeTxt.text = TurnTime.ToString();
                 yield return new WaitForSeconds(1);
             }
+
+            if (EnemyHandCards.Count > 0)
+                EnemyTurn(EnemyHandCards);
         }
 
         ChangeTurn();
+    }
+
+    void EnemyTurn(List<CardInfoScr> cards) 
+    {
+        int count = cards.Count == 1 ? 1 : Random.Range(0, cards.Count);
+
+        for (int i = 0; i < count; i++)
+        {
+            if (EnemyFieldCards.Count > 5)
+                return;
+
+            cards[0].ShowCardInfo(cards[0].SelfCard);
+            cards[0].transform.SetParent(EnemyField);
+
+            EnemyFieldCards.Add(cards[0]);
+            EnemyHandCards.Remove(cards[0]);
+        }
     }
 
     public void ChangeTurn()

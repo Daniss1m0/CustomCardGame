@@ -516,9 +516,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   EnemyHand: {fileID: 437836524}
   PlayerHand: {fileID: 1850512381}
+  EnemyField: {fileID: 152074215}
+  PlayerField: {fileID: 865766834}
   CardPref: {fileID: 3200919704871707934, guid: 941f6405a9f4c074eb161d54445056ff, type: 3}
   TurnTimeTxt: {fileID: 1910776032}
   EndTurnBtn: {fileID: 1082041107}
+  PlayerHandCards: []
+  PlayerFieldCards: []
+  EnemyHandCards: []
+  EnemyFieldCards: []
 --- !u!1 &560350047
 GameObject:
   m_ObjectHideFlags: 0
@@ -985,13 +991,13 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
-  m_fontSizeBase: 24
+  m_fontSize: 30
+  m_fontSizeBase: 30
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
@@ -1419,7 +1425,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0.018798828, y: -0.00012207031}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: -0.19995117, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1811299087
@@ -1496,7 +1502,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: 0.00390625, y: 115.890015}
+  m_AnchoredPosition: {x: 0, y: 116}
   m_SizeDelta: {x: 0.8, y: 231.77}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1850512382

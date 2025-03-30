@@ -90,8 +90,17 @@ public class GameManagerScr : MonoBehaviour
         TurnTime = 30;
         TurnTimeTxt.text = TurnTime.ToString();
 
+        foreach (var card in PlayerFieldCards)
+            card.DeHighlightedCard();
+
         if (IsPlayerTurn)
         {
+            foreach (var card in PlayerFieldCards) 
+            {
+                card.SelfCard.ChangeAttackState(true);
+                card.HighlightedCard();
+            }
+
             while (TurnTime-- > 0)
             {
                 TurnTimeTxt.text = TurnTime.ToString();
@@ -100,6 +109,9 @@ public class GameManagerScr : MonoBehaviour
         }
         else
         {
+            foreach (var card in EnemyFieldCards)
+                card.SelfCard.ChangeAttackState(true);
+
             while (TurnTime-- > 27)
             {
                 TurnTimeTxt.text = TurnTime.ToString();

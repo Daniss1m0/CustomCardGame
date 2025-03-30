@@ -9,7 +9,7 @@ public class CardInfoScr : MonoBehaviour
     public Card SelfCard;
     public Image Logo;
     public TextMeshProUGUI Name, Attack, Defense;
-    public GameObject HideObj;
+    public GameObject HideObj, HighlightedObj;
 
     public void HideCardInfo(Card card)
     {
@@ -30,8 +30,13 @@ public class CardInfoScr : MonoBehaviour
         Defense.text = SelfCard.Defense.ToString();
     }
 
-    private void Start() 
+    public void HighlightedCard() 
     {
-        //ShowCardInfo(CardManager.AllCards[transform.GetSiblingIndex()]);
+        HighlightedObj.SetActive(true);
+    }
+
+    public void DeHighlightedCard()
+    {
+        HighlightedObj.SetActive(false);
     }
 }

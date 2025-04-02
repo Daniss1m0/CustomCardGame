@@ -37,6 +37,9 @@ public class CardMovementScr : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         if (!IsDraggable)
             return;
 
+        if (GetComponent<CardInfoScr>().SelfCard.CanAttack)
+            GameManager.HighlightTargets(true);
+
         TempCardGO.transform.SetParent(DefaultParent);
         TempCardGO.transform.SetSiblingIndex(transform.GetSiblingIndex());
 
@@ -63,6 +66,8 @@ public class CardMovementScr : MonoBehaviour, IBeginDragHandler, IDragHandler, I
     {
         if (!IsDraggable)
             return;
+
+        GameManager.HighlightTargets(false);
 
         transform.SetParent(DefaultParent);
         GetComponent<CanvasGroup>().blocksRaycasts = true;

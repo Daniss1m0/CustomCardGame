@@ -287,7 +287,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.6039216, g: 0.14333203, b: 0, a: 1}
+  m_Color: {r: 1, g: 0.6431373, b: 0.5254902, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -326,6 +326,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Type: 1
   GameManager: {fileID: 519420034}
+  NormalCol: {r: 1, g: 0.6431373, b: 0.5254902, a: 1}
+  TargetCol: {r: 0.3764706, g: 0.09019608, b: 0.09019608, a: 1}
 --- !u!1 &318518642
 GameObject:
   m_ObjectHideFlags: 0
@@ -758,6 +760,7 @@ MonoBehaviour:
   EnemyHPTxt: {fileID: 1546779915}
   ResultGO: {fileID: 1202712388}
   ResultTxt: {fileID: 540705658}
+  EnemyHero: {fileID: 856375458}
   PlayerHandCards: []
   PlayerFieldCards: []
   EnemyHandCards: []
@@ -1218,7 +1221,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.6039216, g: 0.14333203, b: 0, a: 1}
+  m_Color: {r: 1, g: 0.63924277, b: 0.5251572, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -1257,6 +1260,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Type: 0
   GameManager: {fileID: 519420034}
+  NormalCol: {r: 1, g: 0.6431373, b: 0.5254902, a: 1}
+  TargetCol: {r: 0.3764706, g: 0.09019608, b: 0.09019608, a: 1}
 --- !u!1 &865766833
 GameObject:
   m_ObjectHideFlags: 0

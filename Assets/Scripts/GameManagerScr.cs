@@ -42,6 +42,8 @@ public class GameManagerScr : MonoBehaviour
     public GameObject ResultGO;
     public TextMeshProUGUI ResultTxt;
 
+    public AttackedHero EnemyHero;
+
     public List<CardInfoScr> PlayerHandCards = new List<CardInfoScr>(), 
                              PlayerFieldCards = new List<CardInfoScr>(), 
                              EnemyHandCards = new List<CardInfoScr>(), 
@@ -293,5 +295,13 @@ public class GameManagerScr : MonoBehaviour
     {
         foreach (var card in PlayerHandCards)
             card.CheckForAvailability(PlayerMana);
+    }
+
+    public void HighlightTargets(bool highlight)
+    {
+        foreach (var card in EnemyFieldCards)
+            card.HighlightAsTarget(highlight);
+
+        EnemyHero.HighlightAsTarget(highlight);
     }
 }

@@ -11,6 +11,7 @@ public class CardInfoScr : MonoBehaviour
     public TextMeshProUGUI Name, Attack, Defense, Manacost;
     public GameObject HideObj, HighlightedObj;
     public bool IsPlayer;
+    public Color NormalCol, TargetCol;
 
     public void HideCardInfo(Card card)
     {
@@ -55,5 +56,12 @@ public class CardInfoScr : MonoBehaviour
         GetComponent<CanvasGroup>().alpha = currentMana >= SelfCard.Manacost ?
             1 :
             0.5f;
+    }
+
+    public void HighlightAsTarget(bool highlight)
+    {
+        GetComponent<Image>().color = highlight ?
+            TargetCol :
+            NormalCol;
     }
 }

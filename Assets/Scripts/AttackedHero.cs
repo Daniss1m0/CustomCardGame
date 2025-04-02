@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class AttackedHero : MonoBehaviour, IDropHandler
 {
@@ -11,6 +12,7 @@ public class AttackedHero : MonoBehaviour, IDropHandler
 
     public HeroType Type;
     public GameManagerScr GameManager;
+    public Color NormalCol, TargetCol;
 
     public void OnDrop(PointerEventData eventData)
     {
@@ -24,5 +26,12 @@ public class AttackedHero : MonoBehaviour, IDropHandler
                 card.SelfCard.CanAttack = false;
                 GameManager.DamageHero(card, true);
         }
+    }
+
+    public void HighlightAsTarget(bool highlight)
+    {
+        GetComponent<Image>().color = highlight ?
+            TargetCol :
+            NormalCol;
     }
 }

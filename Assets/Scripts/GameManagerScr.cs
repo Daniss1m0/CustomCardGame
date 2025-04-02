@@ -109,6 +109,8 @@ public class GameManagerScr : MonoBehaviour
         foreach (var card in PlayerFieldCards)
             card.DeHighlightedCard();
 
+        CheckCardsForAvailability();
+
         if (IsPlayerTurn)
         {
             foreach (var card in PlayerFieldCards) 
@@ -148,7 +150,7 @@ public class GameManagerScr : MonoBehaviour
         for (int i = 0; i < count; i++)
         {
             if (EnemyFieldCards.Count > 5 || EnemyMana == 0)
-                return;
+                break;
 
             List<CardInfoScr> cardsList = cards.FindAll(x => EnemyMana >= x.SelfCard.Manacost);
 
@@ -285,5 +287,11 @@ public class GameManagerScr : MonoBehaviour
             else
                 ResultTxt.text = "-25";
         }
+    }
+
+    public void CheckCardsForAvailability()
+    {
+        foreach (var card in PlayerHandCards)
+            card.CheckForAvailability(PlayerMana);
     }
 }

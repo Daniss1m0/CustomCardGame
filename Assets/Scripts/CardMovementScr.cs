@@ -25,8 +25,14 @@ public class CardMovementScr : MonoBehaviour, IBeginDragHandler, IDragHandler, I
 
         DefaultParent = DefaultTempCardParent = transform.parent;
 
-        IsDraggable = (DefaultParent.GetComponent<DropPlaceScr>().Type == FieldType.SELF_HAND || 
-            DefaultParent.GetComponent<DropPlaceScr>().Type == FieldType.SELF_FIELD) && GameManager.IsPlayerTurn;
+        IsDraggable = GameManager.IsPlayerTurn &&
+        (
+            (DefaultParent.GetComponent<DropPlaceScr>().Type == FieldType.SELF_HAND &&
+            GameManager.PlayerMana >= GetComponent<CardInfoScr>().SelfCard.Manacost)
+            ||
+            (DefaultParent.GetComponent<DropPlaceScr>().Type == FieldType.SELF_FIELD &&
+            GetComponent<CardInfoScr>().SelfCard.CanAttack)
+        );
 
         if (!IsDraggable)
             return;

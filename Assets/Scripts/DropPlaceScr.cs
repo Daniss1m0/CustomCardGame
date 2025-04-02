@@ -24,13 +24,16 @@ public class DropPlaceScr : MonoBehaviour, IDropHandler, IPointerEnterHandler, I
 
         if (card && card.GameManager.PlayerFieldCards.Count < 6 && 
             card.GameManager.IsPlayerTurn && card.GameManager.PlayerMana >=
-            card.GetComponent<CardInfoScr>().SelfCard.Manacost)
+            card.GetComponent<CardInfoScr>().SelfCard.Manacost &&
+            !card.GetComponent<CardInfoScr>().SelfCard.IsPlaced)
         {
             card.GameManager.PlayerHandCards.Remove(card.GetComponent<CardInfoScr>());
             card.GameManager.PlayerFieldCards.Add(card.GetComponent<CardInfoScr>());
             card.DefaultParent = transform;
 
+            card.GetComponent<CardInfoScr>().SelfCard.IsPlaced = true;
             card.GameManager.ReduceMana(true, card.GetComponent<CardInfoScr>().SelfCard.Manacost);
+            card.GameManager.CheckCardsForAvailability();
         }
     }
 

@@ -126,40 +126,39 @@ public class GameManagerScr : MonoBehaviour
                 TurnTimeTxt.text = TurnTime.ToString();
                 yield return new WaitForSeconds(1);
             }
+
+            ChangeTurn();
         }
         else
         {
             foreach (var card in EnemyFieldCards)
                 card.SelfCard.ChangeAttackState(true);
 
-            while (TurnTime-- > 27)
-            {
-                TurnTimeTxt.text = TurnTime.ToString();
-                yield return new WaitForSeconds(1);
-            }
-
-            if (EnemyHandCards.Count > 0)
-                EnemyTurn(EnemyHandCards);
+            StartCoroutine(EnemyTurn(EnemyHandCards));
         }
-
-        ChangeTurn();
     }
 
-    void EnemyTurn(List<CardInfoScr> cards)
+    IEnumerator EnemyTurn(List<CardInfoScr> cards)
     {
+        yield return new WaitForSeconds(1);
+
         int count = cards.Count == 1 ? 1 : Random.Range(0, cards.Count);
 
         for (int i = 0; i < count; i++)
         {
-            if (EnemyFieldCards.Count > 5 || EnemyMana == 0)
+            if (EnemyFieldCards.Count > 5 || EnemyMana == 0 || EnemyHandCards.Count == 0)
                 break;
 
             List<CardInfoScr> cardsList = cards.FindAll(x => EnemyMana >= x.SelfCard.Manacost);
 
             if (cardsList.Count == 0)
                 break;
+
+            cardsList[0].GetComponent<CardMovementScr>().MoveToField(EnemyField);
             
             ReduceMana(false, cardsList[0].SelfCard.Manacost);
+
+            yield return new WaitForSeconds(.51f);
 
             cardsList[0].ShowCardInfo(cardsList[0].SelfCard, false);
             cardsList[0].transform.SetParent(EnemyField);
@@ -189,6 +188,8 @@ public class GameManagerScr : MonoBehaviour
                 DamageHero(activeCard, false);
             }
         }
+
+        ChangeTurn();
     }
 
     public void ChangeTurn()

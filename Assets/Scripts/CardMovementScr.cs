@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using DG.Tweening;
 
 public class CardMovementScr : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
@@ -95,5 +96,11 @@ public class CardMovementScr : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         }
 
         TempCardGO.transform.SetSiblingIndex(newIndex);
+    }
+
+    public void MoveToField(Transform field) 
+    {
+        transform.SetParent(GameObject.Find("Canvas").transform);
+        transform.DOMove(field.position, .5f);
     }
 }

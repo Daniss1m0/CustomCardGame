@@ -42,7 +42,7 @@ public class GameManagerScr : MonoBehaviour
     public GameObject ResultGO;
     public TextMeshProUGUI ResultTxt;
 
-    public AttackedHero EnemyHero;
+    public AttackedHero EnemyHero, PlayerHero;
 
     public List<CardInfoScr> PlayerHandCards = new List<CardInfoScr>(), 
                              PlayerFieldCards = new List<CardInfoScr>(), 
@@ -59,16 +59,47 @@ public class GameManagerScr : MonoBehaviour
 
     void Start()
     {
+        StartGame();
+    }
+
+    public void RestartGame()
+    {
+        StopAllCoroutines();
+
+        foreach (var card in PlayerHandCards)
+            Destroy(card.gameObject);
+        foreach (var card in PlayerFieldCards)
+            Destroy(card.gameObject);
+        foreach (var card in EnemyHandCards)
+            Destroy(card.gameObject);
+        foreach (var card in EnemyFieldCards)
+            Destroy(card.gameObject);
+
+        PlayerHandCards.Clear();
+        PlayerFieldCards.Clear();
+        EnemyHandCards.Clear();
+        EnemyFieldCards.Clear();
+
+        StartGame();
+    }
+
+    void StartGame()
+    {
         Turn = 0;
-        
+        EndTurnBtn.interactable = true;
+
         CurrentGame = new Game();
 
         GiveHandCards(CurrentGame.EnemyDeck, EnemyHand);
         GiveHandCards(CurrentGame.PlayerDeck, PlayerHand);
 
+        PlayerMana = EnemyMana = 10;
         PlayerHP = EnemyHP = 30;
 
+        ShowHP();
         ShowMana();
+
+        ResultGO.SetActive(false);
 
         StartCoroutine(TurnFunc());
     }
@@ -167,6 +198,8 @@ public class GameManagerScr : MonoBehaviour
             EnemyHandCards.Remove(cardsList[0]);
         }
 
+        yield return new WaitForSeconds(1);
+
         foreach (var activeCard in EnemyFieldCards.FindAll(x => x.SelfCard.CanAttack))
         {
             if (Random.Range(0, 2) == 0 && PlayerFieldCards.Count > 0)
@@ -178,6 +211,10 @@ public class GameManagerScr : MonoBehaviour
                 enemy.SelfCard.Name + " (" + enemy.SelfCard.Attack + ";" + enemy.SelfCard.Defense + ")");
                 
                 activeCard.SelfCard.ChangeAttackState(false);
+
+                activeCard.GetComponent<CardMovementScr>().MoveToTarget(enemy.transform);
+                yield return new WaitForSeconds(.75f);
+
                 CardsFight(enemy, activeCard);
             }
             else
@@ -185,10 +222,17 @@ public class GameManagerScr : MonoBehaviour
                 Debug.Log(activeCard.SelfCard.Name + " (" + activeCard.SelfCard.Attack + ") Attacked Hero");
 
                 activeCard.SelfCard.ChangeAttackState(false);
+
+                activeCard.GetComponent<CardMovementScr>().MoveToTarget(PlayerHero.transform);
+                yield return new WaitForSeconds(.75f);
+
                 DamageHero(activeCard, false);
             }
+
+            yield return new WaitForSeconds(.2f);
         }
 
+        yield return new WaitForSeconds(1);
         ChangeTurn();
     }
 

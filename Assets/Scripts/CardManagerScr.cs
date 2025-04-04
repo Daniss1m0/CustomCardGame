@@ -28,11 +28,6 @@ public struct Card
         IsPlaced = false;
     }
 
-    public void ChangeAttackState(bool can) 
-    { 
-        CanAttack = can; 
-    }
-
     public void GetDamage(int dmg) 
     {
         Defense -= dmg;

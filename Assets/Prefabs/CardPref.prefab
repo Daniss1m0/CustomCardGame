@@ -375,9 +375,10 @@ GameObject:
   - component: {fileID: 9155333022409411393}
   - component: {fileID: 763879150495615378}
   - component: {fileID: 4983865375767307008}
-  - component: {fileID: 3853763607972049300}
   - component: {fileID: 9194082298737405440}
+  - component: {fileID: 7746042770806402134}
   - component: {fileID: -7175904875697606504}
+  - component: {fileID: 3853763607972049300}
   - component: {fileID: 3691121292238534741}
   m_Layer: 5
   m_Name: CardPref
@@ -450,22 +451,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &3853763607972049300
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3200919704871707934}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3eced5f3e6d913c4e9ba4cc3a53ce021, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  DefaultParent: {fileID: 0}
-  DefaultTempCardParent: {fileID: 0}
-  GameManager: {fileID: 0}
-  IsDraggable: 0
 --- !u!225 &9194082298737405440
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -478,6 +463,21 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
+--- !u!114 &7746042770806402134
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3200919704871707934}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f44feeb0557a2034f8e1811f07e22a89, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  IsPlayerCard: 0
+  Info: {fileID: -7175904875697606504}
+  Movement: {fileID: 3853763607972049300}
 --- !u!114 &-7175904875697606504
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -490,6 +490,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba12d265c9fafde4bb83bbb5043c02a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  CC: {fileID: 7746042770806402134}
   Logo: {fileID: 4814674246185262947}
   Name: {fileID: 567506245719870983}
   Attack: {fileID: 5137814731308018515}
@@ -497,9 +498,24 @@ MonoBehaviour:
   Manacost: {fileID: 4238930164348061605}
   HideObj: {fileID: 8276660956730707615}
   HighlightedObj: {fileID: 747441501028711005}
-  IsPlayer: 0
   NormalCol: {r: 0.6117647, g: 0.5411765, b: 0.5411765, a: 1}
   TargetCol: {r: 0.3773585, g: 0.088999584, b: 0.088999584, a: 1}
+--- !u!114 &3853763607972049300
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3200919704871707934}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3eced5f3e6d913c4e9ba4cc3a53ce021, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  CC: {fileID: 7746042770806402134}
+  DefaultParent: {fileID: 0}
+  DefaultTempCardParent: {fileID: 0}
+  IsDraggable: 0
 --- !u!114 &3691121292238534741
 MonoBehaviour:
   m_ObjectHideFlags: 0

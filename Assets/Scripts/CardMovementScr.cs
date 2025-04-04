@@ -7,18 +7,18 @@ using UnityEngine.UI;
 
 public class CardMovementScr : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
+    public CardController CC;
+
     private Camera MainCamera;
     private Vector3 offset;
     public Transform DefaultParent, DefaultTempCardParent;
     private GameObject TempCardGO;
-    public GameManagerScr GameManager;
     public bool IsDraggable;
 
     void Awake()
     {
         MainCamera = Camera.allCameras[0];
         TempCardGO = GameObject.Find("TempCardGO");
-        GameManager = FindObjectOfType<GameManagerScr>();
     }
 
     public void OnBeginDrag(PointerEventData eventData)
@@ -27,20 +27,20 @@ public class CardMovementScr : MonoBehaviour, IBeginDragHandler, IDragHandler, I
 
         DefaultParent = DefaultTempCardParent = transform.parent;
 
-        IsDraggable = GameManager.IsPlayerTurn &&
+        IsDraggable = GameManagerScr.Instance.IsPlayerTurn &&
         (
             (DefaultParent.GetComponent<DropPlaceScr>().Type == FieldType.SELF_HAND &&
-            GameManager.PlayerMana >= GetComponent<CardInfoScr>().SelfCard.Manacost)
+            GameManagerScr.Instance.PlayerMana >= CC.Card.Manacost)
             ||
             (DefaultParent.GetComponent<DropPlaceScr>().Type == FieldType.SELF_FIELD &&
-            GetComponent<CardInfoScr>().SelfCard.CanAttack)
+            CC.Card.CanAttack)
         );
 
         if (!IsDraggable)
             return;
 
-        if (GetComponent<CardInfoScr>().SelfCard.CanAttack)
-            GameManager.HighlightTargets(true);
+        if (CC.Card.CanAttack)
+            GameManagerScr.Instance.HighlightTargets(true);
 
         TempCardGO.transform.SetParent(DefaultParent);
         TempCardGO.transform.SetSiblingIndex(transform.GetSiblingIndex());
@@ -69,7 +69,7 @@ public class CardMovementScr : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         if (!IsDraggable)
             return;
 
-        GameManager.HighlightTargets(false);
+        GameManagerScr.Instance.HighlightTargets(false);
 
         transform.SetParent(DefaultParent);
         GetComponent<CanvasGroup>().blocksRaycasts = true;

@@ -37,7 +37,7 @@ public class CardInfoScr : MonoBehaviour
         Manacost.text = CC.Card.Manacost.ToString();
     }
 
-    public void HighlightedCard(bool highlight) 
+    public void HighlightCard(bool highlight) 
     {
         HighlightedObj.SetActive(highlight);
     }

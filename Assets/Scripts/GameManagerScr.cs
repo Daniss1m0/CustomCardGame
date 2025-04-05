@@ -18,7 +18,7 @@ public class Game
     {
         List<Card> list = new List<Card>();
         for (int i = 0; i < 10; i++)
-            list.Add(CardManager.AllCards[Random.Range(0, CardManager.AllCards.Count)]);
+            list.Add(CardManager.AllCards[Random.Range(0, CardManager.AllCards.Count)].GetCopy());
         return list;
     }
 }
@@ -150,7 +150,7 @@ public class GameManagerScr : MonoBehaviour
         foreach (var card in PlayerFieldCards)
             card.Info.HighlightCard(false);
 
-        CheckCardsForManaAvailiability();
+        CheckCardsForManaAvailability();
 
         if (IsPlayerTurn)
         {
@@ -192,7 +192,7 @@ public class GameManagerScr : MonoBehaviour
             if (EnemyFieldCards.Count > 5 || EnemyMana == 0 || EnemyHandCards.Count == 0)
                 break;
 
-            List<CardController> cardsList = cards.FindAll(x => EnemyMana >= x.Card.Manacost);
+            List<CardController> cardsList = cards.FindAll(x => EnemyMana >= x.Card.Manacost && !x.Card.IsSpell);
 
             if (cardsList.Count == 0)
                 break;
@@ -283,13 +283,13 @@ public class GameManagerScr : MonoBehaviour
         defender.CheckForAlive();
     }
 
-    void ShowMana()
+    public void ShowMana()
     {
         PlayerManaTxt.text = PlayerMana.ToString();
         EnemyManaTxt.text = EnemyMana.ToString();
     }
 
-    void ShowHP()
+    public void ShowHP()
     {
         EnemyHPTxt.text = EnemyHP.ToString();
         PlayerHPTxt.text = PlayerHP.ToString();
@@ -317,7 +317,7 @@ public class GameManagerScr : MonoBehaviour
         CheckForResult();
     }
 
-    void CheckForResult() 
+    public void CheckForResult() 
     {
         if (EnemyHP == 0 || PlayerHP == 0)
         {
@@ -331,25 +331,43 @@ public class GameManagerScr : MonoBehaviour
         }
     }
 
-    public void CheckCardsForManaAvailiability()
+    public void CheckCardsForManaAvailability()
     {
         foreach (var card in PlayerHandCards)
             card.Info.HighlightManaAvaliability(PlayerMana);
     }
 
-    public void HighlightTargets(bool highlight)
+    public void HighlightTargets(CardController attacker,bool highlight)
     {
         List<CardController> targets = new List<CardController>();
 
-        if (EnemyFieldCards.Exists(x => x.Card.IsProvocation))
-            targets = EnemyFieldCards.FindAll(x => x.Card.IsProvocation);
+        if (attacker.Card.IsSpell)
+        {
+            if (attacker.Card.SpellTarget == Card.TargetType.NO_TARGET)
+                targets = new List<CardController>();
+            else if (attacker.Card.SpellTarget == Card.TargetType.ALLY_CARD_TARGET)
+                targets = PlayerFieldCards;
+            else
+                targets = EnemyFieldCards;
+        }
         else
         {
-            targets = EnemyFieldCards;
-            EnemyHero.HighlightAsTarget(highlight);
-        }   
+            if (EnemyFieldCards.Exists(x => x.Card.IsProvocation))
+                targets = EnemyFieldCards.FindAll(x => x.Card.IsProvocation);
+            else
+            {
+                targets = EnemyFieldCards;
+                EnemyHero.HighlightAsTarget(highlight);
+            }   
+        }
+
 
         foreach (var card in targets)
-            card.Info.HighlightAsTarget(highlight);
+        {
+            if (attacker.Card.IsSpell)
+                card.Info.HighlightAsSpellTarget(highlight);
+            else
+                card.Info.HighlightAsTarget(highlight);
+        }
     }
 }

@@ -27,7 +27,9 @@ public class DropPlaceScr : MonoBehaviour, IDropHandler, IPointerEnterHandler, I
             GameManagerScr.Instance.PlayerMana >= card.Card.Manacost && 
             !card.Card.IsPlaced)
         {
-            card.Movement.DefaultParent = transform;
+            if (!card.Card.IsSpell)
+                card.Movement.DefaultParent = transform;
+
             card.OnCast();
         }
     }

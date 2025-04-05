@@ -381,6 +381,7 @@ GameObject:
   - component: {fileID: 3853763607972049300}
   - component: {fileID: -1192024366490733886}
   - component: {fileID: 3691121292238534741}
+  - component: {fileID: 1492242163370924450}
   m_Layer: 5
   m_Name: CardPref
   m_TagString: Untagged
@@ -504,6 +505,7 @@ MonoBehaviour:
   HighlightedObj: {fileID: 747441501028711005}
   NormalCol: {r: 0.6117647, g: 0.5411765, b: 0.5411765, a: 1}
   TargetCol: {r: 0.3773585, g: 0.088999584, b: 0.088999584, a: 1}
+  SpellTargetCol: {r: 1, g: 0, b: 0.46279144, a: 1}
 --- !u!114 &3853763607972049300
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -545,6 +547,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9be41f988bf85914a8f77a013311ff7c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1492242163370924450
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3200919704871707934}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3df669c75f173d478d09bc7221a7ee2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &4053713927356968066

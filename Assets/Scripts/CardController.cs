@@ -106,22 +106,22 @@ public class CardController : MonoBehaviour
             case SpellCard.SpellType.HEAL_ALLY_HERO:
 
                 if (IsPlayerCard)
-                    gameManager.PlayerHP += spellCard.SpellValue;
+                    gameManager.CurrentGame.Player.HP += spellCard.SpellValue;
                 else
-                    gameManager.EnemyHP += spellCard.SpellValue;
+                    gameManager.CurrentGame.Enemy.HP += spellCard.SpellValue;
 
-                gameManager.ShowHP();
+                //gameManager.ShowHP();
 
                 break;
 
             case SpellCard.SpellType.DAMAGE_ENEMY_HERO:
 
                 if (IsPlayerCard)
-                    gameManager.EnemyHP -= spellCard.SpellValue;
+                    gameManager.CurrentGame.Enemy.HP -= spellCard.SpellValue;
                 else
-                    gameManager.PlayerHP -= spellCard.SpellValue;
+                    gameManager.CurrentGame.Player.HP -= spellCard.SpellValue;
 
-                gameManager.ShowHP();
+                //gameManager.ShowHP();
                 gameManager.CheckForResult();
 
                 break;

@@ -15,6 +15,8 @@ public class CardMovementScr : MonoBehaviour, IBeginDragHandler, IDragHandler, I
     private GameObject TempCardGO;
     public bool IsDraggable;
 
+    int startID;
+
     void Awake()
     {
         MainCamera = Camera.allCameras[0];
@@ -30,7 +32,7 @@ public class CardMovementScr : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         IsDraggable = GameManagerScr.Instance.IsPlayerTurn &&
         (
             (DefaultParent.GetComponent<DropPlaceScr>().Type == FieldType.SELF_HAND &&
-            GameManagerScr.Instance.PlayerMana >= CC.Card.Manacost)
+            GameManagerScr.Instance.CurrentGame.Player.Mana >= CC.Card.Manacost)
             ||
             (DefaultParent.GetComponent<DropPlaceScr>().Type == FieldType.SELF_FIELD &&
             CC.Card.CanAttack)
@@ -38,6 +40,8 @@ public class CardMovementScr : MonoBehaviour, IBeginDragHandler, IDragHandler, I
 
         if (!IsDraggable)
             return;
+
+        startID = transform.GetSiblingIndex();
 
         if (CC.Card.IsSpell || CC.Card.CanAttack)
             GameManagerScr.Instance.HighlightTargets(CC, true);
@@ -98,6 +102,9 @@ public class CardMovementScr : MonoBehaviour, IBeginDragHandler, IDragHandler, I
                 break;
             }
         }
+
+        if (TempCardGO.transform.parent == DefaultParent)
+            newIndex = startID;
 
         TempCardGO.transform.SetSiblingIndex(newIndex);
     }

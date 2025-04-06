@@ -17,7 +17,7 @@ public class SpellTarget : MonoBehaviour, IDropHandler
             spell.Card.IsSpell &&
             spell.IsPlayerCard &&
             target.Card.IsPlaced &&
-            GameManagerScr.Instance.PlayerMana >= spell.Card.Manacost)
+            GameManagerScr.Instance.CurrentGame.Player.Mana >= spell.Card.Manacost)
         {
             var spellCard = (SpellCard)spell.Card;
 

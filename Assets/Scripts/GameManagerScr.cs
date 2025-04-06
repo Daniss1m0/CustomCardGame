@@ -6,12 +6,16 @@ using TMPro;
 
 public class Game
 {
+    public Player Player, Enemy;
     public List<Card> EnemyDeck, PlayerDeck;
 
     public Game()
     {
         EnemyDeck = GiveDeckCard();
         PlayerDeck = GiveDeckCard();
+
+        Player = new Player();
+        Enemy = new Player();
     }
 
     List<Card> GiveDeckCard()
@@ -41,12 +45,6 @@ public class GameManagerScr : MonoBehaviour
     int Turn, TurnTime = 30;
     public TextMeshProUGUI TurnTimeTxt;
     public Button EndTurnBtn;
-    
-    public int PlayerMana = 10, EnemyMana = 10;
-    public TextMeshProUGUI PlayerManaTxt, EnemyManaTxt;
-
-    public int PlayerHP, EnemyHP;
-    public TextMeshProUGUI PlayerHPTxt, EnemyHPTxt;
 
     public GameObject ResultGO;
     public TextMeshProUGUI ResultTxt;
@@ -107,12 +105,6 @@ public class GameManagerScr : MonoBehaviour
 
         GiveHandCards(CurrentGame.EnemyDeck, EnemyHand);
         GiveHandCards(CurrentGame.PlayerDeck, PlayerHand);
-
-        PlayerMana = EnemyMana = 10;
-        PlayerHP = EnemyHP = 30;
-
-        ShowHP();
-        ShowMana();
 
         ResultGO.SetActive(false);
 
@@ -196,10 +188,13 @@ public class GameManagerScr : MonoBehaviour
 
         for (int i = 0; i < count; i++)
         {
-            if (EnemyFieldCards.Count > 5 || EnemyMana == 0 || EnemyHandCards.Count == 0)
+            if (EnemyFieldCards.Count > 5 || 
+                //EnemyMana == 0 || 
+                EnemyHandCards.Count == 0)
                 break;
 
-            List<CardController> cardsList = cards.FindAll(x => EnemyMana >= x.Card.Manacost && !x.Card.IsSpell);
+            //List<CardController> cardsList = cards.FindAll(x => EnemyMana >= x.Card.Manacost && !x.Card.IsSpell); 
+            List<CardController> cardsList = cards.FindAll(x => !x.Card.IsSpell);
 
             if (cardsList.Count == 0)
                 break;
@@ -264,8 +259,13 @@ public class GameManagerScr : MonoBehaviour
         {
             GiveNewCards();
 
-            PlayerMana = EnemyMana = 10;
-            ShowMana();
+            CurrentGame.Player.IncreaseManapool();
+            CurrentGame.Player.RestoreRoundMana();
+        }
+        else
+        {
+            CurrentGame.Enemy.IncreaseManapool();
+            CurrentGame.Enemy.RestoreRoundMana();
         }
 
         StartCoroutine(TurnFunc());
@@ -290,48 +290,33 @@ public class GameManagerScr : MonoBehaviour
         defender.CheckForAlive();
     }
 
-    public void ShowMana()
-    {
-        PlayerManaTxt.text = PlayerMana.ToString();
-        EnemyManaTxt.text = EnemyMana.ToString();
-    }
-
-    public void ShowHP()
-    {
-        EnemyHPTxt.text = EnemyHP.ToString();
-        PlayerHPTxt.text = PlayerHP.ToString();
-    }
-
     public void ReduceMana(bool playerMana, int manacost)
     {
         if (playerMana)
-            PlayerMana = Mathf.Clamp(PlayerMana - manacost, 0, int.MaxValue);
+            CurrentGame.Player.Mana -= manacost;
         else
-            EnemyMana = Mathf.Clamp(EnemyMana - manacost, 0, int.MaxValue);
-
-        ShowMana();
+            CurrentGame.Enemy.Mana -= manacost;
     }
 
     public void DamageHero(CardController card, bool isEnemyAttacked) 
     {
         if (isEnemyAttacked)
-            EnemyHP = Mathf.Clamp(EnemyHP - card.Card.Attack, 0, int.MaxValue);
+            CurrentGame.Enemy.GetDamage(card.Card.Attack);
         else
-            PlayerHP = Mathf.Clamp(PlayerHP - card.Card.Attack, 0, int.MaxValue);
+            CurrentGame.Player.GetDamage(card.Card.Attack);
 
-        ShowHP();
         card.OnDamageDeal();
         CheckForResult();
     }
 
     public void CheckForResult() 
     {
-        if (EnemyHP == 0 || PlayerHP == 0)
+        if (CurrentGame.Enemy.HP == 0 || CurrentGame.Player.HP == 0)
         {
             ResultGO.SetActive(true); 
             StopAllCoroutines();
 
-            if (EnemyHP == 0)
+            if (CurrentGame.Enemy.HP == 0)
                 ResultTxt.text = "WIN gratz";
             else
                 ResultTxt.text = "-25";
@@ -341,7 +326,7 @@ public class GameManagerScr : MonoBehaviour
     public void CheckCardsForManaAvailability()
     {
         foreach (var card in PlayerHandCards)
-            card.Info.HighlightManaAvaliability(PlayerMana);
+            card.Info.HighlightManaAvaliability(CurrentGame.Player.Mana);
     }
 
     public void HighlightTargets(CardController attacker,bool highlight)

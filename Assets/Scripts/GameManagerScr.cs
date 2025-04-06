@@ -17,8 +17,15 @@ public class Game
     List<Card> GiveDeckCard()
     {
         List<Card> list = new List<Card>();
-        for (int i = 0; i < 10; i++)
-            list.Add(CardManager.AllCards[Random.Range(0, CardManager.AllCards.Count)].GetCopy());
+        list.Add(CardManager.AllCards[6].GetCopy());
+        for (int i = 0; i < 20; i++)
+        {
+            var card = CardManager.AllCards[Random.Range(0, CardManager.AllCards.Count)];
+            if (card.IsSpell)
+                list.Add(((SpellCard)card).GetCopy());
+            else
+                list.Add(card.GetCopy());
+        }
         return list;
     }
 }
@@ -343,9 +350,11 @@ public class GameManagerScr : MonoBehaviour
 
         if (attacker.Card.IsSpell)
         {
-            if (attacker.Card.SpellTarget == Card.TargetType.NO_TARGET)
+            var spellCard = (SpellCard)attacker.Card;
+
+            if (spellCard.SpellTarget == SpellCard.TargetType.NO_TARGET)
                 targets = new List<CardController>();
-            else if (attacker.Card.SpellTarget == Card.TargetType.ALLY_CARD_TARGET)
+            else if (spellCard.SpellTarget == SpellCard.TargetType.ALLY_CARD_TARGET)
                 targets = PlayerFieldCards;
             else
                 targets = EnemyFieldCards;

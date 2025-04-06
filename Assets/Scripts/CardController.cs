@@ -55,6 +55,8 @@ public class CardController : MonoBehaviour
 
         if (Card.IsSpell)
             UseSpell(null);
+
+        UIController.Instance.UpdateHPAndMana();
     }
 
     public void OnTakeDamage(CardController attacker = null)
@@ -110,7 +112,7 @@ public class CardController : MonoBehaviour
                 else
                     gameManager.CurrentGame.Enemy.HP += spellCard.SpellValue;
 
-                //gameManager.ShowHP();
+                UIController.Instance.UpdateHPAndMana();
 
                 break;
 
@@ -121,7 +123,7 @@ public class CardController : MonoBehaviour
                 else
                     gameManager.CurrentGame.Player.HP -= spellCard.SpellValue;
 
-                //gameManager.ShowHP();
+                UIController.Instance.UpdateHPAndMana();
                 gameManager.CheckForResult();
 
                 break;

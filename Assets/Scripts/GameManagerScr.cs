@@ -39,22 +39,17 @@ public class GameManagerScr : MonoBehaviour
     public static GameManagerScr Instance;
 
     public Game CurrentGame;
+
     public Transform EnemyHand, PlayerHand, EnemyField, PlayerField;
+
     public GameObject CardPref;
-
+    
     int Turn, TurnTime = 30;
-    public TextMeshProUGUI TurnTimeTxt;
-    public Button EndTurnBtn;
-
-    public GameObject ResultGO;
-    public TextMeshProUGUI ResultTxt;
 
     public AttackedHero EnemyHero, PlayerHero;
 
-    public List<CardController> PlayerHandCards = new List<CardController>(), 
-                                PlayerFieldCards = new List<CardController>(), 
-                                EnemyHandCards = new List<CardController>(), 
-                                EnemyFieldCards = new List<CardController>();
+    public List<CardController> PlayerHandCards = new List<CardController>(), PlayerFieldCards = new List<CardController>(), 
+                                EnemyHandCards = new List<CardController>(), EnemyFieldCards = new List<CardController>();
 
     public bool IsPlayerTurn 
     {
@@ -99,14 +94,13 @@ public class GameManagerScr : MonoBehaviour
     void StartGame()
     {
         Turn = 0;
-        EndTurnBtn.interactable = true;
 
         CurrentGame = new Game();
 
         GiveHandCards(CurrentGame.EnemyDeck, EnemyHand);
         GiveHandCards(CurrentGame.PlayerDeck, PlayerHand);
 
-        ResultGO.SetActive(false);
+        UIController.Instance.StartGame();
 
         StartCoroutine(TurnFunc());
     }
@@ -144,7 +138,7 @@ public class GameManagerScr : MonoBehaviour
     IEnumerator TurnFunc() 
     {
         TurnTime = 30;
-        TurnTimeTxt.text = TurnTime.ToString();
+        UIController.Instance.UpdateTurnTime(TurnTime);
 
         foreach (var card in PlayerFieldCards)
             card.Info.HighlightCard(false);
@@ -162,7 +156,7 @@ public class GameManagerScr : MonoBehaviour
 
             while (TurnTime-- > 0)
             {
-                TurnTimeTxt.text = TurnTime.ToString();
+                UIController.Instance.UpdateTurnTime(TurnTime);
                 yield return new WaitForSeconds(1);
             }
 
@@ -253,7 +247,7 @@ public class GameManagerScr : MonoBehaviour
     {
         StopAllCoroutines();
         Turn++;
-        EndTurnBtn.interactable = IsPlayerTurn;
+        UIController.Instance.DisableTurnBtn();
 
         if (IsPlayerTurn)
         {
@@ -261,6 +255,8 @@ public class GameManagerScr : MonoBehaviour
 
             CurrentGame.Player.IncreaseManapool();
             CurrentGame.Player.RestoreRoundMana();
+
+            UIController.Instance.UpdateHPAndMana();
         }
         else
         {
@@ -296,6 +292,8 @@ public class GameManagerScr : MonoBehaviour
             CurrentGame.Player.Mana -= manacost;
         else
             CurrentGame.Enemy.Mana -= manacost;
+
+        UIController.Instance.UpdateHPAndMana();
     }
 
     public void DamageHero(CardController card, bool isEnemyAttacked) 
@@ -305,6 +303,7 @@ public class GameManagerScr : MonoBehaviour
         else
             CurrentGame.Player.GetDamage(card.Card.Attack);
 
+        UIController.Instance.UpdateHPAndMana();
         card.OnDamageDeal();
         CheckForResult();
     }
@@ -313,13 +312,8 @@ public class GameManagerScr : MonoBehaviour
     {
         if (CurrentGame.Enemy.HP == 0 || CurrentGame.Player.HP == 0)
         {
-            ResultGO.SetActive(true); 
             StopAllCoroutines();
-
-            if (CurrentGame.Enemy.HP == 0)
-                ResultTxt.text = "WIN gratz";
-            else
-                ResultTxt.text = "-25";
+            UIController.Instance.ShowResult();
         }
     }
 

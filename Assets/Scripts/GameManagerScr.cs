@@ -47,7 +47,7 @@ public class GameManagerScr : MonoBehaviour
     int Turn, TurnTime = 30;
 
     public AttackedHero EnemyHero, PlayerHero;
-
+    public AI EnemyAI;
     public List<CardController> PlayerHandCards = new List<CardController>(), PlayerFieldCards = new List<CardController>(), 
                                 EnemyHandCards = new List<CardController>(), EnemyFieldCards = new List<CardController>();
 
@@ -170,77 +170,16 @@ public class GameManagerScr : MonoBehaviour
                 card.Ability.OnNewTurn();
             }
 
-            StartCoroutine(EnemyTurn(EnemyHandCards));
-        }
-    }
+            EnemyAI.MakeTurn();
 
-    IEnumerator EnemyTurn(List<CardController> cards)
-    {
-        yield return new WaitForSeconds(1);
-
-        int count = cards.Count == 1 ? 1 : Random.Range(0, cards.Count);
-
-        for (int i = 0; i < count; i++)
-        {
-            if (EnemyFieldCards.Count > 5 || 
-                //EnemyMana == 0 || 
-                EnemyHandCards.Count == 0)
-                break;
-
-            //List<CardController> cardsList = cards.FindAll(x => EnemyMana >= x.Card.Manacost && !x.Card.IsSpell); 
-            List<CardController> cardsList = cards.FindAll(x => !x.Card.IsSpell);
-
-            if (cardsList.Count == 0)
-                break;
-
-            cardsList[0].GetComponent<CardMovementScr>().MoveToField(EnemyField);
-            
-            yield return new WaitForSeconds(.51f);
-
-            cardsList[0].transform.SetParent(EnemyField);
-
-            cardsList[0].OnCast();
-        }
-
-        yield return new WaitForSeconds(1);
-
-        while (EnemyFieldCards.Exists(x => x.Card.CanAttack))
-        {
-            var activeCard = EnemyFieldCards.FindAll(x => x.Card.CanAttack)[0];
-            bool hasProvocation = PlayerFieldCards.Exists(x => x.Card.IsProvocation);
-
-            if (hasProvocation || Random.Range(0, 2) == 0 && PlayerFieldCards.Count > 0)
+            while (TurnTime > 0)
             {
-                CardController enemy;
-
-                if (hasProvocation)
-                    enemy = PlayerFieldCards.Find(x => x.Card.IsProvocation);
-                else
-                    enemy = PlayerFieldCards[Random.Range(0, PlayerFieldCards.Count)];
-
-                Debug.Log(activeCard.Card.Name + "(" + activeCard.Card.Attack + ";" + activeCard.Card.Defense + "))" + "---> " +
-                enemy.Card.Name + " (" + enemy.Card.Attack + ";" + enemy.Card.Defense + ")");
-                
-                activeCard.Movement.MoveToTarget(enemy.transform);
-                yield return new WaitForSeconds(.75f);
-
-                CardsFight(activeCard, enemy);
-            }
-            else
-            {
-                Debug.Log(activeCard.Card.Name + " (" + activeCard.Card.Attack + ") Attacked Hero");
-
-                activeCard.GetComponent<CardMovementScr>().MoveToTarget(PlayerHero.transform);
-                yield return new WaitForSeconds(.75f);
-
-                DamageHero(activeCard, false);
+                UIController.Instance.UpdateTurnTime(TurnTime);
+                yield return new WaitForSeconds(1);
             }
 
-            yield return new WaitForSeconds(.2f);
+            ChangeTurn();
         }
-
-        yield return new WaitForSeconds(1);
-        ChangeTurn();
     }
 
     public void ChangeTurn()

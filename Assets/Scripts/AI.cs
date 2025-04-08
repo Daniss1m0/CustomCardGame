@@ -57,8 +57,8 @@ public class AI : MonoBehaviour
                 else
                     enemy = GameManagerScr.Instance.PlayerFieldCards[Random.Range(0, GameManagerScr.Instance.PlayerFieldCards.Count)];
 
-                Debug.Log(activeCard.Card.Name + "(" + activeCard.Card.Attack + ";" + activeCard.Card.Defense + "))" + "---> " +
-                enemy.Card.Name + " (" + enemy.Card.Attack + ";" + enemy.Card.Defense + ")");
+                Debug.Log(activeCard.Card.Name + "(" + activeCard.Card.Attack + ";" + activeCard.Card.Health + "))" + "---> " +
+                enemy.Card.Name + " (" + enemy.Card.Attack + ";" + enemy.Card.Health + ")");
 
                 activeCard.Movement.MoveToTarget(enemy.transform);
                 yield return new WaitForSeconds(.75f);

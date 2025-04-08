@@ -16,7 +16,7 @@ public class Card
 
     public string Name;
     public Sprite Logo;
-    public int Attack, Defense, Manacost;
+    public int Attack, Health, Manacost;
     public bool CanAttack;
     public bool IsPlaced;
 
@@ -30,7 +30,7 @@ public class Card
     {
         get 
         {
-            return Defense > 0;
+            return Health > 0;
         }
     }
 
@@ -50,12 +50,12 @@ public class Card
         }
     }
 
-    public Card(string name, string logoPath, int attack, int defense, int manacost, AbilityType abilityType = 0)
+    public Card(string name, string logoPath, int attack, int health, int manacost, AbilityType abilityType = 0)
     {
         Name = name;
         Logo = Resources.Load<Sprite>(logoPath);
         Attack = attack;
-        Defense = defense;
+        Health = health;
         Manacost = manacost;
         CanAttack = false;
         IsPlaced = false;
@@ -73,7 +73,7 @@ public class Card
         Name = card.Name;
         Logo = card.Logo;
         Attack = card.Attack;
-        Defense = card.Defense;
+        Health = card.Health;
         Manacost = card.Manacost;
         CanAttack = false;
         IsPlaced = false;
@@ -90,7 +90,7 @@ public class Card
             if (Abilities.Exists(x => x == AbilityType.SHIELD))
                 Abilities.Remove(AbilityType.SHIELD);
             else
-                Defense -= dmg;
+                Health -= dmg;
 
         }    
     }

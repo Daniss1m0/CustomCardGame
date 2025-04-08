@@ -78,7 +78,7 @@ public class CardAbility : MonoBehaviour
             switch (ability)
             {
                 case Card.AbilityType.REGENERATION_EACH_TURN:
-                    CC.Card.Defense += 2;
+                    CC.Card.Health += 2;
                     CC.Info.RefreshData();
                     break;
             }

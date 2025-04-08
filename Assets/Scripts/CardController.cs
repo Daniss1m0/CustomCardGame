@@ -89,7 +89,7 @@ public class CardController : MonoBehaviour
 
                 foreach (var card in allyCards)
                 {
-                    card.Card.Defense += spellCard.SpellValue;
+                    card.Card.Health += spellCard.SpellValue;
                     card.Info.RefreshData();
                 }
                 break;
@@ -129,7 +129,7 @@ public class CardController : MonoBehaviour
                 break;
 
             case SpellCard.SpellType.HEAL_ALLY_CARD:
-                target.Card.Defense += spellCard.SpellValue;
+                target.Card.Health += spellCard.SpellValue;
                 break;
 
             case SpellCard.SpellType.DAMAGE_ENEMY_CARD:

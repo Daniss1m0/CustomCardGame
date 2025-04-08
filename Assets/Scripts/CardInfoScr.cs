@@ -9,7 +9,7 @@ public class CardInfoScr : MonoBehaviour
     public CardController CC;
 
     public Image Logo;
-    public TextMeshProUGUI Name, Attack, Defense, Manacost;
+    public TextMeshProUGUI Name, Attack, Health, Manacost;
     public GameObject HideObj, HighlightedObj;
     public Color NormalCol, TargetCol, SpellTargetCol;
 
@@ -30,7 +30,7 @@ public class CardInfoScr : MonoBehaviour
         if (CC.Card.IsSpell)
         {
             Attack.gameObject.SetActive(false);
-            Defense.gameObject.SetActive(false);
+            Health.gameObject.SetActive(false);
         }
 
         RefreshData();
@@ -39,7 +39,7 @@ public class CardInfoScr : MonoBehaviour
     public void RefreshData() 
     {
         Attack.text = CC.Card.Attack.ToString();
-        Defense.text = CC.Card.Defense.ToString();
+        Health.text = CC.Card.Health.ToString();
         Manacost.text = CC.Card.Manacost.ToString();
     }
 

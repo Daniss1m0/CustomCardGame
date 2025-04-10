@@ -109,19 +109,17 @@ public class AI : MonoBehaviour
                 break;
 
             case SpellCard.TargetType.ALLY_CARD_TARGET:
+
                 if (GameManagerScr.Instance.EnemyFieldCards.Count > 0)
-                    StartCoroutine(CastCard(
-                        card,
-                        GameManagerScr.Instance.EnemyFieldCards[Random.Range(0, GameManagerScr.Instance.EnemyFieldCards.Count)]
-                    ));
+                    StartCoroutine(CastCard(card,
+                        GameManagerScr.Instance.EnemyFieldCards[Random.Range(0, GameManagerScr.Instance.EnemyFieldCards.Count)]));
                 break;
 
             case SpellCard.TargetType.ENEMY_CARD_TARGET:
+
                 if (GameManagerScr.Instance.PlayerFieldCards.Count > 0)
-                    StartCoroutine(CastCard(
-                        card,
-                        GameManagerScr.Instance.PlayerFieldCards[Random.Range(0, GameManagerScr.Instance.PlayerFieldCards.Count)]
-                    ));
+                    StartCoroutine(CastCard(card,
+                        GameManagerScr.Instance.PlayerFieldCards[Random.Range(0, GameManagerScr.Instance.PlayerFieldCards.Count)]));
                 break;
         }
     }
@@ -131,7 +129,7 @@ public class AI : MonoBehaviour
         if (((SpellCard)spell.Card).SpellTarget == SpellCard.TargetType.NO_TARGET)
         {
             spell.GetComponent<CardMovementScr>().MoveToField(GameManagerScr.Instance.EnemyField);
-            yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(.51f);
 
             spell.OnCast();
         }
@@ -139,7 +137,7 @@ public class AI : MonoBehaviour
         {
             spell.Info.ShowCardInfo();
             spell.GetComponent<CardMovementScr>().MoveToTarget(target.transform);
-            yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(.51f);
 
             GameManagerScr.Instance.EnemyHandCards.Remove(spell);
             GameManagerScr.Instance.EnemyFieldCards.Add(spell);

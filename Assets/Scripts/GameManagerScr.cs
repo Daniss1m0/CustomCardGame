@@ -172,7 +172,7 @@ public class GameManagerScr : MonoBehaviour
 
             EnemyAI.MakeTurn();
 
-            while (TurnTime > 0)
+            while (TurnTime-- > 0)
             {
                 UIController.Instance.UpdateTurnTime(TurnTime);
                 yield return new WaitForSeconds(1);

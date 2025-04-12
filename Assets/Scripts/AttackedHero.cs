@@ -28,8 +28,6 @@ public class AttackedHero : MonoBehaviour, IDropHandler
 
     public void HighlightAsTarget(bool highlight)
     {
-        GetComponent<Image>().color = highlight ?
-            TargetCol :
-            NormalCol;
+        GetComponent<Image>().color = highlight ? TargetCol : NormalCol;
     }
 }

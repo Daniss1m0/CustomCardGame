@@ -8,7 +8,7 @@ public class Player
     public Player()
     {
         HP = 30;
-        Mana = Manapool = 2;
+        Mana = Manapool = 1;
     }
 
     public void RestoreRoundMana()

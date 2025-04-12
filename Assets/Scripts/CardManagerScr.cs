@@ -19,12 +19,10 @@ public class Card
     public int Attack, Health, Manacost;
     public bool CanAttack;
     public bool IsPlaced;
+    public bool IsSpell;
+    public int TimesDealedDamage;
 
     public List<AbilityType> Abilities;
-
-    public bool IsSpell;
-
-    public int TimesDealedDamage;
 
     public bool IsAlive 
     {
@@ -91,7 +89,6 @@ public class Card
                 Abilities.Remove(AbilityType.SHIELD);
             else
                 Health -= dmg;
-
         }    
     }
 
@@ -129,8 +126,8 @@ public class SpellCard : Card
     public TargetType SpellTarget;
     public int SpellValue;
 
-    public SpellCard(string name, string logoPath, int manacost, SpellType spellType = 0,
-                     int spellValue = 0, TargetType targetType = 0) : base(name, logoPath, 0, 0, manacost)
+    public SpellCard(string name, string logoPath, int manacost, SpellType spellType = 0, int spellValue = 0, TargetType targetType = 0) 
+        : base(name, logoPath, 0, 0, manacost)
     {
         IsSpell = true;
 

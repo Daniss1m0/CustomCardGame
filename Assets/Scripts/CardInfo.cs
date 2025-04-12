@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-public class CardInfoScr : MonoBehaviour
+public class CardInfo : MonoBehaviour
 {
     public CardController CC;
 
@@ -50,23 +50,17 @@ public class CardInfoScr : MonoBehaviour
 
     public void HighlightManaAvaliability(int currentMana)
     {
-        GetComponent<CanvasGroup>().alpha = currentMana >= CC.Card.Manacost ?
-            1 :
-            0.5f;
+        GetComponent<CanvasGroup>().alpha = currentMana >= CC.Card.Manacost ? 1 : 0.5f;
     }
 
     public void HighlightAsTarget(bool highlight)
     {
-        GetComponent<Image>().color = highlight ?
-            TargetCol :
-            NormalCol;
+        GetComponent<Image>().color = highlight ? TargetCol : NormalCol;
     }
 
 
     public void HighlightAsSpellTarget(bool highlight)
     {
-        GetComponent<Image>().color = highlight ?
-            SpellTargetCol :
-            NormalCol;
+        GetComponent<Image>().color = highlight ? SpellTargetCol : NormalCol;
     }
 }

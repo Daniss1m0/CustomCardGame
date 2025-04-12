@@ -17,9 +17,7 @@ public class AI : MonoBehaviour
 
         for (int i = 0; i < count; i++)
         {
-            if (GameManagerScr.Instance.EnemyFieldCards.Count > 5 ||
-                GameManagerScr.Instance.CurrentGame.Enemy.Mana == 0 ||
-                GameManagerScr.Instance.EnemyHandCards.Count == 0)
+            if (GameManagerScr.Instance.EnemyFieldCards.Count > 5 || GameManagerScr.Instance.CurrentGame.Enemy.Mana == 0 || GameManagerScr.Instance.EnemyHandCards.Count == 0)
                 break;
 
             List<CardController> cardsList = cards.FindAll(x => GameManagerScr.Instance.CurrentGame.Enemy.Mana >= x.Card.Manacost); 
@@ -34,7 +32,7 @@ public class AI : MonoBehaviour
             }
             else
             {
-                cardsList[0].GetComponent<CardMovementScr>().MoveToField(GameManagerScr.Instance.EnemyField);
+                cardsList[0].GetComponent<CardMovement>().MoveToField(GameManagerScr.Instance.EnemyField);
                 yield return new WaitForSeconds(.51f);
                 cardsList[0].transform.SetParent(GameManagerScr.Instance.EnemyField);
                 cardsList[0].OnCast();
@@ -69,7 +67,7 @@ public class AI : MonoBehaviour
             {
                 Debug.Log(activeCard.Card.Name + " (" + activeCard.Card.Attack + ") Attacked Hero");
 
-                activeCard.GetComponent<CardMovementScr>().MoveToTarget(GameManagerScr.Instance.PlayerHero.transform);
+                activeCard.GetComponent<CardMovement>().MoveToTarget(GameManagerScr.Instance.PlayerHero.transform);
                 yield return new WaitForSeconds(.75f);
 
                 GameManagerScr.Instance.DamageHero(activeCard, false);
@@ -105,21 +103,18 @@ public class AI : MonoBehaviour
                         StartCoroutine(CastCard(card));
                         break;
                 }
-
                 break;
 
             case SpellCard.TargetType.ALLY_CARD_TARGET:
 
                 if (GameManagerScr.Instance.EnemyFieldCards.Count > 0)
-                    StartCoroutine(CastCard(card,
-                        GameManagerScr.Instance.EnemyFieldCards[Random.Range(0, GameManagerScr.Instance.EnemyFieldCards.Count)]));
+                    StartCoroutine(CastCard(card, GameManagerScr.Instance.EnemyFieldCards[Random.Range(0, GameManagerScr.Instance.EnemyFieldCards.Count)]));
                 break;
 
             case SpellCard.TargetType.ENEMY_CARD_TARGET:
 
                 if (GameManagerScr.Instance.PlayerFieldCards.Count > 0)
-                    StartCoroutine(CastCard(card,
-                        GameManagerScr.Instance.PlayerFieldCards[Random.Range(0, GameManagerScr.Instance.PlayerFieldCards.Count)]));
+                    StartCoroutine(CastCard(card, GameManagerScr.Instance.PlayerFieldCards[Random.Range(0, GameManagerScr.Instance.PlayerFieldCards.Count)]));
                 break;
         }
     }
@@ -128,7 +123,7 @@ public class AI : MonoBehaviour
     {
         if (((SpellCard)spell.Card).SpellTarget == SpellCard.TargetType.NO_TARGET)
         {
-            spell.GetComponent<CardMovementScr>().MoveToField(GameManagerScr.Instance.EnemyField);
+            spell.GetComponent<CardMovement>().MoveToField(GameManagerScr.Instance.EnemyField);
             yield return new WaitForSeconds(.51f);
 
             spell.OnCast();
@@ -136,7 +131,7 @@ public class AI : MonoBehaviour
         else
         {
             spell.Info.ShowCardInfo();
-            spell.GetComponent<CardMovementScr>().MoveToTarget(target.transform);
+            spell.GetComponent<CardMovement>().MoveToTarget(target.transform);
             yield return new WaitForSeconds(.51f);
 
             GameManagerScr.Instance.EnemyHandCards.Remove(spell);

@@ -288,7 +288,6 @@ public class GameManagerScr : MonoBehaviour
             }   
         }
 
-
         foreach (var card in targets)
         {
             if (attacker.Card.IsSpell)

@@ -5,7 +5,7 @@ using UnityEngine.EventSystems;
 using DG.Tweening;
 using UnityEngine.UI;
 
-public class CardMovementScr : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
+public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     public CardController CC;
 
@@ -31,10 +31,10 @@ public class CardMovementScr : MonoBehaviour, IBeginDragHandler, IDragHandler, I
 
         IsDraggable = GameManagerScr.Instance.IsPlayerTurn &&
         (
-            (DefaultParent.GetComponent<DropPlaceScr>().Type == FieldType.SELF_HAND &&
+            (DefaultParent.GetComponent<DropPlace>().Type == FieldType.SELF_HAND &&
             GameManagerScr.Instance.CurrentGame.Player.Mana >= CC.Card.Manacost)
             ||
-            (DefaultParent.GetComponent<DropPlaceScr>().Type == FieldType.SELF_FIELD &&
+            (DefaultParent.GetComponent<DropPlace>().Type == FieldType.SELF_FIELD &&
             CC.Card.CanAttack)
         );
 
@@ -66,7 +66,7 @@ public class CardMovementScr : MonoBehaviour, IBeginDragHandler, IDragHandler, I
             if (TempCardGO.transform.parent != DefaultTempCardParent)
                 TempCardGO.transform.SetParent(DefaultTempCardParent);
 
-            if (DefaultParent.GetComponent<DropPlaceScr>().Type != FieldType.SELF_FIELD)
+            if (DefaultParent.GetComponent<DropPlace>().Type != FieldType.SELF_FIELD)
                 CheckPosition();
         }
     }

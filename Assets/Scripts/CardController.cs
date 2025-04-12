@@ -7,8 +7,8 @@ public class CardController : MonoBehaviour
     public Card Card;
     public bool IsPlayerCard;
 
-    public CardInfoScr Info;
-    public CardMovementScr Movement;
+    public CardInfo Info;
+    public CardMovement Movement;
     public CardAbility Ability;
 
     GameManagerScr gameManager;
@@ -92,6 +92,7 @@ public class CardController : MonoBehaviour
                     card.Card.Health += spellCard.SpellValue;
                     card.Info.RefreshData();
                 }
+                
                 break;
 
             case SpellCard.SpellType.DAMAGE_ENEMY_FIELD_CARDS:
@@ -133,25 +134,35 @@ public class CardController : MonoBehaviour
                 break;
 
             case SpellCard.SpellType.DAMAGE_ENEMY_CARD:
+                
                 GiveDamageTo(target, spellCard.SpellValue);
+                
                 break;
 
             case SpellCard.SpellType.SHIELD_ON_ALLY_CARD:
+                
                 if (!target.Card.Abilities.Exists(x => x == Card.AbilityType.SHIELD))
                     target.Card.Abilities.Add(Card.AbilityType.SHIELD);
+                
                 break;
 
             case SpellCard.SpellType.PROVOCATION_ON_ALLY_CARD:
+                
                 if (!target.Card.Abilities.Exists(x => x == Card.AbilityType.PROVOCATION))
                     target.Card.Abilities.Add(Card.AbilityType.PROVOCATION);
+                
                 break;
 
             case SpellCard.SpellType.BUFF_CARD_DAMAGE:
+                
                 target.Card.Attack += spellCard.SpellValue;
+                
                 break;
 
             case SpellCard.SpellType.DEBUFF_CARD_DAMAGE:
+                
                 target.Card.Attack = Mathf.Clamp(target.Card.Attack - spellCard.SpellValue, 0, int.MaxValue);
+                
                 break;
         }
 

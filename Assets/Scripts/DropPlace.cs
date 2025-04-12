@@ -11,7 +11,7 @@ public enum FieldType
     ENEMY_FIELD
 }
 
-public class DropPlaceScr : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPointerExitHandler
+public class DropPlace : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPointerExitHandler
 {
     public FieldType Type;
 
@@ -22,10 +22,7 @@ public class DropPlaceScr : MonoBehaviour, IDropHandler, IPointerEnterHandler, I
 
         CardController card = eventData.pointerDrag.GetComponent<CardController>();
 
-        if (card && 
-            GameManagerScr.Instance.IsPlayerTurn &&
-            GameManagerScr.Instance.CurrentGame.Player.Mana >= card.Card.Manacost && 
-            !card.Card.IsPlaced)
+        if (card && GameManagerScr.Instance.IsPlayerTurn && GameManagerScr.Instance.CurrentGame.Player.Mana >= card.Card.Manacost && !card.Card.IsPlaced)
         {
             if (!card.Card.IsSpell)
                 card.Movement.DefaultParent = transform;
@@ -39,7 +36,7 @@ public class DropPlaceScr : MonoBehaviour, IDropHandler, IPointerEnterHandler, I
         if (eventData.pointerDrag == null || Type == FieldType.ENEMY_FIELD || Type == FieldType.ENEMY_HAND || Type == FieldType.SELF_HAND)
             return;
 
-        CardMovementScr card = eventData.pointerDrag.GetComponent<CardMovementScr>();
+        CardMovement card = eventData.pointerDrag.GetComponent<CardMovement>();
 
         if (card)
             card.DefaultTempCardParent = transform;
@@ -50,7 +47,7 @@ public class DropPlaceScr : MonoBehaviour, IDropHandler, IPointerEnterHandler, I
         if (eventData.pointerDrag == null)
             return;
 
-        CardMovementScr card = eventData.pointerDrag.GetComponent<CardMovementScr>();
+        CardMovement card = eventData.pointerDrag.GetComponent<CardMovement>();
 
         if (card && card.DefaultTempCardParent == transform)
             card.DefaultTempCardParent = card.DefaultParent;

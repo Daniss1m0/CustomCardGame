@@ -160,39 +160,37 @@ public class CardManagerScr : MonoBehaviour
 {
     public void Awake()
     {
-        CardManager.AllCards.Add(new Card("ebalo", "Sprites/Cards/)", 5, 5, 6));
-        CardManager.AllCards.Add(new Card("buldiga", "Sprites/Cards/Akane", 4, 3, 5));
-        CardManager.AllCards.Add(new Card("hmm", "Sprites/Cards/gto", 3, 3, 4));
-        CardManager.AllCards.Add(new Card("micro", "Sprites/Cards/igris", 2, 1, 2));
-        CardManager.AllCards.Add(new Card("pominki", "Sprites/Cards/isagi", 8, 1, 7));
-        CardManager.AllCards.Add(new Card("pomokka", "Sprites/Cards/lollol", 1, 1, 1));
+        CardManager.AllCards.Add(new Card("Absolwent", "Sprites/Cards/Absolwent)", 5, 5, 6));
+        CardManager.AllCards.Add(new Card("Asystent", "Sprites/Cards/Asystent", 4, 3, 5));
+        CardManager.AllCards.Add(new Card("Inzynier", "Sprites/Cards/Inzynier", 3, 3, 4));
+        CardManager.AllCards.Add(new Card("Student", "Sprites/Cards/Student", 2, 1, 2));
 
-        CardManager.AllCards.Add(new Card("provocation", "Sprites/Cards/satoru", 1, 2, 3, Card.AbilityType.PROVOCATION));
-        CardManager.AllCards.Add(new Card("regeneration", "Sprites/Cards/torpin", 4, 2, 5, Card.AbilityType.REGENERATION_EACH_TURN));
-        CardManager.AllCards.Add(new Card("doubleattack", "Sprites/Cards/yuki1", 3, 2, 4, Card.AbilityType.DOUBLE_ATTACK));
-        CardManager.AllCards.Add(new Card("instantActive", "Sprites/Cards/yuki2", 2, 1, 2, Card.AbilityType.INSTANT_ACTIVE));
-        CardManager.AllCards.Add(new Card("shield", "Sprites/Cards/beru", 5, 1, 7, Card.AbilityType.SHIELD));
-        CardManager.AllCards.Add(new Card("counterAttack", "Sprites/Cards/rofls", 3, 1, 1, Card.AbilityType.COUNTER_ATTACK));
+        CardManager.AllCards.Add(new Card("Magister", "Sprites/Cards/Magister", 1, 2, 3, Card.AbilityType.PROVOCATION));
+        CardManager.AllCards.Add(new Card("Rektor", "Sprites/Cards/Rektor", 4, 2, 5, Card.AbilityType.REGENERATION_EACH_TURN));
+        CardManager.AllCards.Add(new Card("Biblioteka", "Sprites/Cards/Biblioteka", 3, 2, 4, Card.AbilityType.DOUBLE_ATTACK));
+        CardManager.AllCards.Add(new Card("Uczen", "Sprites/Cards/Uczen", 2, 1, 2, Card.AbilityType.INSTANT_ACTIVE));
+        CardManager.AllCards.Add(new Card("Wykladowca", "Sprites/Cards/Wykladowca", 5, 1, 7, Card.AbilityType.SHIELD));
+        CardManager.AllCards.Add(new Card("Doktorant", "Sprites/Cards/Doktorant", 3, 1, 1, Card.AbilityType.COUNTER_ATTACK));
 
-        CardManager.AllCards.Add(new SpellCard("HEAL_ALLY_FIELD_CARDS", "Sprites/Cards/healthlyCards", 2,
+        CardManager.AllCards.Add(new SpellCard("Podrecznik", "Sprites/Cards/Podrecznik", 2,
             SpellCard.SpellType.HEAL_ALLY_FIELD_CARDS, 2, SpellCard.TargetType.NO_TARGET));
-        CardManager.AllCards.Add(new SpellCard("DAMAGE_ENEMY_FIELD_CARDS", "Sprites/Cards/damageEnemyCards", 2,
+        CardManager.AllCards.Add(new SpellCard("Impreza", "Sprites/Cards/Impreza", 2,
             SpellCard.SpellType.DAMAGE_ENEMY_FIELD_CARDS, 2, SpellCard.TargetType.NO_TARGET));
-        CardManager.AllCards.Add(new SpellCard("HEAL_ALLY_HERO", "Sprites/Cards/healthlyHero", 2,
+        CardManager.AllCards.Add(new SpellCard("Kawa", "Sprites/Cards/Kawa", 2,
             SpellCard.SpellType.HEAL_ALLY_HERO, 2, SpellCard.TargetType.NO_TARGET));
-        CardManager.AllCards.Add(new SpellCard("DAMAGE_ENEMY_HERO", "Sprites/Cards/damageEnemyHero", 2,
+        CardManager.AllCards.Add(new SpellCard("Kserowka", "Sprites/Cards/Kserowka", 2,
             SpellCard.SpellType.DAMAGE_ENEMY_HERO, 2, SpellCard.TargetType.NO_TARGET));
-        CardManager.AllCards.Add(new SpellCard("HEAL_ALLY_CARD", "Sprites/Cards/healthlyCard", 2,
+        CardManager.AllCards.Add(new SpellCard("Obrona", "Sprites/Cards/Obrona", 2,
             SpellCard.SpellType.HEAL_ALLY_CARD, 2, SpellCard.TargetType.ALLY_CARD_TARGET));
-        CardManager.AllCards.Add(new SpellCard("DAMAGE_ENEMY_CARD", "Sprites/Cards/damageEnemyCard", 2,
+        CardManager.AllCards.Add(new SpellCard("Blad", "Sprites/Cards/Blad", 2,
             SpellCard.SpellType.DAMAGE_ENEMY_CARD, 2, SpellCard.TargetType.ENEMY_CARD_TARGET));
-        CardManager.AllCards.Add(new SpellCard("SHIELD_ON_ALLY_CARD", "Sprites/Cards/shieldOnAllyCard", 2,
+        CardManager.AllCards.Add(new SpellCard("Projekt", "Sprites/Cards/Projekt", 2,
             SpellCard.SpellType.SHIELD_ON_ALLY_CARD, 0, SpellCard.TargetType.ALLY_CARD_TARGET));
-        CardManager.AllCards.Add(new SpellCard("PROVOCATION_ON_ALLY_CARD", "Sprites/Cards/provocationOnAllyCard", 2,
+        CardManager.AllCards.Add(new SpellCard("Sesja", "Sprites/Cards/Sesja", 2,
             SpellCard.SpellType.PROVOCATION_ON_ALLY_CARD, 0, SpellCard.TargetType.ALLY_CARD_TARGET));
-        CardManager.AllCards.Add(new SpellCard("BUFF_CARD_DAMAGE", "Sprites/Cards/buffCardDamage", 2,
+        CardManager.AllCards.Add(new SpellCard("Staz", "Sprites/Cards/Staz", 2,
             SpellCard.SpellType.BUFF_CARD_DAMAGE, 2, SpellCard.TargetType.ALLY_CARD_TARGET));
-        CardManager.AllCards.Add(new SpellCard("DEBUFF_CARD_DAMAGE", "Sprites/Cards/debuffCardDamage", 2,
+        CardManager.AllCards.Add(new SpellCard("Egzamin", "Sprites/Cards/Egzamin", 2,
             SpellCard.SpellType.DEBUFF_CARD_DAMAGE, 2, SpellCard.TargetType.ENEMY_CARD_TARGET));
     }
 }

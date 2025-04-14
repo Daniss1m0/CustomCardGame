@@ -382,6 +382,7 @@ GameObject:
   - component: {fileID: -1192024366490733886}
   - component: {fileID: 3691121292238534741}
   - component: {fileID: 1492242163370924450}
+  - component: {fileID: -5443182898796484096}
   m_Layer: 5
   m_Name: CardPref
   m_TagString: Untagged
@@ -407,8 +408,8 @@ RectTransform:
   - {fileID: 4055686057590384209}
   - {fileID: 2060285802494960532}
   - {fileID: 3866046198422667733}
-  - {fileID: 5852353907023899394}
   - {fileID: 2837624408285091705}
+  - {fileID: 5852353907023899394}
   - {fileID: 6873012959003664986}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -561,6 +562,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3df669c75f173d478d09bc7221a7ee2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &-5443182898796484096
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3200919704871707934}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1d3c10017335ba64dacfdeba241dbebf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Logo: {fileID: 4814674246185262947}
+  Name: {fileID: 567506245719870983}
+  Attack: {fileID: 5137814731308018515}
+  Health: {fileID: 2142409535197705870}
+  Manacost: {fileID: 4238930164348061605}
 --- !u!1 &4053713927356968066
 GameObject:
   m_ObjectHideFlags: 0

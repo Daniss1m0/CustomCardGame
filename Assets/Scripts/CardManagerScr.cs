@@ -160,7 +160,7 @@ public class CardManagerScr : MonoBehaviour
 {
     public void Awake()
     {
-        CardManager.AllCards.Add(new Card("Absolwent", "Sprites/Cards/Absolwent)", 5, 5, 6));
+        //CardManager.AllCards.Add(new Card("Absolwent", "Sprites/Cards/Absolwent)", 5, 5, 6));
         CardManager.AllCards.Add(new Card("Asystent", "Sprites/Cards/Asystent", 4, 3, 5));
         CardManager.AllCards.Add(new Card("Inzynier", "Sprites/Cards/Inzynier", 3, 3, 4));
         CardManager.AllCards.Add(new Card("Student", "Sprites/Cards/Student", 2, 1, 2));

@@ -1,17 +1,27 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class MainMenu : MonoBehaviour
+public class MainMenuUI : MonoBehaviour
 {
-    public void PlayGame()
+    public GameObject optionsPanel;
+
+    public void OnPlayButton()
     {
-        SceneManager.LoadSceneAsync(1);
+        SceneManager.LoadScene("DeckSelection");
     }
 
-    public void QuitGame()
+    public void OnCollectionButton()
+    {
+        SceneManager.LoadScene("Collection");
+    }
+
+    public void OnQuitButton()
     {
         Application.Quit();
+    }
+
+    public void OnOptionsButton()
+    {
+        optionsPanel.SetActive(!optionsPanel.activeSelf);
     }
 }

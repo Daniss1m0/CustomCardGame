@@ -9,13 +9,20 @@ public class CollectionManager : MonoBehaviour
     public int CardsPerPage = 12;
     public List<Button> PageButtons;
 
-    private List<Card> allCards;
+    private static List<Card> allCards; // Сохраняется между загрузками сцены
     private int currentPage = 0;
     private List<GameObject> currentCardObjects = new List<GameObject>();
 
+    public GameObject optionsPanel;
+
     void Start()
     {
-        allCards = CardManager.AllCards;
+        if (allCards == null)
+        {
+            // Только один раз загружаем карты из CardManager
+            allCards = new List<Card>(CardManager.AllCards);
+        }
+
         ShowPage(0);
         SetupButtons();
     }
@@ -80,5 +87,10 @@ public class CollectionManager : MonoBehaviour
     public void LoadMainMenu()
     {
         UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
+    }
+
+    public void OnOptionsButton()
+    {
+        optionsPanel.SetActive(!optionsPanel.activeSelf);
     }
 }

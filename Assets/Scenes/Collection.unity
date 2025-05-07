@@ -868,9 +868,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: MainMenu, Assembly-CSharp
-        m_MethodName: PlayGame
+      - m_Target: {fileID: 519420033}
+        m_TargetAssemblyTypeName: CollectionManager, Assembly-CSharp
+        m_MethodName: LoadMainMenu
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1071,6 +1071,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   CardPrefab: {fileID: 3200919704871707934, guid: 941f6405a9f4c074eb161d54445056ff, type: 3}
   CardGrid: {fileID: 1156293710}
+  CardsPerPage: 18
+  PageButtons:
+  - {fileID: 727461330}
+  - {fileID: 1512727766}
+  - {fileID: 1021331779}
+  - {fileID: 520527625}
+  - {fileID: 1157256422}
+  - {fileID: 930566907}
 --- !u!114 &519420034
 MonoBehaviour:
   m_ObjectHideFlags: 0

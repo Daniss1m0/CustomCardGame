@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 5822cfc7514c3d34fb8def60239b7217
+guid: 90b7bb9822fac114a8e9481e5e385184
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -4665686187047379928
-    second: cancel_0
+      213: -5541107675706389100
+    second: 20240707dragonHeaderB_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -113,13 +113,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: cancel_0
+      name: 20240707dragonHeaderB_0
       rect:
         serializedVersion: 2
         x: 0
-        y: 0
-        width: 512
-        height: 512
+        y: 2
+        width: 96
+        height: 28
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -128,8 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 82c189bf127204fb0800000000000000
-      internalID: -4665686187047379928
+      spriteID: 49d845f4de70a13b0800000000000000
+      internalID: -5541107675706389100
       vertices: []
       indices: 
       edges: []
@@ -148,7 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      cancel_0: -4665686187047379928
+      20240707dragonHeaderB_0: -5541107675706389100
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

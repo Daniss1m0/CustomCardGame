@@ -1,12 +1,12 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI; // Не забудь!
+using UnityEngine.UI;
 
 public class DeckSelectionUI : MonoBehaviour
 {
     public GameObject optionsPanel;
-    public Image heroImage; // Картинка справа
-    public Sprite[] deckSprites; // Сюда добавь спрайты для разных колод
+    public Image heroImage;
+    public Sprite[] deckSprites;
 
     private int currentDeckIndex = 0;
 

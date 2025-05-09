@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 8fba815e566d01d47a812a1f2588c53d
+guid: 789566f9756b5124689a9339fecc602f
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 7464906652069523494
-    second: CheckBox09_0
+      213: 7465421964025451728
+    second: CheckBox06_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -113,7 +113,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: CheckBox09_0
+      name: CheckBox06_0
       rect:
         serializedVersion: 2
         x: 0
@@ -128,8 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 620fd0e9c0da89760800000000000000
-      internalID: 7464906652069523494
+      spriteID: 0d4d22809b18a9760800000000000000
+      internalID: 7465421964025451728
       vertices: []
       indices: 
       edges: []
@@ -147,7 +147,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      CheckBox06_0: 7465421964025451728
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -704,7 +704,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 65863107}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 932104545}
+        m_TargetAssemblyTypeName: DeckSelectionUI, Assembly-CSharp
+        m_MethodName: OnPlayButton
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &65863107
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1792,8 +1804,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: CollectionManager, Assembly-CSharp
+      - m_Target: {fileID: 932104545}
+        m_TargetAssemblyTypeName: DeckSelectionUI, Assembly-CSharp
         m_MethodName: OnOptionsButton
         m_Mode: 1
         m_Arguments:
@@ -2182,7 +2194,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 552932944}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 932104545}
+        m_TargetAssemblyTypeName: DeckSelectionUI, Assembly-CSharp
+        m_MethodName: SelectDeck
+        m_Mode: 3
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 3
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &552932944
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2611,7 +2635,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 704204982}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 932104545}
+        m_TargetAssemblyTypeName: DeckSelectionUI, Assembly-CSharp
+        m_MethodName: SelectDeck
+        m_Mode: 3
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 4
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &704204982
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3234,8 +3270,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: CollectionManager, Assembly-CSharp
+      - m_Target: {fileID: 932104545}
+        m_TargetAssemblyTypeName: DeckSelectionUI, Assembly-CSharp
         m_MethodName: LoadMainMenu
         m_Mode: 1
         m_Arguments:
@@ -3502,7 +3538,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 896153521}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 932104545}
+        m_TargetAssemblyTypeName: DeckSelectionUI, Assembly-CSharp
+        m_MethodName: SelectDeck
+        m_Mode: 3
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 9
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &896153521
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3553,6 +3601,7 @@ GameObject:
   - component: {fileID: 932104541}
   - component: {fileID: 932104540}
   - component: {fileID: 932104544}
+  - component: {fileID: 932104545}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -3678,6 +3727,33 @@ MonoBehaviour:
     m_MipBias: 0
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
+--- !u!114 &932104545
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 932104539}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 06509a7e0f80b2f478fb3e080dd484c7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  optionsPanel: {fileID: 670620755}
+  heroImage: {fileID: 1191883424}
+  deckSprites:
+  - {fileID: -6803223489722007895, guid: 8ad08bf0c7a61154798555c72485e378, type: 3}
+  - {fileID: 1343106029614499668, guid: da17412e12c3e7b45aeee60795f63c73, type: 3}
+  - {fileID: -643460706143854965, guid: 66991938ff3eb5e4492f2b8563e074d6, type: 3}
+  - {fileID: 2094156908344922566, guid: 050f87cf10c4a3c4192be01fb7865bf1, type: 3}
+  - {fileID: -4305618294791597071, guid: 3d05ef544b9ff194eb8dfc6674d18e7e, type: 3}
+  - {fileID: -7142683556670487921, guid: d1acc16ec1a362643af8373ab119b83d, type: 3}
+  - {fileID: 7043740384229649278, guid: a57d9995466983d4da270bb7c1b47406, type: 3}
+  - {fileID: 3512967321281318031, guid: 19632cc8fe7ec68458eef08ffe9e5eb5, type: 3}
+  - {fileID: 2087544068632207014, guid: 50b5e0dda8a85684e907c4673f2c18fa, type: 3}
+  - {fileID: 4312126842197289597, guid: 2a0b65d8b64832d40b5d1af79e04fcde, type: 3}
+  - {fileID: -5978515613642482694, guid: 869d6eb132c0e384d8651f0c1f621875, type: 3}
+  - {fileID: -6370853324505340399, guid: b106bc54945f98047902264c0a0beb7c, type: 3}
 --- !u!1 &936904936
 GameObject:
   m_ObjectHideFlags: 0
@@ -3839,7 +3915,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 954678461}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 932104545}
+        m_TargetAssemblyTypeName: DeckSelectionUI, Assembly-CSharp
+        m_MethodName: SelectDeck
+        m_Mode: 3
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 5
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &954678461
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4186,8 +4274,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: MainMenuUI, Assembly-CSharp
+      - m_Target: {fileID: 932104545}
+        m_TargetAssemblyTypeName: DeckSelectionUI, Assembly-CSharp
         m_MethodName: OnOptionsButton
         m_Mode: 1
         m_Arguments:
@@ -4318,7 +4406,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 983009874}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 932104545}
+        m_TargetAssemblyTypeName: DeckSelectionUI, Assembly-CSharp
+        m_MethodName: SelectDeck
+        m_Mode: 3
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 11
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &983009874
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4439,7 +4539,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1077046408}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 932104545}
+        m_TargetAssemblyTypeName: DeckSelectionUI, Assembly-CSharp
+        m_MethodName: SelectDeck
+        m_Mode: 3
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 6
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1077046408
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4696,7 +4808,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1110043737}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 932104545}
+        m_TargetAssemblyTypeName: DeckSelectionUI, Assembly-CSharp
+        m_MethodName: SelectDeck
+        m_Mode: 3
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 10
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1110043737
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5166,7 +5290,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1160374576}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 932104545}
+        m_TargetAssemblyTypeName: DeckSelectionUI, Assembly-CSharp
+        m_MethodName: SelectDeck
+        m_Mode: 3
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 1
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1160374576
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5874,7 +6010,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1304159694}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 932104545}
+        m_TargetAssemblyTypeName: DeckSelectionUI, Assembly-CSharp
+        m_MethodName: SelectDeck
+        m_Mode: 3
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1304159694
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6811,7 +6959,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1541898546}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 932104545}
+        m_TargetAssemblyTypeName: DeckSelectionUI, Assembly-CSharp
+        m_MethodName: SelectDeck
+        m_Mode: 3
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 2
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1541898546
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7068,7 +7228,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1649150865}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 932104545}
+        m_TargetAssemblyTypeName: DeckSelectionUI, Assembly-CSharp
+        m_MethodName: SelectDeck
+        m_Mode: 3
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 8
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1649150865
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8097,7 +8269,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 2099132494}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 932104545}
+        m_TargetAssemblyTypeName: DeckSelectionUI, Assembly-CSharp
+        m_MethodName: SelectDeck
+        m_Mode: 3
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 7
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &2099132494
 MonoBehaviour:
   m_ObjectHideFlags: 0

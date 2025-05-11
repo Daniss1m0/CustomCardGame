@@ -29,8 +29,19 @@ public class UIController : MonoBehaviour
             Destroy(gameObject);
             return;
         }
+    }
 
-        DontDestroyOnLoad(this);
+    public void RefreshUIReferences()
+    {
+        PlayerMana = GameObject.Find("PlayerMana").GetComponent<TextMeshProUGUI>();
+        EnemyMana = GameObject.Find("EnemyMana").GetComponent<TextMeshProUGUI>();
+        PlayerHP = GameObject.Find("PlayerHP").GetComponent<TextMeshProUGUI>();
+        EnemyHP = GameObject.Find("EnemyHP").GetComponent<TextMeshProUGUI>();
+        ResultGO = GameObject.Find("ResultGO");
+        ResultTxt = GameObject.Find("ResultTxt").GetComponent<TextMeshProUGUI>();
+        TurnTime = GameObject.Find("TurnTime").GetComponent<TextMeshProUGUI>();
+        EndTurnBtn = GameObject.Find("EndTurnBtn").GetComponent<Button>();
+        optionsPanel = GameObject.Find("OptionsPanel");
     }
 
     public void StartGame()

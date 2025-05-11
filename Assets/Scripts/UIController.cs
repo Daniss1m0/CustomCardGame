@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class UIController : MonoBehaviour
 {
@@ -16,6 +17,8 @@ public class UIController : MonoBehaviour
 
     public TextMeshProUGUI TurnTime;
     public Button EndTurnBtn;
+
+    public GameObject optionsPanel;
 
     private void Awake()
     {
@@ -62,5 +65,15 @@ public class UIController : MonoBehaviour
     public void DisableTurnBtn()
     {
         EndTurnBtn.interactable = GameManagerScr.Instance.IsPlayerTurn;
+    }
+
+    public void OnOptionsButton()
+    {
+        optionsPanel.SetActive(!optionsPanel.activeSelf);
+    }
+
+    public void LoadDeckSelection()
+    {
+        SceneManager.LoadScene("DeckSelection");
     }
 }

@@ -8,19 +8,20 @@ public class CollectionManager : MonoBehaviour
     public Transform CardGrid;
     public int CardsPerPage = 12;
     public List<Button> PageButtons;
+    public GameObject optionsPanel;
 
-    private static List<Card> allCards; // Сохраняется между загрузками сцены
+    private static IReadOnlyList<Card> allCards;
+    private static bool isInitialized = false;
+
     private int currentPage = 0;
     private List<GameObject> currentCardObjects = new List<GameObject>();
 
-    public GameObject optionsPanel;
-
     void Start()
     {
-        if (allCards == null)
+        if (!isInitialized)
         {
-            // Только один раз загружаем карты из CardManager
-            allCards = new List<Card>(CardManager.AllCards);
+            allCards = new List<Card>(CardManager.AllCards).AsReadOnly();
+            isInitialized = true;
         }
 
         ShowPage(0);

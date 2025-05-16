@@ -6,7 +6,7 @@ public class CollectionManager : MonoBehaviour
 {
     public GameObject CardPrefab;
     public Transform CardGrid;
-    public int CardsPerPage = 12;
+    public int CardsPerPage;
     public List<Button> PageButtons;
     public GameObject optionsPanel;
 

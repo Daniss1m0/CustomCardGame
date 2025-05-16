@@ -1399,7 +1399,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   CardPrefab: {fileID: 3200919704871707934, guid: 941f6405a9f4c074eb161d54445056ff, type: 3}
   CardGrid: {fileID: 1156293710}
-  CardsPerPage: 18
+  CardsPerPage: 15
   PageButtons:
   - {fileID: 727461330}
   - {fileID: 1512727766}

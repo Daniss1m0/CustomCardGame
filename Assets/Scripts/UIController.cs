@@ -65,7 +65,7 @@ public class UIController : MonoBehaviour
         if (GameManagerScr.Instance.CurrentGame.Enemy.HP == 0)
             ResultTxt.text = "WIN";
         else
-            ResultTxt.text = "-25";
+            ResultTxt.text = "LOSE";
     }
 
     public void UpdateTurnTime(int time)

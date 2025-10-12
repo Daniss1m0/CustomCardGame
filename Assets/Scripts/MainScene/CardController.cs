@@ -109,9 +109,9 @@ public class CardController : MonoBehaviour
             case SpellCard.SpellType.HEAL_ALLY_HERO:
 
                 if (IsPlayerCard)
-                    gameManager.CurrentGame.Player.HP += spellCard.SpellValue;
+                    gameManager.CurrentGame.Player.hp += spellCard.SpellValue;
                 else
-                    gameManager.CurrentGame.Enemy.HP += spellCard.SpellValue;
+                    gameManager.CurrentGame.Enemy.hp += spellCard.SpellValue;
 
                 UIController.Instance.UpdateHPAndMana();
 
@@ -120,9 +120,9 @@ public class CardController : MonoBehaviour
             case SpellCard.SpellType.DAMAGE_ENEMY_HERO:
 
                 if (IsPlayerCard)
-                    gameManager.CurrentGame.Enemy.HP -= spellCard.SpellValue;
+                    gameManager.CurrentGame.Enemy.hp -= spellCard.SpellValue;
                 else
-                    gameManager.CurrentGame.Player.HP -= spellCard.SpellValue;
+                    gameManager.CurrentGame.Player.hp -= spellCard.SpellValue;
 
                 UIController.Instance.UpdateHPAndMana();
                 gameManager.CheckForResult();

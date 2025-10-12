@@ -17,10 +17,10 @@ public class AI : MonoBehaviour
 
         for (int i = 0; i < count; i++)
         {
-            if (GameManagerScr.Instance.EnemyFieldCards.Count > 5 || GameManagerScr.Instance.CurrentGame.Enemy.Mana == 0 || GameManagerScr.Instance.EnemyHandCards.Count == 0)
+            if (GameManagerScr.Instance.EnemyFieldCards.Count > 5 || GameManagerScr.Instance.CurrentGame.Enemy.mana == 0 || GameManagerScr.Instance.EnemyHandCards.Count == 0)
                 break;
 
-            List<CardController> cardsList = cards.FindAll(x => GameManagerScr.Instance.CurrentGame.Enemy.Mana >= x.Card.Manacost); 
+            List<CardController> cardsList = cards.FindAll(x => GameManagerScr.Instance.CurrentGame.Enemy.mana >= x.Card.Manacost); 
 
             if (cardsList.Count == 0)
                 break;

@@ -228,9 +228,9 @@ public class GameManagerScr : MonoBehaviour
     public void ReduceMana(bool playerMana, int manacost)
     {
         if (playerMana)
-            CurrentGame.Player.Mana -= manacost;
+            CurrentGame.Player.mana -= manacost;
         else
-            CurrentGame.Enemy.Mana -= manacost;
+            CurrentGame.Enemy.mana -= manacost;
 
         UIController.Instance.UpdateHPAndMana();
     }
@@ -249,7 +249,7 @@ public class GameManagerScr : MonoBehaviour
 
     public void CheckForResult() 
     {
-        if (CurrentGame.Enemy.HP == 0 || CurrentGame.Player.HP == 0)
+        if (CurrentGame.Enemy.hp == 0 || CurrentGame.Player.hp == 0)
         {
             StopAllCoroutines();
             UIController.Instance.ShowResult();
@@ -259,7 +259,7 @@ public class GameManagerScr : MonoBehaviour
     public void CheckCardsForManaAvailability()
     {
         foreach (var card in PlayerHandCards)
-            card.Info.HighlightManaAvaliability(CurrentGame.Player.Mana);
+            card.Info.HighlightManaAvaliability(CurrentGame.Player.mana);
     }
 
     public void HighlightTargets(CardController attacker,bool highlight)

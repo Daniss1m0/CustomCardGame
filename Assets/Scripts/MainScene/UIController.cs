@@ -53,16 +53,16 @@ public class UIController : MonoBehaviour
 
     public void UpdateHPAndMana()
     {
-        PlayerMana.text = GameManagerScr.Instance.CurrentGame.Player.Mana.ToString();
-        EnemyMana.text = GameManagerScr.Instance.CurrentGame.Enemy.Mana.ToString();
-        PlayerHP.text = GameManagerScr.Instance.CurrentGame.Player.HP.ToString();
-        EnemyHP.text = GameManagerScr.Instance.CurrentGame.Enemy.HP.ToString();
+        PlayerMana.text = GameManagerScr.Instance.CurrentGame.Player.mana.ToString();
+        EnemyMana.text = GameManagerScr.Instance.CurrentGame.Enemy.mana.ToString();
+        PlayerHP.text = GameManagerScr.Instance.CurrentGame.Player.hp.ToString();
+        EnemyHP.text = GameManagerScr.Instance.CurrentGame.Enemy.hp.ToString();
     }
 
     public void ShowResult()
     {
         ResultGO.SetActive(true);
-        if (GameManagerScr.Instance.CurrentGame.Enemy.HP == 0)
+        if (GameManagerScr.Instance.CurrentGame.Enemy.hp == 0)
             ResultTxt.text = "WIN";
         else
             ResultTxt.text = "LOSE";

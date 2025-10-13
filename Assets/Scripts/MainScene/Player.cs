@@ -2,8 +2,9 @@ using UnityEngine;
 
 public class Player
 {
-    public int hp, mana, manaPool;
     const int MAX_MANAPOOL = 10;
+    
+    public int hp, mana, manaPool;
 
     public Player()
     {

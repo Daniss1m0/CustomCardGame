@@ -35,15 +35,15 @@ public class CardController : MonoBehaviour
 
         if (IsPlayerCard)
         {
-            gameManager.PlayerHandCards.Remove(this);
-            gameManager.PlayerFieldCards.Add(this);
+            gameManager.playerHandCards.Remove(this);
+            gameManager.playerFieldCards.Add(this);
             gameManager.ReduceMana(true, Card.Manacost);
             gameManager.CheckCardsForManaAvailability();
         }
         else 
         {
-            gameManager.EnemyHandCards.Remove(this);
-            gameManager.EnemyFieldCards.Add(this);
+            gameManager.enemyHandCards.Remove(this);
+            gameManager.enemyFieldCards.Add(this);
             gameManager.ReduceMana(false, Card.Manacost);
             Info.ShowCardInfo();
         }
@@ -84,8 +84,8 @@ public class CardController : MonoBehaviour
             case SpellCard.SpellType.HEAL_ALLY_FIELD_CARDS:
 
                 var allyCards = IsPlayerCard ?
-                                gameManager.PlayerFieldCards :
-                                gameManager.EnemyFieldCards;
+                                gameManager.playerFieldCards :
+                                gameManager.enemyFieldCards;
 
                 foreach (var card in allyCards)
                 {
@@ -98,8 +98,8 @@ public class CardController : MonoBehaviour
             case SpellCard.SpellType.DAMAGE_ENEMY_FIELD_CARDS:
 
                 var enemyCards = IsPlayerCard ?
-                                 new List<CardController>(gameManager.EnemyFieldCards) :
-                                 new List<CardController>(gameManager.PlayerFieldCards);
+                                 new List<CardController>(gameManager.enemyFieldCards) :
+                                 new List<CardController>(gameManager.playerFieldCards);
 
                 foreach (var card in enemyCards)
                     GiveDamageTo(card, spellCard.SpellValue);
@@ -109,9 +109,9 @@ public class CardController : MonoBehaviour
             case SpellCard.SpellType.HEAL_ALLY_HERO:
 
                 if (IsPlayerCard)
-                    gameManager.CurrentGame.player.hp += spellCard.SpellValue;
+                    gameManager.currentGame.player.hp += spellCard.SpellValue;
                 else
-                    gameManager.CurrentGame.enemy.hp += spellCard.SpellValue;
+                    gameManager.currentGame.enemy.hp += spellCard.SpellValue;
 
                 UIController.Instance.UpdateHPAndMana();
 
@@ -120,9 +120,9 @@ public class CardController : MonoBehaviour
             case SpellCard.SpellType.DAMAGE_ENEMY_HERO:
 
                 if (IsPlayerCard)
-                    gameManager.CurrentGame.enemy.hp -= spellCard.SpellValue;
+                    gameManager.currentGame.enemy.hp -= spellCard.SpellValue;
                 else
-                    gameManager.CurrentGame.player.hp -= spellCard.SpellValue;
+                    gameManager.currentGame.player.hp -= spellCard.SpellValue;
 
                 UIController.Instance.UpdateHPAndMana();
                 gameManager.CheckForResult();
@@ -195,10 +195,10 @@ public class CardController : MonoBehaviour
     {
         Movement.OnEndDrag(null);
 
-        RemoveCardFromList(gameManager.EnemyFieldCards);
-        RemoveCardFromList(gameManager.EnemyHandCards);
-        RemoveCardFromList(gameManager.PlayerFieldCards);
-        RemoveCardFromList(gameManager.PlayerHandCards);
+        RemoveCardFromList(gameManager.enemyFieldCards);
+        RemoveCardFromList(gameManager.enemyHandCards);
+        RemoveCardFromList(gameManager.playerFieldCards);
+        RemoveCardFromList(gameManager.playerHandCards);
 
         Destroy(gameObject);
     }

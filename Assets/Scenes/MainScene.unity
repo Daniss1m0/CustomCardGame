@@ -1844,14 +1844,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d95dd02d58cdcc84bb812fb6fc3b2406, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  EnemyHand: {fileID: 437836524}
-  PlayerHand: {fileID: 1850512381}
-  EnemyField: {fileID: 152074215}
-  PlayerField: {fileID: 865766834}
-  CardPref: {fileID: 3200919704871707934, guid: 941f6405a9f4c074eb161d54445056ff, type: 3}
-  EnemyHero: {fileID: 856375458}
-  PlayerHero: {fileID: 228459500}
-  EnemyAI: {fileID: 856375459}
+  cardPref: {fileID: 3200919704871707934, guid: 941f6405a9f4c074eb161d54445056ff, type: 3}
+  playerHand: {fileID: 1850512381}
+  enemyHand: {fileID: 437836524}
+  playerField: {fileID: 865766834}
+  enemyField: {fileID: 152074215}
+  playerHero: {fileID: 228459500}
+  enemyHero: {fileID: 856375458}
+  enemyAI: {fileID: 856375459}
   PlayerHandCards: []
   PlayerFieldCards: []
   EnemyHandCards: []
@@ -2854,7 +2854,7 @@ GameObject:
   - component: {fileID: 865766835}
   - component: {fileID: 865766838}
   m_Layer: 5
-  m_Name: SelfField
+  m_Name: PlayerField
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6211,7 +6211,7 @@ GameObject:
   - component: {fileID: 1850512384}
   - component: {fileID: 1850512385}
   m_Layer: 5
-  m_Name: SelfHand
+  m_Name: PlayerHand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

@@ -6,7 +6,7 @@ public class AI : MonoBehaviour
 {
     public void MakeTurn()
     {
-        StartCoroutine(EnemyTurn(GameManagerScr.Instance.EnemyHandCards));
+        StartCoroutine(EnemyTurn(GameManagerScr.Instance.enemyHandCards));
     }
 
     IEnumerator EnemyTurn(List<CardController> cards)
@@ -17,10 +17,10 @@ public class AI : MonoBehaviour
 
         for (int i = 0; i < count; i++)
         {
-            if (GameManagerScr.Instance.EnemyFieldCards.Count > 5 || GameManagerScr.Instance.CurrentGame.enemy.mana == 0 || GameManagerScr.Instance.EnemyHandCards.Count == 0)
+            if (GameManagerScr.Instance.enemyFieldCards.Count > 5 || GameManagerScr.Instance.currentGame.enemy.mana == 0 || GameManagerScr.Instance.enemyHandCards.Count == 0)
                 break;
 
-            List<CardController> cardsList = cards.FindAll(x => GameManagerScr.Instance.CurrentGame.enemy.mana >= x.Card.Manacost); 
+            List<CardController> cardsList = cards.FindAll(x => GameManagerScr.Instance.currentGame.enemy.mana >= x.Card.Manacost); 
 
             if (cardsList.Count == 0)
                 break;
@@ -32,28 +32,28 @@ public class AI : MonoBehaviour
             }
             else
             {
-                cardsList[0].GetComponent<CardMovement>().MoveToField(GameManagerScr.Instance.EnemyField);
+                cardsList[0].GetComponent<CardMovement>().MoveToField(GameManagerScr.Instance.enemyField);
                 yield return new WaitForSeconds(.51f);
-                cardsList[0].transform.SetParent(GameManagerScr.Instance.EnemyField);
+                cardsList[0].transform.SetParent(GameManagerScr.Instance.enemyField);
                 cardsList[0].OnCast();
             }
         }
 
         yield return new WaitForSeconds(1);
 
-        while (GameManagerScr.Instance.EnemyFieldCards.Exists(x => x.Card.CanAttack))
+        while (GameManagerScr.Instance.enemyFieldCards.Exists(x => x.Card.CanAttack))
         {
-            var activeCard = GameManagerScr.Instance.EnemyFieldCards.FindAll(x => x.Card.CanAttack)[0];
-            bool hasProvocation = GameManagerScr.Instance.PlayerFieldCards.Exists(x => x.Card.IsProvocation);
+            var activeCard = GameManagerScr.Instance.enemyFieldCards.FindAll(x => x.Card.CanAttack)[0];
+            bool hasProvocation = GameManagerScr.Instance.playerFieldCards.Exists(x => x.Card.IsProvocation);
 
-            if (hasProvocation || Random.Range(0, 2) == 0 && GameManagerScr.Instance.PlayerFieldCards.Count > 0)
+            if (hasProvocation || Random.Range(0, 2) == 0 && GameManagerScr.Instance.playerFieldCards.Count > 0)
             {
                 CardController enemy;
 
                 if (hasProvocation)
-                    enemy = GameManagerScr.Instance.PlayerFieldCards.Find(x => x.Card.IsProvocation);
+                    enemy = GameManagerScr.Instance.playerFieldCards.Find(x => x.Card.IsProvocation);
                 else
-                    enemy = GameManagerScr.Instance.PlayerFieldCards[Random.Range(0, GameManagerScr.Instance.PlayerFieldCards.Count)];
+                    enemy = GameManagerScr.Instance.playerFieldCards[Random.Range(0, GameManagerScr.Instance.playerFieldCards.Count)];
 
                 Debug.Log(activeCard.Card.Name + "(" + activeCard.Card.Attack + ";" + activeCard.Card.Health + "))" + "---> " +
                 enemy.Card.Name + " (" + enemy.Card.Attack + ";" + enemy.Card.Health + ")");
@@ -67,7 +67,7 @@ public class AI : MonoBehaviour
             {
                 Debug.Log(activeCard.Card.Name + " (" + activeCard.Card.Attack + ") Attacked Hero");
 
-                activeCard.GetComponent<CardMovement>().MoveToTarget(GameManagerScr.Instance.PlayerHero.transform);
+                activeCard.GetComponent<CardMovement>().MoveToTarget(GameManagerScr.Instance.playerHero.transform);
                 yield return new WaitForSeconds(.75f);
 
                 GameManagerScr.Instance.DamageHero(activeCard, false);
@@ -89,11 +89,11 @@ public class AI : MonoBehaviour
                 switch (((SpellCard)card.Card).Spell)
                 {
                     case SpellCard.SpellType.HEAL_ALLY_FIELD_CARDS:
-                        if (GameManagerScr.Instance.EnemyFieldCards.Count > 0)
+                        if (GameManagerScr.Instance.enemyFieldCards.Count > 0)
                             StartCoroutine(CastCard(card));
                         break;
                     case SpellCard.SpellType.DAMAGE_ENEMY_FIELD_CARDS:
-                        if (GameManagerScr.Instance.PlayerFieldCards.Count > 0)
+                        if (GameManagerScr.Instance.playerFieldCards.Count > 0)
                             StartCoroutine(CastCard(card));
                         break;
                     case SpellCard.SpellType.HEAL_ALLY_HERO:
@@ -107,14 +107,14 @@ public class AI : MonoBehaviour
 
             case SpellCard.TargetType.ALLY_CARD_TARGET:
 
-                if (GameManagerScr.Instance.EnemyFieldCards.Count > 0)
-                    StartCoroutine(CastCard(card, GameManagerScr.Instance.EnemyFieldCards[Random.Range(0, GameManagerScr.Instance.EnemyFieldCards.Count)]));
+                if (GameManagerScr.Instance.enemyFieldCards.Count > 0)
+                    StartCoroutine(CastCard(card, GameManagerScr.Instance.enemyFieldCards[Random.Range(0, GameManagerScr.Instance.enemyFieldCards.Count)]));
                 break;
 
             case SpellCard.TargetType.ENEMY_CARD_TARGET:
 
-                if (GameManagerScr.Instance.PlayerFieldCards.Count > 0)
-                    StartCoroutine(CastCard(card, GameManagerScr.Instance.PlayerFieldCards[Random.Range(0, GameManagerScr.Instance.PlayerFieldCards.Count)]));
+                if (GameManagerScr.Instance.playerFieldCards.Count > 0)
+                    StartCoroutine(CastCard(card, GameManagerScr.Instance.playerFieldCards[Random.Range(0, GameManagerScr.Instance.playerFieldCards.Count)]));
                 break;
         }
     }
@@ -123,7 +123,7 @@ public class AI : MonoBehaviour
     {
         if (((SpellCard)spell.Card).SpellTarget == SpellCard.TargetType.NO_TARGET)
         {
-            spell.GetComponent<CardMovement>().MoveToField(GameManagerScr.Instance.EnemyField);
+            spell.GetComponent<CardMovement>().MoveToField(GameManagerScr.Instance.enemyField);
             yield return new WaitForSeconds(.51f);
 
             spell.OnCast();
@@ -134,8 +134,8 @@ public class AI : MonoBehaviour
             spell.GetComponent<CardMovement>().MoveToTarget(target.transform);
             yield return new WaitForSeconds(.51f);
 
-            GameManagerScr.Instance.EnemyHandCards.Remove(spell);
-            GameManagerScr.Instance.EnemyFieldCards.Add(spell);
+            GameManagerScr.Instance.enemyHandCards.Remove(spell);
+            GameManagerScr.Instance.enemyFieldCards.Add(spell);
             GameManagerScr.Instance.ReduceMana(false, spell.Card.Manacost);
 
             spell.Card.IsPlaced = true;

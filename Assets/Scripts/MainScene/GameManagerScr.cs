@@ -7,15 +7,15 @@ using TMPro;
 public class Game
 {
     public Player player, enemy;
-    public List<Card> enemyDeck, playerDeck;
+    public List<Card> playerDeck, enemyDeck;
 
     public Game()
     {
-        enemyDeck = GiveDeckCard();
-        playerDeck = GiveDeckCard();
-
         player = new Player();
         enemy = new Player();
+
+        playerDeck = GiveDeckCard();
+        enemyDeck = GiveDeckCard();
     }
 
     List<Card> GiveDeckCard()
@@ -37,20 +37,22 @@ public class Game
 public class GameManagerScr : MonoBehaviour
 {
     public static GameManagerScr Instance;
-    public Game CurrentGame;
-    public Transform EnemyHand, PlayerHand, EnemyField, PlayerField;
-    public GameObject CardPref;
-    private int Turn, TurnTime = 30;
-    public AttackedHero EnemyHero, PlayerHero;
-    public AI EnemyAI;
-    public List<CardController> PlayerHandCards = new List<CardController>(), PlayerFieldCards = new List<CardController>(), 
-                                EnemyHandCards = new List<CardController>(), EnemyFieldCards = new List<CardController>();
+
+    public GameObject cardPref;
+    public Game currentGame;
+    public Transform playerHand, enemyHand, playerField, enemyField;
+    public AttackedHero playerHero, enemyHero;
+    public AI enemyAI;
+    public List<CardController> playerHandCards = new List<CardController>(), enemyHandCards = new List<CardController>(),
+                                playerFieldCards = new List<CardController>(), enemyFieldCards = new List<CardController>();
+    
+    private int turn, turnTime = 30;
 
     public bool IsPlayerTurn 
     {
         get
         {
-            return Turn % 2 == 0;
+            return turn % 2 == 0;
         }
     }
 
@@ -69,31 +71,31 @@ public class GameManagerScr : MonoBehaviour
     {
         StopAllCoroutines();
 
-        foreach (var card in PlayerHandCards)
+        foreach (var card in playerHandCards)
             Destroy(card.gameObject);
-        foreach (var card in PlayerFieldCards)
+        foreach (var card in playerFieldCards)
             Destroy(card.gameObject);
-        foreach (var card in EnemyHandCards)
+        foreach (var card in enemyHandCards)
             Destroy(card.gameObject);
-        foreach (var card in EnemyFieldCards)
+        foreach (var card in enemyFieldCards)
             Destroy(card.gameObject);
 
-        PlayerHandCards.Clear();
-        PlayerFieldCards.Clear();
-        EnemyHandCards.Clear();
-        EnemyFieldCards.Clear();
+        playerHandCards.Clear();
+        playerFieldCards.Clear();
+        enemyHandCards.Clear();
+        enemyFieldCards.Clear();
 
         StartGame();
     }
 
     void StartGame()
     {
-        Turn = 0;
+        turn = 0;
 
-        CurrentGame = new Game();
+        currentGame = new Game();
 
-        GiveHandCards(CurrentGame.enemyDeck, EnemyHand);
-        GiveHandCards(CurrentGame.playerDeck, PlayerHand);
+        GiveHandCards(currentGame.playerDeck, playerHand);
+        GiveHandCards(currentGame.enemyDeck, enemyHand);
 
         UIController.Instance.StartGame();
 
@@ -119,39 +121,39 @@ public class GameManagerScr : MonoBehaviour
 
     void CreateCardPref(Card card, Transform hand)
     {
-        GameObject cardGO = Instantiate(CardPref, hand, false);
+        GameObject cardGO = Instantiate(cardPref, hand, false);
         CardController cardC = cardGO.GetComponent<CardController>();
 
-        cardC.Init(card, hand == PlayerHand);
+        cardC.Init(card, hand == playerHand);
 
         if (cardC.IsPlayerCard)
-            PlayerHandCards.Add(cardC);
+            playerHandCards.Add(cardC);
         else
-            EnemyHandCards.Add(cardC);
+            enemyHandCards.Add(cardC);
     }
 
     IEnumerator TurnFunc() 
     {
-        TurnTime = 30;
-        UIController.Instance.UpdateTurnTime(TurnTime);
+        turnTime = 30;
+        UIController.Instance.UpdateTurnTime(turnTime);
 
-        foreach (var card in PlayerFieldCards)
+        foreach (var card in playerFieldCards)
             card.Info.HighlightCard(false);
 
         CheckCardsForManaAvailability();
 
         if (IsPlayerTurn)
         {
-            foreach (var card in PlayerFieldCards) 
+            foreach (var card in playerFieldCards) 
             {
                 card.Card.CanAttack = true;
                 card.Info.HighlightCard(true);
                 card.Ability.OnNewTurn();
             }
 
-            while (TurnTime-- > 0)
+            while (turnTime-- > 0)
             {
-                UIController.Instance.UpdateTurnTime(TurnTime);
+                UIController.Instance.UpdateTurnTime(turnTime);
                 yield return new WaitForSeconds(1);
             }
 
@@ -159,17 +161,17 @@ public class GameManagerScr : MonoBehaviour
         }
         else
         {
-            foreach (var card in EnemyFieldCards)
+            foreach (var card in enemyFieldCards)
             {
                 card.Card.CanAttack = true;
                 card.Ability.OnNewTurn();
             }
 
-            EnemyAI.MakeTurn();
+            enemyAI.MakeTurn();
 
-            while (TurnTime-- > 0)
+            while (turnTime-- > 0)
             {
-                UIController.Instance.UpdateTurnTime(TurnTime);
+                UIController.Instance.UpdateTurnTime(turnTime);
                 yield return new WaitForSeconds(1);
             }
 
@@ -180,22 +182,22 @@ public class GameManagerScr : MonoBehaviour
     public void ChangeTurn()
     {
         StopAllCoroutines();
-        Turn++;
+        turn++;
         UIController.Instance.DisableTurnBtn();
 
         if (IsPlayerTurn)
         {
             GiveNewCards();
 
-            CurrentGame.player.IncreaseManapool();
-            CurrentGame.player.RestoreRoundMana();
+            currentGame.player.IncreaseManapool();
+            currentGame.player.RestoreRoundMana();
 
             UIController.Instance.UpdateHPAndMana();
         }
         else
         {
-            CurrentGame.enemy.IncreaseManapool();
-            CurrentGame.enemy.RestoreRoundMana();
+            currentGame.enemy.IncreaseManapool();
+            currentGame.enemy.RestoreRoundMana();
         }
 
         StartCoroutine(TurnFunc());
@@ -203,8 +205,8 @@ public class GameManagerScr : MonoBehaviour
 
     void GiveNewCards()
     {
-        GiveCardToHand(CurrentGame.enemyDeck, EnemyHand);
-        GiveCardToHand(CurrentGame.playerDeck, PlayerHand);
+        GiveCardToHand(currentGame.enemyDeck, enemyHand);
+        GiveCardToHand(currentGame.playerDeck, playerHand);
     }
 
     public void CardsFight(CardController attacker, CardController defender)
@@ -223,9 +225,9 @@ public class GameManagerScr : MonoBehaviour
     public void ReduceMana(bool playerMana, int manacost)
     {
         if (playerMana)
-            CurrentGame.player.mana -= manacost;
+            currentGame.player.mana -= manacost;
         else
-            CurrentGame.enemy.mana -= manacost;
+            currentGame.enemy.mana -= manacost;
 
         UIController.Instance.UpdateHPAndMana();
     }
@@ -233,9 +235,9 @@ public class GameManagerScr : MonoBehaviour
     public void DamageHero(CardController card, bool isEnemyAttacked) 
     {
         if (isEnemyAttacked)
-            CurrentGame.enemy.GetDamage(card.Card.Attack);
+            currentGame.enemy.GetDamage(card.Card.Attack);
         else
-            CurrentGame.player.GetDamage(card.Card.Attack);
+            currentGame.player.GetDamage(card.Card.Attack);
 
         UIController.Instance.UpdateHPAndMana();
         card.OnDamageDeal();
@@ -244,7 +246,7 @@ public class GameManagerScr : MonoBehaviour
 
     public void CheckForResult() 
     {
-        if (CurrentGame.enemy.hp == 0 || CurrentGame.player.hp == 0)
+        if (currentGame.enemy.hp == 0 || currentGame.player.hp == 0)
         {
             StopAllCoroutines();
             UIController.Instance.ShowResult();
@@ -253,8 +255,8 @@ public class GameManagerScr : MonoBehaviour
 
     public void CheckCardsForManaAvailability()
     {
-        foreach (var card in PlayerHandCards)
-            card.Info.HighlightManaAvaliability(CurrentGame.player.mana);
+        foreach (var card in playerHandCards)
+            card.Info.HighlightManaAvaliability(currentGame.player.mana);
     }
 
     public void HighlightTargets(CardController attacker,bool highlight)
@@ -268,18 +270,18 @@ public class GameManagerScr : MonoBehaviour
             if (spellCard.SpellTarget == SpellCard.TargetType.NO_TARGET)
                 targets = new List<CardController>();
             else if (spellCard.SpellTarget == SpellCard.TargetType.ALLY_CARD_TARGET)
-                targets = PlayerFieldCards;
+                targets = playerFieldCards;
             else
-                targets = EnemyFieldCards;
+                targets = enemyFieldCards;
         }
         else
         {
-            if (EnemyFieldCards.Exists(x => x.Card.IsProvocation))
-                targets = EnemyFieldCards.FindAll(x => x.Card.IsProvocation);
+            if (enemyFieldCards.Exists(x => x.Card.IsProvocation))
+                targets = enemyFieldCards.FindAll(x => x.Card.IsProvocation);
             else
             {
-                targets = EnemyFieldCards;
-                EnemyHero.HighlightAsTarget(highlight);
+                targets = enemyFieldCards;
+                enemyHero.HighlightAsTarget(highlight);
             }   
         }
 

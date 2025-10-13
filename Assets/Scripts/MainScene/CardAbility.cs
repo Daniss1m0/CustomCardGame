@@ -10,12 +10,12 @@ public class CardAbility : MonoBehaviour
 
     public void OnCast()
     {
-        foreach (var ability in CC.Card.Abilities)
+        foreach (var ability in CC.card.abilities)
         {
             switch (ability)
             {
                 case Card.AbilityType.INSTANT_ACTIVE:
-                    CC.Card.CanAttack = true;
+                    CC.card.canAttack = true;
                     if (CC.IsPlayerCard)
                         CC.Info.HighlightCard(true);
                     break;
@@ -33,14 +33,14 @@ public class CardAbility : MonoBehaviour
 
     public void OnDamageDeal()
     {
-        foreach (var ability in CC.Card.Abilities)
+        foreach (var ability in CC.card.abilities)
         {
             switch (ability)
             {
                 case Card.AbilityType.DOUBLE_ATTACK:
-                    if (CC.Card.TimesDealedDamage == 1)
+                    if (CC.card.timesDealedDamage == 1)
                     {
-                        CC.Card.CanAttack = true;
+                        CC.card.canAttack = true;
                         if (CC.IsPlayerCard)
                             CC.Info.HighlightCard(true);
                     }
@@ -53,7 +53,7 @@ public class CardAbility : MonoBehaviour
     {
         Shield.SetActive(false);
 
-        foreach (var ability in CC.Card.Abilities)
+        foreach (var ability in CC.card.abilities)
         {
             switch (ability)
             {
@@ -63,7 +63,7 @@ public class CardAbility : MonoBehaviour
 
                 case Card.AbilityType.COUNTER_ATTACK:
                     if (attacker != null)
-                        attacker.Card.GetDamage(CC.Card.Attack);
+                        attacker.card.GetDamage(CC.card.attack);
                     break;
             }
         }
@@ -71,14 +71,14 @@ public class CardAbility : MonoBehaviour
 
     public void OnNewTurn()
     {
-        CC.Card.TimesDealedDamage = 0;
+        CC.card.timesDealedDamage = 0;
 
-        foreach (var ability in CC.Card.Abilities)
+        foreach (var ability in CC.card.abilities)
         {
             switch (ability)
             {
                 case Card.AbilityType.REGENERATION_EACH_TURN:
-                    CC.Card.Health += 2;
+                    CC.card.health += 2;
                     CC.Info.RefreshData();
                     break;
             }

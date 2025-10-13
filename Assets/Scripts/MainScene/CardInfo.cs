@@ -23,11 +23,11 @@ public class CardInfo : MonoBehaviour
     {
         HideObj.SetActive(false);
 
-        Logo.sprite = CC.Card.Logo;
+        Logo.sprite = CC.card.logo;
         Logo.preserveAspect = true;
-        Name.text = CC.Card.Name;
+        Name.text = CC.card.name;
 
-        if (CC.Card.IsSpell)
+        if (CC.card.isSpell)
         {
             Attack.gameObject.SetActive(false);
             Health.gameObject.SetActive(false);
@@ -38,9 +38,9 @@ public class CardInfo : MonoBehaviour
 
     public void RefreshData() 
     {
-        Attack.text = CC.Card.Attack.ToString();
-        Health.text = CC.Card.Health.ToString();
-        Manacost.text = CC.Card.Manacost.ToString();
+        Attack.text = CC.card.attack.ToString();
+        Health.text = CC.card.health.ToString();
+        Manacost.text = CC.card.manacost.ToString();
     }
 
     public void HighlightCard(bool highlight) 
@@ -50,7 +50,7 @@ public class CardInfo : MonoBehaviour
 
     public void HighlightManaAvaliability(int currentMana)
     {
-        GetComponent<CanvasGroup>().alpha = currentMana >= CC.Card.Manacost ? 1 : 0.5f;
+        GetComponent<CanvasGroup>().alpha = currentMana >= CC.card.manacost ? 1 : 0.5f;
     }
 
     public void HighlightAsTarget(bool highlight)

@@ -25,7 +25,7 @@ public class Game
         for (int i = 0; i < 20; i++)
         {
             var card = CardManager.AllCards[Random.Range(0, CardManager.AllCards.Count)];
-            if (card.IsSpell)
+            if (card.isSpell)
                 list.Add(((SpellCard)card).GetCopy());
             else
                 list.Add(card.GetCopy());
@@ -146,7 +146,7 @@ public class GameManagerScr : MonoBehaviour
         {
             foreach (var card in playerFieldCards) 
             {
-                card.Card.CanAttack = true;
+                card.card.canAttack = true;
                 card.Info.HighlightCard(true);
                 card.Ability.OnNewTurn();
             }
@@ -163,7 +163,7 @@ public class GameManagerScr : MonoBehaviour
         {
             foreach (var card in enemyFieldCards)
             {
-                card.Card.CanAttack = true;
+                card.card.canAttack = true;
                 card.Ability.OnNewTurn();
             }
 
@@ -211,11 +211,11 @@ public class GameManagerScr : MonoBehaviour
 
     public void CardsFight(CardController attacker, CardController defender)
     {
-        defender.Card.GetDamage(attacker.Card.Attack);
+        defender.card.GetDamage(attacker.card.attack);
         attacker.OnDamageDeal();
         defender.OnTakeDamage(attacker);
 
-        attacker.Card.GetDamage(defender.Card.Attack);
+        attacker.card.GetDamage(defender.card.attack);
         attacker.OnTakeDamage();
 
         attacker.CheckForAlive();
@@ -235,9 +235,9 @@ public class GameManagerScr : MonoBehaviour
     public void DamageHero(CardController card, bool isEnemyAttacked) 
     {
         if (isEnemyAttacked)
-            currentGame.enemy.GetDamage(card.Card.Attack);
+            currentGame.enemy.GetDamage(card.card.attack);
         else
-            currentGame.player.GetDamage(card.Card.Attack);
+            currentGame.player.GetDamage(card.card.attack);
 
         UIController.Instance.UpdateHPAndMana();
         card.OnDamageDeal();
@@ -263,21 +263,21 @@ public class GameManagerScr : MonoBehaviour
     {
         List<CardController> targets = new List<CardController>();
 
-        if (attacker.Card.IsSpell)
+        if (attacker.card.isSpell)
         {
-            var spellCard = (SpellCard)attacker.Card;
+            var spellCard = (SpellCard)attacker.card;
 
-            if (spellCard.SpellTarget == SpellCard.TargetType.NO_TARGET)
+            if (spellCard.spellTarget == SpellCard.TargetType.NO_TARGET)
                 targets = new List<CardController>();
-            else if (spellCard.SpellTarget == SpellCard.TargetType.ALLY_CARD_TARGET)
+            else if (spellCard.spellTarget == SpellCard.TargetType.ALLY_CARD_TARGET)
                 targets = playerFieldCards;
             else
                 targets = enemyFieldCards;
         }
         else
         {
-            if (enemyFieldCards.Exists(x => x.Card.IsProvocation))
-                targets = enemyFieldCards.FindAll(x => x.Card.IsProvocation);
+            if (enemyFieldCards.Exists(x => x.card.IsProvocation))
+                targets = enemyFieldCards.FindAll(x => x.card.IsProvocation);
             else
             {
                 targets = enemyFieldCards;
@@ -287,7 +287,7 @@ public class GameManagerScr : MonoBehaviour
 
         foreach (var card in targets)
         {
-            if (attacker.Card.IsSpell)
+            if (attacker.card.isSpell)
                 card.Info.HighlightAsSpellTarget(highlight);
             else
                 card.Info.HighlightAsTarget(highlight);

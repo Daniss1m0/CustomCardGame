@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class CardController : MonoBehaviour
 {
-    public Card Card;
+    public Card card;
     public bool IsPlayerCard;
 
     public CardInfo Info;
@@ -15,7 +15,7 @@ public class CardController : MonoBehaviour
 
     public void Init(Card card, bool isPlayerCard)
     {
-        Card = card;
+        this.card = card;
         gameManager = GameManagerScr.Instance;
         IsPlayerCard = isPlayerCard;
 
@@ -30,30 +30,30 @@ public class CardController : MonoBehaviour
 
     public void OnCast()
     {
-        if (Card.IsSpell && ((SpellCard)Card).SpellTarget != SpellCard.TargetType.NO_TARGET)
+        if (card.isSpell && ((SpellCard)card).spellTarget != SpellCard.TargetType.NO_TARGET)
             return;
 
         if (IsPlayerCard)
         {
             gameManager.playerHandCards.Remove(this);
             gameManager.playerFieldCards.Add(this);
-            gameManager.ReduceMana(true, Card.Manacost);
+            gameManager.ReduceMana(true, card.manacost);
             gameManager.CheckCardsForManaAvailability();
         }
         else 
         {
             gameManager.enemyHandCards.Remove(this);
             gameManager.enemyFieldCards.Add(this);
-            gameManager.ReduceMana(false, Card.Manacost);
+            gameManager.ReduceMana(false, card.manacost);
             Info.ShowCardInfo();
         }
 
-        Card.IsPlaced = true;
+        card.isPlaced = true;
 
-        if (Card.HasAbility)
+        if (card.HasAbility)
             Ability.OnCast();
 
-        if (Card.IsSpell)
+        if (card.isSpell)
             UseSpell(null);
 
         UIController.Instance.UpdateHPAndMana();
@@ -67,19 +67,19 @@ public class CardController : MonoBehaviour
 
     public void OnDamageDeal()
     {
-        Card.TimesDealedDamage++;
-        Card.CanAttack = false;
+        card.timesDealedDamage++;
+        card.canAttack = false;
         Info.HighlightCard(false);
 
-        if (Card.HasAbility)
+        if (card.HasAbility)
             Ability.OnDamageDeal();
     }
 
     public void UseSpell(CardController target)
     {
-        var spellCard = (SpellCard)Card;
+        var spellCard = (SpellCard)card;
 
-        switch (spellCard.Spell)
+        switch (spellCard.spell)
         {
             case SpellCard.SpellType.HEAL_ALLY_FIELD_CARDS:
 
@@ -89,7 +89,7 @@ public class CardController : MonoBehaviour
 
                 foreach (var card in allyCards)
                 {
-                    card.Card.Health += spellCard.SpellValue;
+                    card.card.health += spellCard.spellValue;
                     card.Info.RefreshData();
                 }
                 
@@ -102,16 +102,16 @@ public class CardController : MonoBehaviour
                                  new List<CardController>(gameManager.playerFieldCards);
 
                 foreach (var card in enemyCards)
-                    GiveDamageTo(card, spellCard.SpellValue);
+                    GiveDamageTo(card, spellCard.spellValue);
 
                 break;
 
             case SpellCard.SpellType.HEAL_ALLY_HERO:
 
                 if (IsPlayerCard)
-                    gameManager.currentGame.player.hp += spellCard.SpellValue;
+                    gameManager.currentGame.player.hp += spellCard.spellValue;
                 else
-                    gameManager.currentGame.enemy.hp += spellCard.SpellValue;
+                    gameManager.currentGame.enemy.hp += spellCard.spellValue;
 
                 UIController.Instance.UpdateHPAndMana();
 
@@ -120,9 +120,9 @@ public class CardController : MonoBehaviour
             case SpellCard.SpellType.DAMAGE_ENEMY_HERO:
 
                 if (IsPlayerCard)
-                    gameManager.currentGame.enemy.hp -= spellCard.SpellValue;
+                    gameManager.currentGame.enemy.hp -= spellCard.spellValue;
                 else
-                    gameManager.currentGame.player.hp -= spellCard.SpellValue;
+                    gameManager.currentGame.player.hp -= spellCard.spellValue;
 
                 UIController.Instance.UpdateHPAndMana();
                 gameManager.CheckForResult();
@@ -130,38 +130,38 @@ public class CardController : MonoBehaviour
                 break;
 
             case SpellCard.SpellType.HEAL_ALLY_CARD:
-                target.Card.Health += spellCard.SpellValue;
+                target.card.health += spellCard.spellValue;
                 break;
 
             case SpellCard.SpellType.DAMAGE_ENEMY_CARD:
                 
-                GiveDamageTo(target, spellCard.SpellValue);
+                GiveDamageTo(target, spellCard.spellValue);
                 
                 break;
 
             case SpellCard.SpellType.SHIELD_ON_ALLY_CARD:
                 
-                if (!target.Card.Abilities.Exists(x => x == Card.AbilityType.SHIELD))
-                    target.Card.Abilities.Add(Card.AbilityType.SHIELD);
+                if (!target.card.abilities.Exists(x => x == Card.AbilityType.SHIELD))
+                    target.card.abilities.Add(Card.AbilityType.SHIELD);
                 
                 break;
 
             case SpellCard.SpellType.PROVOCATION_ON_ALLY_CARD:
                 
-                if (!target.Card.Abilities.Exists(x => x == Card.AbilityType.PROVOCATION))
-                    target.Card.Abilities.Add(Card.AbilityType.PROVOCATION);
+                if (!target.card.abilities.Exists(x => x == Card.AbilityType.PROVOCATION))
+                    target.card.abilities.Add(Card.AbilityType.PROVOCATION);
                 
                 break;
 
             case SpellCard.SpellType.BUFF_CARD_DAMAGE:
                 
-                target.Card.Attack += spellCard.SpellValue;
+                target.card.attack += spellCard.spellValue;
                 
                 break;
 
             case SpellCard.SpellType.DEBUFF_CARD_DAMAGE:
                 
-                target.Card.Attack = Mathf.Clamp(target.Card.Attack - spellCard.SpellValue, 0, int.MaxValue);
+                target.card.attack = Mathf.Clamp(target.card.attack - spellCard.spellValue, 0, int.MaxValue);
                 
                 break;
         }
@@ -178,14 +178,14 @@ public class CardController : MonoBehaviour
 
     void GiveDamageTo(CardController card, int damage)
     {
-        card.Card.GetDamage(damage);
+        card.card.GetDamage(damage);
         card.CheckForAlive();
         card.OnTakeDamage();
     }
 
     public void CheckForAlive()
     {
-        if (Card.IsAlive)
+        if (card.IsAlive)
             Info.RefreshData();
         else
             DestroyCard();

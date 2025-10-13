@@ -20,12 +20,12 @@ public class AI : MonoBehaviour
             if (GameManagerScr.Instance.enemyFieldCards.Count > 5 || GameManagerScr.Instance.currentGame.enemy.mana == 0 || GameManagerScr.Instance.enemyHandCards.Count == 0)
                 break;
 
-            List<CardController> cardsList = cards.FindAll(x => GameManagerScr.Instance.currentGame.enemy.mana >= x.Card.Manacost); 
+            List<CardController> cardsList = cards.FindAll(x => GameManagerScr.Instance.currentGame.enemy.mana >= x.card.manacost); 
 
             if (cardsList.Count == 0)
                 break;
 
-            if (cardsList[0].Card.IsSpell)
+            if (cardsList[0].card.isSpell)
             {
                 CastSpell(cardsList[0]);
                 yield return new WaitForSeconds(.51f);
@@ -41,22 +41,22 @@ public class AI : MonoBehaviour
 
         yield return new WaitForSeconds(1);
 
-        while (GameManagerScr.Instance.enemyFieldCards.Exists(x => x.Card.CanAttack))
+        while (GameManagerScr.Instance.enemyFieldCards.Exists(x => x.card.canAttack))
         {
-            var activeCard = GameManagerScr.Instance.enemyFieldCards.FindAll(x => x.Card.CanAttack)[0];
-            bool hasProvocation = GameManagerScr.Instance.playerFieldCards.Exists(x => x.Card.IsProvocation);
+            var activeCard = GameManagerScr.Instance.enemyFieldCards.FindAll(x => x.card.canAttack)[0];
+            bool hasProvocation = GameManagerScr.Instance.playerFieldCards.Exists(x => x.card.IsProvocation);
 
             if (hasProvocation || Random.Range(0, 2) == 0 && GameManagerScr.Instance.playerFieldCards.Count > 0)
             {
                 CardController enemy;
 
                 if (hasProvocation)
-                    enemy = GameManagerScr.Instance.playerFieldCards.Find(x => x.Card.IsProvocation);
+                    enemy = GameManagerScr.Instance.playerFieldCards.Find(x => x.card.IsProvocation);
                 else
                     enemy = GameManagerScr.Instance.playerFieldCards[Random.Range(0, GameManagerScr.Instance.playerFieldCards.Count)];
 
-                Debug.Log(activeCard.Card.Name + "(" + activeCard.Card.Attack + ";" + activeCard.Card.Health + "))" + "---> " +
-                enemy.Card.Name + " (" + enemy.Card.Attack + ";" + enemy.Card.Health + ")");
+                Debug.Log(activeCard.card.name + "(" + activeCard.card.attack + ";" + activeCard.card.health + "))" + "---> " +
+                enemy.card.name + " (" + enemy.card.attack + ";" + enemy.card.health + ")");
 
                 activeCard.Movement.MoveToTarget(enemy.transform);
                 yield return new WaitForSeconds(.75f);
@@ -65,7 +65,7 @@ public class AI : MonoBehaviour
             }
             else
             {
-                Debug.Log(activeCard.Card.Name + " (" + activeCard.Card.Attack + ") Attacked Hero");
+                Debug.Log(activeCard.card.name + " (" + activeCard.card.attack + ") Attacked Hero");
 
                 activeCard.GetComponent<CardMovement>().MoveToTarget(GameManagerScr.Instance.playerHero.transform);
                 yield return new WaitForSeconds(.75f);
@@ -82,11 +82,11 @@ public class AI : MonoBehaviour
 
     void CastSpell(CardController card)
     {
-        switch (((SpellCard)card.Card).SpellTarget)
+        switch (((SpellCard)card.card).spellTarget)
         {
             case SpellCard.TargetType.NO_TARGET:
                 
-                switch (((SpellCard)card.Card).Spell)
+                switch (((SpellCard)card.card).spell)
                 {
                     case SpellCard.SpellType.HEAL_ALLY_FIELD_CARDS:
                         if (GameManagerScr.Instance.enemyFieldCards.Count > 0)
@@ -121,7 +121,7 @@ public class AI : MonoBehaviour
 
     IEnumerator CastCard(CardController spell, CardController target = null)
     {
-        if (((SpellCard)spell.Card).SpellTarget == SpellCard.TargetType.NO_TARGET)
+        if (((SpellCard)spell.card).spellTarget == SpellCard.TargetType.NO_TARGET)
         {
             spell.GetComponent<CardMovement>().MoveToField(GameManagerScr.Instance.enemyField);
             yield return new WaitForSeconds(.51f);
@@ -136,13 +136,13 @@ public class AI : MonoBehaviour
 
             GameManagerScr.Instance.enemyHandCards.Remove(spell);
             GameManagerScr.Instance.enemyFieldCards.Add(spell);
-            GameManagerScr.Instance.ReduceMana(false, spell.Card.Manacost);
+            GameManagerScr.Instance.ReduceMana(false, spell.card.manacost);
 
-            spell.Card.IsPlaced = true;
+            spell.card.isPlaced = true;
             spell.UseSpell(target);
         }
 
-        string targetStr = target == null ? "no_target" : target.Card.Name;
-        Debug.Log("AI spell cast: " + spell.Card.Name + " target: " + targetStr);
+        string targetStr = target == null ? "no_target" : target.card.name;
+        Debug.Log("AI spell cast: " + spell.card.name + " target: " + targetStr);
     }
 }

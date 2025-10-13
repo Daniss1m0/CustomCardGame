@@ -22,7 +22,7 @@ public class DropPlace : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoi
 
         CardController card = eventData.pointerDrag.GetComponent<CardController>();
 
-        if (card && GameManagerScr.Instance.IsPlayerTurn && GameManagerScr.Instance.CurrentGame.Player.mana >= card.Card.Manacost && !card.Card.IsPlaced)
+        if (card && GameManagerScr.Instance.IsPlayerTurn && GameManagerScr.Instance.CurrentGame.player.mana >= card.Card.Manacost && !card.Card.IsPlaced)
         {
             if (!card.Card.IsSpell)
                 card.Movement.DefaultParent = transform;

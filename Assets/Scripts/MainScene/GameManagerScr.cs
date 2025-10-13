@@ -6,16 +6,16 @@ using TMPro;
 
 public class Game
 {
-    public Player Player, Enemy;
-    public List<Card> EnemyDeck, PlayerDeck;
+    public Player player, enemy;
+    public List<Card> enemyDeck, playerDeck;
 
     public Game()
     {
-        EnemyDeck = GiveDeckCard();
-        PlayerDeck = GiveDeckCard();
+        enemyDeck = GiveDeckCard();
+        playerDeck = GiveDeckCard();
 
-        Player = new Player();
-        Enemy = new Player();
+        player = new Player();
+        enemy = new Player();
     }
 
     List<Card> GiveDeckCard()
@@ -37,15 +37,10 @@ public class Game
 public class GameManagerScr : MonoBehaviour
 {
     public static GameManagerScr Instance;
-
     public Game CurrentGame;
-
     public Transform EnemyHand, PlayerHand, EnemyField, PlayerField;
-
     public GameObject CardPref;
-    
-    int Turn, TurnTime = 30;
-
+    private int Turn, TurnTime = 30;
     public AttackedHero EnemyHero, PlayerHero;
     public AI EnemyAI;
     public List<CardController> PlayerHandCards = new List<CardController>(), PlayerFieldCards = new List<CardController>(), 
@@ -97,8 +92,8 @@ public class GameManagerScr : MonoBehaviour
 
         CurrentGame = new Game();
 
-        GiveHandCards(CurrentGame.EnemyDeck, EnemyHand);
-        GiveHandCards(CurrentGame.PlayerDeck, PlayerHand);
+        GiveHandCards(CurrentGame.enemyDeck, EnemyHand);
+        GiveHandCards(CurrentGame.playerDeck, PlayerHand);
 
         UIController.Instance.StartGame();
 
@@ -192,15 +187,15 @@ public class GameManagerScr : MonoBehaviour
         {
             GiveNewCards();
 
-            CurrentGame.Player.IncreaseManapool();
-            CurrentGame.Player.RestoreRoundMana();
+            CurrentGame.player.IncreaseManapool();
+            CurrentGame.player.RestoreRoundMana();
 
             UIController.Instance.UpdateHPAndMana();
         }
         else
         {
-            CurrentGame.Enemy.IncreaseManapool();
-            CurrentGame.Enemy.RestoreRoundMana();
+            CurrentGame.enemy.IncreaseManapool();
+            CurrentGame.enemy.RestoreRoundMana();
         }
 
         StartCoroutine(TurnFunc());
@@ -208,8 +203,8 @@ public class GameManagerScr : MonoBehaviour
 
     void GiveNewCards()
     {
-        GiveCardToHand(CurrentGame.EnemyDeck, EnemyHand);
-        GiveCardToHand(CurrentGame.PlayerDeck, PlayerHand);
+        GiveCardToHand(CurrentGame.enemyDeck, EnemyHand);
+        GiveCardToHand(CurrentGame.playerDeck, PlayerHand);
     }
 
     public void CardsFight(CardController attacker, CardController defender)
@@ -228,9 +223,9 @@ public class GameManagerScr : MonoBehaviour
     public void ReduceMana(bool playerMana, int manacost)
     {
         if (playerMana)
-            CurrentGame.Player.mana -= manacost;
+            CurrentGame.player.mana -= manacost;
         else
-            CurrentGame.Enemy.mana -= manacost;
+            CurrentGame.enemy.mana -= manacost;
 
         UIController.Instance.UpdateHPAndMana();
     }
@@ -238,9 +233,9 @@ public class GameManagerScr : MonoBehaviour
     public void DamageHero(CardController card, bool isEnemyAttacked) 
     {
         if (isEnemyAttacked)
-            CurrentGame.Enemy.GetDamage(card.Card.Attack);
+            CurrentGame.enemy.GetDamage(card.Card.Attack);
         else
-            CurrentGame.Player.GetDamage(card.Card.Attack);
+            CurrentGame.player.GetDamage(card.Card.Attack);
 
         UIController.Instance.UpdateHPAndMana();
         card.OnDamageDeal();
@@ -249,7 +244,7 @@ public class GameManagerScr : MonoBehaviour
 
     public void CheckForResult() 
     {
-        if (CurrentGame.Enemy.hp == 0 || CurrentGame.Player.hp == 0)
+        if (CurrentGame.enemy.hp == 0 || CurrentGame.player.hp == 0)
         {
             StopAllCoroutines();
             UIController.Instance.ShowResult();
@@ -259,7 +254,7 @@ public class GameManagerScr : MonoBehaviour
     public void CheckCardsForManaAvailability()
     {
         foreach (var card in PlayerHandCards)
-            card.Info.HighlightManaAvaliability(CurrentGame.Player.mana);
+            card.Info.HighlightManaAvaliability(CurrentGame.player.mana);
     }
 
     public void HighlightTargets(CardController attacker,bool highlight)

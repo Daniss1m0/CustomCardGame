@@ -25,7 +25,7 @@ public class DropPlace : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoi
         if (card && GameManagerScr.Instance.IsPlayerTurn && GameManagerScr.Instance.currentGame.player.mana >= card.card.manacost && !card.card.isPlaced)
         {
             if (!card.card.isSpell)
-                card.Movement.DefaultParent = transform;
+                card.movement.DefaultParent = transform;
 
             card.OnCast();
         }

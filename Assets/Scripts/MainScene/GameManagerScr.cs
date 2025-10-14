@@ -126,7 +126,7 @@ public class GameManagerScr : MonoBehaviour
 
         cardC.Init(card, hand == playerHand);
 
-        if (cardC.IsPlayerCard)
+        if (cardC.isPlayerCard)
             playerHandCards.Add(cardC);
         else
             enemyHandCards.Add(cardC);
@@ -138,7 +138,7 @@ public class GameManagerScr : MonoBehaviour
         UIController.Instance.UpdateTurnTime(turnTime);
 
         foreach (var card in playerFieldCards)
-            card.Info.HighlightCard(false);
+            card.info.HighlightCard(false);
 
         CheckCardsForManaAvailability();
 
@@ -147,8 +147,8 @@ public class GameManagerScr : MonoBehaviour
             foreach (var card in playerFieldCards) 
             {
                 card.card.canAttack = true;
-                card.Info.HighlightCard(true);
-                card.Ability.OnNewTurn();
+                card.info.HighlightCard(true);
+                card.ability.OnNewTurn();
             }
 
             while (turnTime-- > 0)
@@ -164,7 +164,7 @@ public class GameManagerScr : MonoBehaviour
             foreach (var card in enemyFieldCards)
             {
                 card.card.canAttack = true;
-                card.Ability.OnNewTurn();
+                card.ability.OnNewTurn();
             }
 
             enemyAI.MakeTurn();
@@ -256,7 +256,7 @@ public class GameManagerScr : MonoBehaviour
     public void CheckCardsForManaAvailability()
     {
         foreach (var card in playerHandCards)
-            card.Info.HighlightManaAvaliability(currentGame.player.mana);
+            card.info.HighlightManaAvaliability(currentGame.player.mana);
     }
 
     public void HighlightTargets(CardController attacker,bool highlight)
@@ -288,9 +288,9 @@ public class GameManagerScr : MonoBehaviour
         foreach (var card in targets)
         {
             if (attacker.card.isSpell)
-                card.Info.HighlightAsSpellTarget(highlight);
+                card.info.HighlightAsSpellTarget(highlight);
             else
-                card.Info.HighlightAsTarget(highlight);
+                card.info.HighlightAsTarget(highlight);
         }
     }
 }

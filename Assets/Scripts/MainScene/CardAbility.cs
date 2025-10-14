@@ -16,8 +16,8 @@ public class CardAbility : MonoBehaviour
             {
                 case Card.AbilityType.INSTANT_ACTIVE:
                     CC.card.canAttack = true;
-                    if (CC.IsPlayerCard)
-                        CC.Info.HighlightCard(true);
+                    if (CC.isPlayerCard)
+                        CC.info.HighlightCard(true);
                     break;
 
                 case Card.AbilityType.SHIELD:
@@ -41,8 +41,8 @@ public class CardAbility : MonoBehaviour
                     if (CC.card.timesDealedDamage == 1)
                     {
                         CC.card.canAttack = true;
-                        if (CC.IsPlayerCard)
-                            CC.Info.HighlightCard(true);
+                        if (CC.isPlayerCard)
+                            CC.info.HighlightCard(true);
                     }
                     break;
             }
@@ -79,7 +79,7 @@ public class CardAbility : MonoBehaviour
             {
                 case Card.AbilityType.REGENERATION_EACH_TURN:
                     CC.card.health += 2;
-                    CC.Info.RefreshData();
+                    CC.info.RefreshData();
                     break;
             }
         }

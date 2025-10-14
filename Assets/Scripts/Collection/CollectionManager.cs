@@ -20,7 +20,7 @@ public class CollectionManager : MonoBehaviour
     {
         if (!isInitialized)
         {
-            allCards = new List<Card>(CardManager.AllCards).AsReadOnly();
+            allCards = new List<Card>(CardDatabase.AllCards).AsReadOnly();
             isInitialized = true;
         }
 

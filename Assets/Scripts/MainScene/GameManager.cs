@@ -21,10 +21,10 @@ public class Game
     List<Card> GiveDeckCard()
     {
         List<Card> list = new List<Card>();
-        list.Add(CardManager.AllCards[6].GetCopy());
+        list.Add(CardDatabase.AllCards[6].GetCopy());
         for (int i = 0; i < 20; i++)
         {
-            var card = CardManager.AllCards[Random.Range(0, CardManager.AllCards.Count)];
+            var card = CardDatabase.AllCards[Random.Range(0, CardDatabase.AllCards.Count)];
             if (card.isSpell)
                 list.Add(((SpellCard)card).GetCopy());
             else

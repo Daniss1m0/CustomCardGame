@@ -453,7 +453,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8ea6f87ff930ea438b9f01f38fde9ac, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Type: 3
+  type: 3
 --- !u!114 &152074217
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -948,7 +948,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8ea6f87ff930ea438b9f01f38fde9ac, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Type: 2
+  type: 2
 --- !u!114 &437836526
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2955,7 +2955,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8ea6f87ff930ea438b9f01f38fde9ac, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Type: 1
+  type: 1
 --- !u!1 &877669057
 GameObject:
   m_ObjectHideFlags: 0
@@ -6312,7 +6312,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8ea6f87ff930ea438b9f01f38fde9ac, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Type: 0
+  type: 0
 --- !u!1 &1856077234
 GameObject:
   m_ObjectHideFlags: 0
@@ -7399,7 +7399,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8350746011358159830, guid: 554e7fdb1335c564bbd2ae233c9c6b03, type: 3}
       propertyPath: m_Name
-      value: TempCardGO
+      value: TempCard
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

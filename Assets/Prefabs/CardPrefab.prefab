@@ -544,7 +544,7 @@ GameObject:
   - component: {fileID: 1492242163370924450}
   - component: {fileID: -5443182898796484096}
   m_Layer: 5
-  m_Name: CardPref
+  m_Name: CardPrefab
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -671,10 +671,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3eced5f3e6d913c4e9ba4cc3a53ce021, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  isDraggable: 0
+  defaultParent: {fileID: 0}
+  defaultTempCardParent: {fileID: 0}
   CC: {fileID: 7746042770806402134}
-  DefaultParent: {fileID: 0}
-  DefaultTempCardParent: {fileID: 0}
-  IsDraggable: 0
 --- !u!114 &-1192024366490733886
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -21,7 +21,7 @@ public class AttackedHero : MonoBehaviour, IDropHandler
 
         CardController card = eventData.pointerDrag.GetComponent<CardController>();
 
-        if (card && card.card.canAttack && type == HeroType.ENEMY && !GameManager.Instance.enemyFieldCards.Exists(x => x.card.IsProvocation))
+        if (card && card.self.canAttack && type == HeroType.ENEMY && !GameManager.Instance.enemyFieldCards.Exists(x => x.self.IsProvocation))
                 GameManager.Instance.DamageHero(card, true);
     }
 

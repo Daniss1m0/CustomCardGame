@@ -632,10 +632,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f44feeb0557a2034f8e1811f07e22a89, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  IsPlayerCard: 0
-  Info: {fileID: -7175904875697606504}
-  Movement: {fileID: 3853763607972049300}
-  Ability: {fileID: -1192024366490733886}
+  isPlayerCard: 0
+  info: {fileID: -7175904875697606504}
+  movement: {fileID: 3853763607972049300}
+  ability: {fileID: -1192024366490733886}
 --- !u!114 &-7175904875697606504
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -648,17 +648,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba12d265c9fafde4bb83bbb5043c02a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  normalCol: {r: 0.6117647, g: 0.5411765, b: 0.5411765, a: 0}
+  targetCol: {r: 0.3764706, g: 0.09019608, b: 0.09019608, a: 0}
+  spellTargetCol: {r: 1, g: 0, b: 0.4627451, a: 0}
+  hideObj: {fileID: 8276660956730707615}
+  highlightedObj: {fileID: 747441501028711005}
+  nameTxt: {fileID: 567506245719870983}
+  attackTxt: {fileID: 5137814731308018515}
+  healthTxt: {fileID: 2142409535197705870}
+  manacostTxt: {fileID: 4238930164348061605}
+  logo: {fileID: 4814674246185262947}
   CC: {fileID: 7746042770806402134}
-  Logo: {fileID: 4814674246185262947}
-  Name: {fileID: 567506245719870983}
-  Attack: {fileID: 5137814731308018515}
-  Health: {fileID: 2142409535197705870}
-  Manacost: {fileID: 4238930164348061605}
-  HideObj: {fileID: 8276660956730707615}
-  HighlightedObj: {fileID: 747441501028711005}
-  NormalCol: {r: 0.6117647, g: 0.5411765, b: 0.5411765, a: 1}
-  TargetCol: {r: 0.3773585, g: 0.088999584, b: 0.088999584, a: 1}
-  SpellTargetCol: {r: 1, g: 0, b: 0.46279144, a: 1}
 --- !u!114 &3853763607972049300
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -687,9 +687,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8a6ad6be61d39e24ebd1c4610b08b90c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  shield: {fileID: 4452543675989470293}
+  provocation: {fileID: 7652263375041960339}
   CC: {fileID: 7746042770806402134}
-  Shield: {fileID: 4452543675989470293}
-  Provocation: {fileID: 7652263375041960339}
 --- !u!114 &3691121292238534741
 MonoBehaviour:
   m_ObjectHideFlags: 0

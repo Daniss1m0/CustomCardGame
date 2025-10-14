@@ -3,6 +3,11 @@ using UnityEngine;
 
 public class Card
 {
+    public string name;
+    public int attack, health, manacost, timesDealedDamage;
+    public bool canAttack, isPlaced, isSpell;
+    public Sprite logo;
+
     public enum AbilityType
     {
         NO_ABILITY,
@@ -14,21 +19,13 @@ public class Card
         COUNTER_ATTACK
     }
 
-    public string Name;
-    public Sprite Logo;
-    public int Attack, Health, Manacost;
-    public bool CanAttack;
-    public bool IsPlaced;
-    public bool IsSpell;
-    public int TimesDealedDamage;
-
-    public List<AbilityType> Abilities;
+    public List<AbilityType> abilities;
 
     public bool IsAlive 
     {
         get 
         {
-            return Health > 0;
+            return health > 0;
         }
     }
 
@@ -36,7 +33,7 @@ public class Card
     {
         get
         {
-            return Abilities.Count > 0;
+            return abilities.Count > 0;
         }
     }
 
@@ -44,51 +41,51 @@ public class Card
     {
         get
         {
-            return Abilities.Exists(x => x == AbilityType.PROVOCATION);
+            return abilities.Exists(x => x == AbilityType.PROVOCATION);
         }
     }
 
-    public Card(string name, string logoPath, int attack, int health, int manacost, AbilityType abilityType = 0)
+    public Card(string name, int attack, int health, int manacost, string logoPath, AbilityType abilityType = 0)
     {
-        Name = name;
-        Logo = Resources.Load<Sprite>(logoPath);
-        Attack = attack;
-        Health = health;
-        Manacost = manacost;
-        CanAttack = false;
-        IsPlaced = false;
+        this.name = name;
+        this.attack = attack;
+        this.health = health;
+        this.manacost = manacost;
+        canAttack = false;
+        isPlaced = false;
+        logo = Resources.Load<Sprite>(logoPath);
 
-        Abilities = new List<AbilityType>();
+        abilities = new List<AbilityType>();
 
         if (abilityType != 0)
-            Abilities.Add(abilityType);
+            abilities.Add(abilityType);
 
-        TimesDealedDamage = 0;
+        timesDealedDamage = 0;
     }
 
     public Card(Card card)
     {
-        Name = card.Name;
-        Logo = card.Logo;
-        Attack = card.Attack;
-        Health = card.Health;
-        Manacost = card.Manacost;
-        CanAttack = false;
-        IsPlaced = false;
+        name = card.name;
+        logo = card.logo;
+        attack = card.attack;
+        health = card.health;
+        manacost = card.manacost;
+        canAttack = false;
+        isPlaced = false;
 
-        Abilities = new List<AbilityType>(card.Abilities);
+        abilities = new List<AbilityType>(card.abilities);
 
-        TimesDealedDamage = 0;
+        timesDealedDamage = 0;
     }
 
     public void GetDamage(int dmg) 
     {
         if (dmg > 0)
         {
-            if (Abilities.Exists(x => x == AbilityType.SHIELD))
-                Abilities.Remove(AbilityType.SHIELD);
+            if (abilities.Exists(x => x == AbilityType.SHIELD))
+                abilities.Remove(AbilityType.SHIELD);
             else
-                Health -= dmg;
+                health -= dmg;
         }    
     }
 
@@ -100,6 +97,8 @@ public class Card
 
 public class SpellCard : Card
 {
+    public int spellValue;
+    
     public enum SpellType
     {
         NO_SPELL,
@@ -122,27 +121,26 @@ public class SpellCard : Card
         ENEMY_CARD_TARGET
     }
 
-    public SpellType Spell;
-    public TargetType SpellTarget;
-    public int SpellValue;
+    public SpellType spell;
+    public TargetType spellTarget;
 
     public SpellCard(string name, string logoPath, int manacost, SpellType spellType = 0, int spellValue = 0, TargetType targetType = 0) 
-        : base(name, logoPath, 0, 0, manacost)
+        : base(name, 0, 0, manacost, logoPath)
     {
-        IsSpell = true;
+        isSpell = true;
 
-        Spell = spellType;
-        SpellTarget = targetType;
-        SpellValue = spellValue;
+        this.spellValue = spellValue;
+        spell = spellType;
+        spellTarget = targetType;
     }
 
     public SpellCard(SpellCard card) : base(card)
     {
-        IsSpell = true;
+        isSpell = true;
 
-        Spell = card.Spell;
-        SpellTarget = card.SpellTarget;
-        SpellValue = card.SpellValue;
+        spellValue = card.spellValue;
+        spell = card.spell;
+        spellTarget = card.spellTarget;
     }
 
     public new SpellCard GetCopy()
@@ -161,16 +159,16 @@ public class CardManagerScr : MonoBehaviour
     public void Awake()
     {
         //CardManager.AllCards.Add(new Card("Absolwent", "Sprites/Cards/Absolwent)", 5, 5, 6));
-        CardManager.AllCards.Add(new Card("Asystent", "Sprites/Cards/Asystent", 4, 3, 5));
-        CardManager.AllCards.Add(new Card("Inzynier", "Sprites/Cards/Inzynier", 3, 3, 4));
-        CardManager.AllCards.Add(new Card("Student", "Sprites/Cards/Student", 2, 1, 2));
+        CardManager.AllCards.Add(new Card("Asystent", 4, 3, 5, "Sprites/Cards/Asystent"));
+        CardManager.AllCards.Add(new Card("Inzynier", 3, 3, 4, "Sprites/Cards/Inzynier"));
+        CardManager.AllCards.Add(new Card("Student", 2, 1, 2, "Sprites/Cards/Student"));
 
-        CardManager.AllCards.Add(new Card("Magister", "Sprites/Cards/Magister", 1, 2, 3, Card.AbilityType.PROVOCATION));
-        CardManager.AllCards.Add(new Card("Rektor", "Sprites/Cards/Rektor", 4, 2, 5, Card.AbilityType.REGENERATION_EACH_TURN));
-        CardManager.AllCards.Add(new Card("Biblioteka", "Sprites/Cards/Biblioteka", 3, 2, 4, Card.AbilityType.DOUBLE_ATTACK));
-        CardManager.AllCards.Add(new Card("Uczen", "Sprites/Cards/Uczen", 2, 1, 2, Card.AbilityType.INSTANT_ACTIVE));
-        CardManager.AllCards.Add(new Card("Wykladowca", "Sprites/Cards/Wykladowca", 5, 1, 7, Card.AbilityType.SHIELD));
-        CardManager.AllCards.Add(new Card("Doktorant", "Sprites/Cards/Doktorant", 3, 1, 1, Card.AbilityType.COUNTER_ATTACK));
+        CardManager.AllCards.Add(new Card("Magister", 1, 2, 3, "Sprites/Cards/Magister", Card.AbilityType.PROVOCATION));
+        CardManager.AllCards.Add(new Card("Rektor", 4, 2, 5, "Sprites/Cards/Rektor", Card.AbilityType.REGENERATION_EACH_TURN));
+        CardManager.AllCards.Add(new Card("Biblioteka", 3, 2, 4, "Sprites/Cards/Biblioteka", Card.AbilityType.DOUBLE_ATTACK));
+        CardManager.AllCards.Add(new Card("Uczen", 2, 1, 2, "Sprites/Cards/Uczen", Card.AbilityType.INSTANT_ACTIVE));
+        CardManager.AllCards.Add(new Card("Wykladowca", 5, 1, 7, "Sprites/Cards/Wykladowca", Card.AbilityType.SHIELD));
+        CardManager.AllCards.Add(new Card("Doktorant", 3, 1, 1, "Sprites/Cards/Doktorant", Card.AbilityType.COUNTER_ATTACK));
 
         CardManager.AllCards.Add(new SpellCard("Podrecznik", "Sprites/Cards/Podrecznik", 2,
             SpellCard.SpellType.HEAL_ALLY_FIELD_CARDS, 2, SpellCard.TargetType.NO_TARGET));

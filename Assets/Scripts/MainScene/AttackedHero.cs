@@ -4,14 +4,15 @@ using UnityEngine.UI;
 
 public class AttackedHero : MonoBehaviour, IDropHandler
 {
+    public Color normalCol, targetCol;
+    
     public enum HeroType
     {
         ENEMY,
         PLAYER
     }
 
-    public HeroType Type;
-    public Color NormalCol, TargetCol;
+    public HeroType type;
 
     public void OnDrop(PointerEventData eventData)
     {
@@ -20,14 +21,12 @@ public class AttackedHero : MonoBehaviour, IDropHandler
 
         CardController card = eventData.pointerDrag.GetComponent<CardController>();
 
-        if (card && card.Card.CanAttack && Type == HeroType.ENEMY && !GameManagerScr.Instance.EnemyFieldCards.Exists(x => x.Card.IsProvocation))
-        {
+        if (card && card.card.canAttack && type == HeroType.ENEMY && !GameManagerScr.Instance.enemyFieldCards.Exists(x => x.card.IsProvocation))
                 GameManagerScr.Instance.DamageHero(card, true);
-        }
     }
 
     public void HighlightAsTarget(bool highlight)
     {
-        GetComponent<Image>().color = highlight ? TargetCol : NormalCol;
+        GetComponent<Image>().color = highlight ? targetCol : normalCol;
     }
 }

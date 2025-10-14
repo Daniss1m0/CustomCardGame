@@ -12,9 +12,9 @@ public class AttackedCard : MonoBehaviour, IDropHandler
        
         CardController attacker = eventData.pointerDrag.GetComponent<CardController>(), defender = GetComponent<CardController>();
 
-        if (attacker && attacker.Card.CanAttack && defender.Card.IsPlaced)
+        if (attacker && attacker.card.canAttack && defender.card.isPlaced)
         {
-            if (GameManagerScr.Instance.EnemyFieldCards.Exists(x => x.Card.IsProvocation) && !defender.Card.IsProvocation)
+            if (GameManagerScr.Instance.enemyFieldCards.Exists(x => x.card.IsProvocation) && !defender.card.IsProvocation)
                 return;
 
             GameManagerScr.Instance.CardsFight(attacker, defender);

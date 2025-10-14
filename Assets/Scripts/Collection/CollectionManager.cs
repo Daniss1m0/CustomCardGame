@@ -77,9 +77,9 @@ public class CollectionManager : MonoBehaviour
     void SetupCardUI(GameObject cardGO, Card card)
     {
         CardInfoUI cardInfo = cardGO.GetComponent<CardInfoUI>();
-        cardInfo.SetName(card.Name);
-        cardInfo.SetLogo(card.Logo);
-        cardInfo.SetStats(card.Attack, card.Health, card.Manacost);
+        cardInfo.SetName(card.name);
+        cardInfo.SetLogo(card.logo);
+        cardInfo.SetStats(card.attack, card.health, card.manacost);
 
         Destroy(cardGO.GetComponent<CardMovement>());
         Destroy(cardGO.GetComponent<CardAbility>());

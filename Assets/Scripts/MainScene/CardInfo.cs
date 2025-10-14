@@ -21,7 +21,6 @@ public class CardInfo : MonoBehaviour
     public void ShowCardInfo()
     {
         hideObj.SetActive(false);
-
         logo.sprite = CC.self.logo;
         logo.preserveAspect = true;
         nameTxt.text = CC.self.name;

@@ -21,29 +21,9 @@ public class Card
 
     public List<AbilityType> abilities;
 
-    public bool IsAlive 
-    {
-        get 
-        {
-            return health > 0;
-        }
-    }
-
-    public bool HasAbility
-    {
-        get
-        {
-            return abilities.Count > 0;
-        }
-    }
-
-    public bool IsProvocation
-    {
-        get
-        {
-            return abilities.Exists(x => x == AbilityType.PROVOCATION);
-        }
-    }
+    public bool IsAlive => health > 0;
+    public bool HasAbility => abilities.Count > 0;
+    public bool IsProvocation => abilities.Exists(x => x == AbilityType.PROVOCATION);
 
     public Card(string name, int attack, int health, int manacost, string logoPath, AbilityType abilityType = 0)
     {
@@ -51,12 +31,12 @@ public class Card
         this.attack = attack;
         this.health = health;
         this.manacost = manacost;
+
         canAttack = false;
         isPlaced = false;
         logo = Resources.Load<Sprite>(logoPath);
 
         abilities = new List<AbilityType>();
-
         if (abilityType != 0)
             abilities.Add(abilityType);
 
@@ -74,25 +54,21 @@ public class Card
         isPlaced = false;
 
         abilities = new List<AbilityType>(card.abilities);
-
         timesDealedDamage = 0;
     }
 
     public void GetDamage(int dmg) 
     {
-        if (dmg > 0)
-        {
-            if (abilities.Exists(x => x == AbilityType.SHIELD))
-                abilities.Remove(AbilityType.SHIELD);
-            else
-                health -= dmg;
-        }    
+        if (dmg <= 0)
+            return;
+
+        if (abilities.Exists(x => x == AbilityType.SHIELD))
+            abilities.Remove(AbilityType.SHIELD);
+        else
+            health -= dmg;
     }
 
-    public Card GetCopy()
-    {
-        return new Card(this);
-    }
+    public Card GetCopy() => new Card(this); // { return new Card(this); }
 }
 
 public class SpellCard : Card
@@ -124,11 +100,10 @@ public class SpellCard : Card
     public SpellType spell;
     public TargetType spellTarget;
 
-    public SpellCard(string name, string logoPath, int manacost, SpellType spellType = 0, int spellValue = 0, TargetType targetType = 0) 
+    public SpellCard(string name, int manacost, string logoPath, SpellType spellType = 0, int spellValue = 0, TargetType targetType = 0) 
         : base(name, 0, 0, manacost, logoPath)
     {
         isSpell = true;
-
         this.spellValue = spellValue;
         spell = spellType;
         spellTarget = targetType;
@@ -137,16 +112,12 @@ public class SpellCard : Card
     public SpellCard(SpellCard card) : base(card)
     {
         isSpell = true;
-
         spellValue = card.spellValue;
         spell = card.spell;
         spellTarget = card.spellTarget;
     }
 
-    public new SpellCard GetCopy()
-    {
-        return new SpellCard(this);
-    }
+    public new SpellCard GetCopy() => new SpellCard(this);
 }
 
 public static class CardDatabase
@@ -170,25 +141,25 @@ public class CardManager : MonoBehaviour
         CardDatabase.AllCards.Add(new Card("Wykladowca", 5, 1, 7, "Sprites/Cards/Wykladowca", Card.AbilityType.SHIELD));
         CardDatabase.AllCards.Add(new Card("Doktorant", 3, 1, 1, "Sprites/Cards/Doktorant", Card.AbilityType.COUNTER_ATTACK));
 
-        CardDatabase.AllCards.Add(new SpellCard("Podrecznik", "Sprites/Cards/Podrecznik", 2,
+        CardDatabase.AllCards.Add(new SpellCard("Podrecznik", 2, "Sprites/Cards/Podrecznik",
             SpellCard.SpellType.HEAL_ALLY_FIELD_CARDS, 2, SpellCard.TargetType.NO_TARGET));
-        CardDatabase.AllCards.Add(new SpellCard("Impreza", "Sprites/Cards/Impreza", 2,
+        CardDatabase.AllCards.Add(new SpellCard("Impreza", 2, "Sprites/Cards/Impreza",
             SpellCard.SpellType.DAMAGE_ENEMY_FIELD_CARDS, 2, SpellCard.TargetType.NO_TARGET));
-        CardDatabase.AllCards.Add(new SpellCard("Kawa", "Sprites/Cards/Kawa", 2,
+        CardDatabase.AllCards.Add(new SpellCard("Kawa", 2, "Sprites/Cards/Kawa",
             SpellCard.SpellType.HEAL_ALLY_HERO, 2, SpellCard.TargetType.NO_TARGET));
-        CardDatabase.AllCards.Add(new SpellCard("Kserowka", "Sprites/Cards/Kserowka", 2,
+        CardDatabase.AllCards.Add(new SpellCard("Kserowka", 2, "Sprites/Cards/Kserowka",
             SpellCard.SpellType.DAMAGE_ENEMY_HERO, 2, SpellCard.TargetType.NO_TARGET));
-        CardDatabase.AllCards.Add(new SpellCard("Obrona", "Sprites/Cards/Obrona", 2,
+        CardDatabase.AllCards.Add(new SpellCard("Obrona", 2, "Sprites/Cards/Obrona",
             SpellCard.SpellType.HEAL_ALLY_CARD, 2, SpellCard.TargetType.ALLY_CARD_TARGET));
-        CardDatabase.AllCards.Add(new SpellCard("Blad", "Sprites/Cards/Blad", 2,
+        CardDatabase.AllCards.Add(new SpellCard("Blad", 2, "Sprites/Cards/Blad",
             SpellCard.SpellType.DAMAGE_ENEMY_CARD, 2, SpellCard.TargetType.ENEMY_CARD_TARGET));
-        CardDatabase.AllCards.Add(new SpellCard("Projekt", "Sprites/Cards/Projekt", 2,
+        CardDatabase.AllCards.Add(new SpellCard("Projekt", 2, "Sprites/Cards/Projekt",
             SpellCard.SpellType.SHIELD_ON_ALLY_CARD, 0, SpellCard.TargetType.ALLY_CARD_TARGET));
-        CardDatabase.AllCards.Add(new SpellCard("Sesja", "Sprites/Cards/Sesja", 2,
+        CardDatabase.AllCards.Add(new SpellCard("Sesja", 2, "Sprites/Cards/Sesja",
             SpellCard.SpellType.PROVOCATION_ON_ALLY_CARD, 0, SpellCard.TargetType.ALLY_CARD_TARGET));
-        CardDatabase.AllCards.Add(new SpellCard("Staz", "Sprites/Cards/Staz", 2,
+        CardDatabase.AllCards.Add(new SpellCard("Staz", 2, "Sprites/Cards/Staz",
             SpellCard.SpellType.BUFF_CARD_DAMAGE, 2, SpellCard.TargetType.ALLY_CARD_TARGET));
-        CardDatabase.AllCards.Add(new SpellCard("Egzamin", "Sprites/Cards/Egzamin", 2,
+        CardDatabase.AllCards.Add(new SpellCard("Egzamin", 2, "Sprites/Cards/Egzamin",
             SpellCard.SpellType.DEBUFF_CARD_DAMAGE, 2, SpellCard.TargetType.ENEMY_CARD_TARGET));
     }
 }

@@ -205,8 +205,8 @@ public class GameManager : MonoBehaviour
 
     void GiveNewCards()
     {
-        GiveCardToHand(currentGame.enemyDeck, enemyHand);
         GiveCardToHand(currentGame.playerDeck, playerHand);
+        GiveCardToHand(currentGame.enemyDeck, enemyHand);
     }
 
     public void CardsFight(CardController attacker, CardController defender)
@@ -267,12 +267,20 @@ public class GameManager : MonoBehaviour
         {
             var spellCard = (SpellCard)attacker.self;
 
-            if (spellCard.spellTarget == SpellCard.TargetType.NO_TARGET)
-                targets = new List<CardController>();
-            else if (spellCard.spellTarget == SpellCard.TargetType.ALLY_CARD_TARGET)
-                targets = playerFieldCards;
-            else
-                targets = enemyFieldCards;
+            switch (spellCard.spellTarget)
+            {
+                case SpellCard.TargetType.NO_TARGET:
+                    targets.Clear();
+                    break;
+
+                case SpellCard.TargetType.ALLY_CARD_TARGET:
+                    targets = playerFieldCards;
+                    break;
+
+                default:
+                    targets = enemyFieldCards;
+                    break;
+            }
         }
         else
         {

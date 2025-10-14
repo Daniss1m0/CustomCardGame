@@ -6,7 +6,7 @@ public class CardAbility : MonoBehaviour
 {
     public GameObject shield, provocation;
     public CardController CC;
-
+    
     public void OnCast()
     {
         foreach (var ability in CC.self.abilities)
@@ -17,6 +17,7 @@ public class CardAbility : MonoBehaviour
                     CC.self.canAttack = true;
                     if (CC.isPlayerCard)
                         CC.info.HighlightCard(true);
+
                     break;
 
                 case Card.AbilityType.SHIELD:

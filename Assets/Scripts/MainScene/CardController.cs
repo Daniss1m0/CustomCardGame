@@ -6,7 +6,7 @@ public class CardController : MonoBehaviour
 {
     public bool isPlayerCard;
     public Card self; //?
-    public CardInfo info;
+    public CardInfo info; //?
     public CardMovement movement;
     public CardAbility ability;
     
@@ -94,7 +94,8 @@ public class CardController : MonoBehaviour
 
             case SpellCard.SpellType.DAMAGE_ENEMY_FIELD_CARDS:
 
-                var enemyCards = isPlayerCard ? new List<CardController>(gameManager.enemyFieldCards) : new List<CardController>(gameManager.playerFieldCards);
+                var enemyCards = isPlayerCard ? new List<CardController>(gameManager.enemyFieldCards) : 
+                                                new List<CardController>(gameManager.playerFieldCards);
 
                 foreach (var card in enemyCards)
                     GiveDamageTo(card, spellCard.spellValue);
@@ -185,6 +186,12 @@ public class CardController : MonoBehaviour
             DestroyCard();
     }
 
+    void RemoveCardFromList(List<CardController> list)
+    {
+        if (list.Exists(x => x == this))
+            list.Remove(this);
+    }
+
     public void DestroyCard()
     {
         movement.OnEndDrag(null);
@@ -195,11 +202,5 @@ public class CardController : MonoBehaviour
         RemoveCardFromList(gameManager.playerHandCards);
 
         Destroy(gameObject);
-    }
-
-    void RemoveCardFromList(List<CardController> list)
-    {
-        if (list.Exists(x => x == this))
-            list.Remove(this);
     }
 }

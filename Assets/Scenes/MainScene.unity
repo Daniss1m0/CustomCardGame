@@ -607,9 +607,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7225241267253114995c436ab798cfda, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Type: 1
-  NormalCol: {r: 1, g: 0.6431373, b: 0.5254902, a: 1}
-  TargetCol: {r: 0.3764706, g: 0.09019608, b: 0.09019608, a: 1}
+  normalCol: {r: 1, g: 0.6431373, b: 0.5254902, a: 1}
+  targetCol: {r: 0.3764706, g: 0.09019608, b: 0.09019608, a: 1}
+  type: 1
 --- !u!1 &294492377
 GameObject:
   m_ObjectHideFlags: 0
@@ -1852,10 +1852,10 @@ MonoBehaviour:
   playerHero: {fileID: 228459500}
   enemyHero: {fileID: 856375458}
   enemyAI: {fileID: 856375459}
-  PlayerHandCards: []
-  PlayerFieldCards: []
-  EnemyHandCards: []
-  EnemyFieldCards: []
+  playerHandCards: []
+  enemyHandCards: []
+  playerFieldCards: []
+  enemyFieldCards: []
 --- !u!1 &540705656
 GameObject:
   m_ObjectHideFlags: 0
@@ -2689,9 +2689,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7225241267253114995c436ab798cfda, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Type: 0
-  NormalCol: {r: 1, g: 0.6431373, b: 0.5254902, a: 1}
-  TargetCol: {r: 0.3764706, g: 0.09019608, b: 0.09019608, a: 1}
+  normalCol: {r: 1, g: 0.6431373, b: 0.5254902, a: 1}
+  targetCol: {r: 0.3764706, g: 0.09019608, b: 0.09019608, a: 1}
+  type: 0
 --- !u!114 &856375459
 MonoBehaviour:
   m_ObjectHideFlags: 0

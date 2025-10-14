@@ -4,9 +4,8 @@ using UnityEngine;
 
 public class CardAbility : MonoBehaviour
 {
+    public GameObject shield, provocation;
     public CardController CC;
-
-    public GameObject Shield, Provocation;
 
     public void OnCast()
     {
@@ -21,11 +20,11 @@ public class CardAbility : MonoBehaviour
                     break;
 
                 case Card.AbilityType.SHIELD:
-                    Shield.SetActive(true);
+                    shield.SetActive(true);
                     break;
 
                 case Card.AbilityType.PROVOCATION:
-                    Provocation.SetActive(true);
+                    provocation.SetActive(true);
                     break;
             }
         }
@@ -51,14 +50,14 @@ public class CardAbility : MonoBehaviour
 
     public void OnDamageTake(CardController attacker = null)
     {
-        Shield.SetActive(false);
+        shield.SetActive(false);
 
         foreach (var ability in CC.card.abilities)
         {
             switch (ability)
             {
                 case Card.AbilityType.SHIELD:
-                    Shield.SetActive(true);
+                    shield.SetActive(true);
                     break;
 
                 case Card.AbilityType.COUNTER_ATTACK:

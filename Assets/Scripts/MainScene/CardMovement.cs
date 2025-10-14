@@ -8,14 +8,13 @@ using UnityEngine.UI;
 public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     public CardController CC;
-
-    private Camera MainCamera;
-    private Vector3 offset;
     public Transform DefaultParent, DefaultTempCardParent;
-    private GameObject TempCardGO;
     public bool IsDraggable;
-
-    int startID;
+    
+    private int startID;
+    private Vector3 offset;
+    private Camera MainCamera;
+    private GameObject TempCardGO;
 
     void Awake()
     {

@@ -687,9 +687,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8a6ad6be61d39e24ebd1c4610b08b90c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  shield: {fileID: 4452543675989470293}
+  provocation: {fileID: 7652263375041960339}
   CC: {fileID: 7746042770806402134}
-  Shield: {fileID: 4452543675989470293}
-  Provocation: {fileID: 7652263375041960339}
 --- !u!114 &3691121292238534741
 MonoBehaviour:
   m_ObjectHideFlags: 0

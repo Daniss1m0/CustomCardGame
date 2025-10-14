@@ -16,13 +16,13 @@ public class AttackedHero : MonoBehaviour, IDropHandler
 
     public void OnDrop(PointerEventData eventData)
     {
-        if (!GameManagerScr.Instance.IsPlayerTurn)
+        if (!GameManager.Instance.IsPlayerTurn)
             return;
 
         CardController card = eventData.pointerDrag.GetComponent<CardController>();
 
-        if (card && card.card.canAttack && type == HeroType.ENEMY && !GameManagerScr.Instance.enemyFieldCards.Exists(x => x.card.IsProvocation))
-                GameManagerScr.Instance.DamageHero(card, true);
+        if (card && card.card.canAttack && type == HeroType.ENEMY && !GameManager.Instance.enemyFieldCards.Exists(x => x.card.IsProvocation))
+                GameManager.Instance.DamageHero(card, true);
     }
 
     public void HighlightAsTarget(bool highlight)

@@ -28,10 +28,10 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
 
         defaultParent = defaultTempCardParent = transform.parent;
 
-        isDraggable = GameManagerScr.Instance.IsPlayerTurn &&
+        isDraggable = GameManager.Instance.IsPlayerTurn &&
         (
             (defaultParent.GetComponent<DropPlace>().type == FieldType.SELF_HAND &&
-            GameManagerScr.Instance.currentGame.player.mana >= CC.card.manacost)
+            GameManager.Instance.currentGame.player.mana >= CC.card.manacost)
             ||
             (defaultParent.GetComponent<DropPlace>().type == FieldType.SELF_FIELD &&
             CC.card.canAttack)
@@ -43,7 +43,7 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
         startID = transform.GetSiblingIndex();
 
         if (CC.card.isSpell || CC.card.canAttack)
-            GameManagerScr.Instance.HighlightTargets(CC, true);
+            GameManager.Instance.HighlightTargets(CC, true);
 
         tempCard.transform.SetParent(defaultParent);
         tempCard.transform.SetSiblingIndex(transform.GetSiblingIndex());
@@ -75,7 +75,7 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
         if (!isDraggable)
             return;
 
-        GameManagerScr.Instance.HighlightTargets(CC, false);
+        GameManager.Instance.HighlightTargets(CC, false);
 
         transform.SetParent(defaultParent);
         GetComponent<CanvasGroup>().blocksRaycasts = true;

@@ -34,9 +34,9 @@ public class Game
     }
 }
 
-public class GameManagerScr : MonoBehaviour
+public class GameManager : MonoBehaviour
 {
-    public static GameManagerScr Instance;
+    public static GameManager Instance;
 
     public GameObject cardPref;
     public Game currentGame;

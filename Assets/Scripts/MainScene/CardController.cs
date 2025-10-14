@@ -10,13 +10,13 @@ public class CardController : MonoBehaviour
     public CardMovement movement;
     public CardAbility ability;
     
-    private GameManagerScr gameManager;
+    private GameManager gameManager;
 
     public void Init(Card card, bool isPlayerCard)
     {
         this.card = card;
         this.isPlayerCard = isPlayerCard;
-        gameManager = GameManagerScr.Instance;
+        gameManager = GameManager.Instance;
 
         if (isPlayerCard)
         {

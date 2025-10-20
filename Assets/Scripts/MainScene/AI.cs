@@ -20,7 +20,7 @@ public class AI : MonoBehaviour
             if (GameManager.Instance.enemyFieldCards.Count > 5 || GameManager.Instance.currentGame.enemy.mana == 0 || GameManager.Instance.enemyHandCards.Count == 0)
                 break;
 
-            List<CardController> cardsList = cards.FindAll(x => GameManager.Instance.currentGame.enemy.mana >= x.self.manacost); 
+            List<CardController> cardsList = cards.FindAll(x => GameManager.Instance.currentGame.enemy.mana >= x.self.manaCost); 
 
             if (cardsList.Count == 0)
                 break;
@@ -136,7 +136,7 @@ public class AI : MonoBehaviour
 
             GameManager.Instance.enemyHandCards.Remove(spell);
             GameManager.Instance.enemyFieldCards.Add(spell);
-            GameManager.Instance.ReduceMana(false, spell.self.manacost);
+            GameManager.Instance.ReduceMana(false, spell.self.manaCost);
 
             spell.self.isPlaced = true;
             spell.UseSpell(target);

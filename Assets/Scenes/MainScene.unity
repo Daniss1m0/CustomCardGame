@@ -608,7 +608,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   normalCol: {r: 1, g: 0.6431373, b: 0.5254902, a: 1}
-  targetCol: {r: 0.3764706, g: 0.09019608, b: 0.09019608, a: 1}
+  highlightCol: {r: 0.3764706, g: 0.09019608, b: 0.09019608, a: 1}
   type: 1
 --- !u!1 &294492377
 GameObject:
@@ -2690,7 +2690,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   normalCol: {r: 1, g: 0.6431373, b: 0.5254902, a: 1}
-  targetCol: {r: 0.3764706, g: 0.09019608, b: 0.09019608, a: 1}
+  highlightCol: {r: 0.3764706, g: 0.09019608, b: 0.09019608, a: 1}
   type: 0
 --- !u!114 &856375459
 MonoBehaviour:

@@ -31,7 +31,7 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
         isDraggable = GameManager.Instance.IsPlayerTurn &&
         (
             (defaultParent.GetComponent<DropPlace>().type == FieldType.SELF_HAND &&
-            GameManager.Instance.currentGame.player.mana >= CC.self.manacost)
+            GameManager.Instance.currentGame.player.mana >= CC.self.manaCost)
             ||
             (defaultParent.GetComponent<DropPlace>().type == FieldType.SELF_FIELD &&
             CC.self.canAttack)

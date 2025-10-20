@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 public class AttackedHero : MonoBehaviour, IDropHandler
 {
-    public Color normalCol, targetCol;
+    public Color normalCol, highlightCol;
     
     public enum HeroType
     {
@@ -27,6 +27,6 @@ public class AttackedHero : MonoBehaviour, IDropHandler
 
     public void HighlightAsTarget(bool highlight)
     {
-        GetComponent<Image>().color = highlight ? targetCol : normalCol;
+        GetComponent<Image>().color = highlight ? highlightCol : normalCol;
     }
 }

@@ -36,14 +36,14 @@ public class CardController : MonoBehaviour
         {
             gameManager.playerHandCards.Remove(this);
             gameManager.playerFieldCards.Add(this);
-            gameManager.ReduceMana(true, self.manacost);
+            gameManager.ReduceMana(true, self.manaCost);
             gameManager.CheckCardsForManaAvailability();
         }
         else 
         {
             gameManager.enemyHandCards.Remove(this);
             gameManager.enemyFieldCards.Add(this);
-            gameManager.ReduceMana(false, self.manacost);
+            gameManager.ReduceMana(false, self.manaCost);
             info.ShowCardInfo();
         }
 
@@ -171,11 +171,11 @@ public class CardController : MonoBehaviour
         DestroyCard();
     }
 
-    void GiveDamageTo(CardController card, int damage)
+    void GiveDamageTo(CardController target, int damage)
     {
-        card.self.GetDamage(damage);
-        card.CheckForAlive();
-        card.OnTakeDamage();
+        target.self.GetDamage(damage);
+        target.CheckForAlive();
+        target.OnTakeDamage();
     }
 
     public void CheckForAlive()
@@ -186,7 +186,7 @@ public class CardController : MonoBehaviour
             DestroyCard();
     }
 
-    void RemoveCardFromList(List<CardController> list)
+    void RemoveFromList(List<CardController> list)
     {
         if (list.Exists(x => x == this))
             list.Remove(this);
@@ -196,10 +196,10 @@ public class CardController : MonoBehaviour
     {
         movement.OnEndDrag(null);
 
-        RemoveCardFromList(gameManager.enemyFieldCards);
-        RemoveCardFromList(gameManager.enemyHandCards);
-        RemoveCardFromList(gameManager.playerFieldCards);
-        RemoveCardFromList(gameManager.playerHandCards);
+        RemoveFromList(gameManager.enemyFieldCards);
+        RemoveFromList(gameManager.enemyHandCards);
+        RemoveFromList(gameManager.playerFieldCards);
+        RemoveFromList(gameManager.playerHandCards);
 
         Destroy(gameObject);
     }

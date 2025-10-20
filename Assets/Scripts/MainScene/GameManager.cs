@@ -39,7 +39,7 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
 
-    public Game currentGame;
+    public Game currentGame; // public Game CurrentGame { get; private set; }?
 
     [SerializeField] private GameObject cardPrefab;
     [SerializeField] private Transform playerHand, enemyHand, playerField, enemyField;
@@ -189,14 +189,14 @@ public class GameManager : MonoBehaviour
         {
             GiveNewCards();
 
-            currentGame.player.IncreaseManapool();
+            currentGame.player.IncreaseManaPool();
             currentGame.player.RestoreRoundMana();
 
             UIController.Instance.UpdateHPAndMana();
         }
         else
         {
-            currentGame.enemy.IncreaseManapool();
+            currentGame.enemy.IncreaseManaPool();
             currentGame.enemy.RestoreRoundMana();
         }
 

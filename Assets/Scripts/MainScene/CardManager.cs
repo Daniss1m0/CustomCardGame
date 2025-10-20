@@ -4,11 +4,11 @@ using UnityEngine;
 public class Card
 {
     public string name;
-    public int attack, health, manacost, timesDealedDamage;
+    public int attack, health, manaCost, timesDealedDamage;
     public bool canAttack, isPlaced, isSpell;
     public Sprite logo;
 
-    public enum AbilityType
+    public enum AbilityType //?
     {
         NO_ABILITY,
         INSTANT_ACTIVE,
@@ -25,12 +25,12 @@ public class Card
     public bool HasAbility => abilities.Count > 0;
     public bool IsProvocation => abilities.Exists(x => x == AbilityType.PROVOCATION);
 
-    public Card(string name, int attack, int health, int manacost, string logoPath, AbilityType abilityType = 0)
+    public Card(string name, int attack, int health, int manaCost, string logoPath, AbilityType abilityType = 0)
     {
         this.name = name;
         this.attack = attack;
         this.health = health;
-        this.manacost = manacost;
+        this.manaCost = manaCost;
 
         canAttack = false;
         isPlaced = false;
@@ -49,7 +49,7 @@ public class Card
         logo = card.logo;
         attack = card.attack;
         health = card.health;
-        manacost = card.manacost;
+        manaCost = card.manaCost;
         canAttack = false;
         isPlaced = false;
 
@@ -68,14 +68,14 @@ public class Card
             health -= dmg;
     }
 
-    public Card GetCopy() => new Card(this); // { return new Card(this); }
+    public Card GetCopy() => new Card(this);
 }
 
 public class SpellCard : Card
 {
     public int spellValue;
     
-    public enum SpellType
+    public enum SpellType //?
     {
         NO_SPELL,
         HEAL_ALLY_FIELD_CARDS,
@@ -90,7 +90,7 @@ public class SpellCard : Card
         DEBUFF_CARD_DAMAGE
     }
 
-    public enum TargetType
+    public enum TargetType //?
     {
         NO_TARGET,
         ALLY_CARD_TARGET,
@@ -129,7 +129,7 @@ public class CardManager : MonoBehaviour
 {
     public void Awake()
     {
-        //CardDatabase.AllCards.Add(new Card("Absolwent", "Sprites/Cards/Absolwent)", 5, 5, 6));
+        //CardDatabase.AllCards.Add(new Card("Absolwent", 5, 5, 6, "Sprites/Cards/Absolwent)"));
         CardDatabase.AllCards.Add(new Card("Asystent", 4, 3, 5, "Sprites/Cards/Asystent"));
         CardDatabase.AllCards.Add(new Card("Inzynier", 3, 3, 4, "Sprites/Cards/Inzynier"));
         CardDatabase.AllCards.Add(new Card("Student", 2, 1, 2, "Sprites/Cards/Student"));

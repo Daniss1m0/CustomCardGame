@@ -8,14 +8,14 @@ public class CardInfo : MonoBehaviour
 {
     public Color normalCol, targetCol, spellTargetCol;
     public GameObject hideObj, highlightedObj;
-    public TextMeshProUGUI nameTxt, attackTxt, healthTxt, manacostTxt;
+    public TextMeshProUGUI nameTxt, attackTxt, healthTxt, manaCostTxt;
     public Image logo;
-    public CardController CC;
+    public CardController CC; //?
 
     public void HideCardInfo()
     {
         hideObj.SetActive(true);
-        manacostTxt.text = "";
+        manaCostTxt.text = "";
     }
 
     public void ShowCardInfo()
@@ -38,7 +38,7 @@ public class CardInfo : MonoBehaviour
     {
         attackTxt.text = CC.self.attack.ToString();
         healthTxt.text = CC.self.health.ToString();
-        manacostTxt.text = CC.self.manacost.ToString();
+        manaCostTxt.text = CC.self.manaCost.ToString();
     }
 
     public void HighlightCard(bool highlight) 
@@ -48,7 +48,7 @@ public class CardInfo : MonoBehaviour
 
     public void HighlightManaAvaliability(int currentMana)
     {
-        GetComponent<CanvasGroup>().alpha = currentMana >= CC.self.manacost ? 1 : 0.5f;
+        GetComponent<CanvasGroup>().alpha = currentMana >= CC.self.manaCost ? 1 : 0.5f;
     }
 
     public void HighlightAsTarget(bool highlight)

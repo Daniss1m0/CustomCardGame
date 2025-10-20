@@ -7,22 +7,22 @@ public class SpellTarget : MonoBehaviour, IDropHandler
 {
     public void OnDrop(PointerEventData eventData)
     {
-        if (!GameManagerScr.Instance.IsPlayerTurn)
+        if (!GameManager.Instance.IsPlayerTurn)
             return;
 
         CardController spell = eventData.pointerDrag.GetComponent<CardController>(),
                        target = GetComponent<CardController>();
 
-        if (spell && spell.card.isSpell && spell.isPlayerCard && target.card.isPlaced && GameManagerScr.Instance.currentGame.player.mana >= spell.card.manacost)
+        if (spell && spell.self.isSpell && spell.isPlayerCard && target.self.isPlaced && GameManager.Instance.currentGame.player.mana >= spell.self.manaCost)
         {
-            var spellCard = (SpellCard)spell.card;
+            var spellCard = (SpellCard)spell.self;
 
-            if ((spellCard.spellTarget == SpellCard.TargetType.ALLY_CARD_TARGET && target.isPlayerCard) ||
-                (spellCard.spellTarget == SpellCard.TargetType.ENEMY_CARD_TARGET && !target.isPlayerCard))
+            if ((spellCard.spellTarget == SpellCard.TargetType.AllyCard && target.isPlayerCard) ||
+                (spellCard.spellTarget == SpellCard.TargetType.EnemyCard && !target.isPlayerCard))
             {
-                GameManagerScr.Instance.ReduceMana(true, spell.card.manacost);
+                GameManager.Instance.ReduceMana(true, spell.self.manaCost);
                 spell.UseSpell(target);
-                GameManagerScr.Instance.CheckCardsForManaAvailability();
+                GameManager.Instance.CheckCardsForManaAvailability();
             }
         }
     }

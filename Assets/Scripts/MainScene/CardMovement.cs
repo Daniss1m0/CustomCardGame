@@ -28,13 +28,13 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
 
         defaultParent = defaultTempCardParent = transform.parent;
 
-        isDraggable = GameManagerScr.Instance.IsPlayerTurn &&
+        isDraggable = GameManager.Instance.IsPlayerTurn &&
         (
-            (defaultParent.GetComponent<DropPlace>().type == FieldType.SELF_HAND &&
-            GameManagerScr.Instance.currentGame.player.mana >= CC.card.manacost)
+            (defaultParent.GetComponent<DropPlace>().type == FieldType.PlayerHand &&
+            GameManager.Instance.currentGame.player.mana >= CC.self.manaCost)
             ||
-            (defaultParent.GetComponent<DropPlace>().type == FieldType.SELF_FIELD &&
-            CC.card.canAttack)
+            (defaultParent.GetComponent<DropPlace>().type == FieldType.PlayerField &&
+            CC.self.canAttack)
         );
 
         if (!isDraggable)
@@ -42,8 +42,8 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
 
         startID = transform.GetSiblingIndex();
 
-        if (CC.card.isSpell || CC.card.canAttack)
-            GameManagerScr.Instance.HighlightTargets(CC, true);
+        if (CC.self.isSpell || CC.self.canAttack)
+            GameManager.Instance.HighlightTargets(CC, true);
 
         tempCard.transform.SetParent(defaultParent);
         tempCard.transform.SetSiblingIndex(transform.GetSiblingIndex());
@@ -60,12 +60,12 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
         Vector3 newPos = mainCamera.ScreenToWorldPoint(eventData.position);
         transform.position = newPos + offset;
 
-        if (!CC.card.isSpell)
+        if (!CC.self.isSpell)
         {
             if (tempCard.transform.parent != defaultTempCardParent)
                 tempCard.transform.SetParent(defaultTempCardParent);
 
-            if (defaultParent.GetComponent<DropPlace>().type != FieldType.SELF_FIELD)
+            if (defaultParent.GetComponent<DropPlace>().type != FieldType.PlayerField)
                 CheckPosition();
         }
     }
@@ -75,7 +75,7 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
         if (!isDraggable)
             return;
 
-        GameManagerScr.Instance.HighlightTargets(CC, false);
+        GameManager.Instance.HighlightTargets(CC, false);
 
         transform.SetParent(defaultParent);
         GetComponent<CanvasGroup>().blocksRaycasts = true;

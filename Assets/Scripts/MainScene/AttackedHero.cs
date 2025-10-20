@@ -4,29 +4,29 @@ using UnityEngine.UI;
 
 public class AttackedHero : MonoBehaviour, IDropHandler
 {
-    public Color normalCol, targetCol;
+    public Color normalCol, highlightCol;
     
     public enum HeroType
     {
-        ENEMY,
-        PLAYER
+        Enemy,
+        Player
     }
 
     public HeroType type;
 
     public void OnDrop(PointerEventData eventData)
     {
-        if (!GameManagerScr.Instance.IsPlayerTurn)
+        if (!GameManager.Instance.IsPlayerTurn)
             return;
 
         CardController card = eventData.pointerDrag.GetComponent<CardController>();
 
-        if (card && card.card.canAttack && type == HeroType.ENEMY && !GameManagerScr.Instance.enemyFieldCards.Exists(x => x.card.IsProvocation))
-                GameManagerScr.Instance.DamageHero(card, true);
+        if (card && card.self.canAttack && type == HeroType.Enemy && !GameManager.Instance.enemyFieldCards.Exists(x => x.self.IsProvocation))
+                GameManager.Instance.DamageHero(card, true);
     }
 
     public void HighlightAsTarget(bool highlight)
     {
-        GetComponent<Image>().color = highlight ? targetCol : normalCol;
+        GetComponent<Image>().color = highlight ? highlightCol : normalCol;
     }
 }

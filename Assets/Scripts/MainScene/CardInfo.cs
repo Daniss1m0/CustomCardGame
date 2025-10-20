@@ -8,25 +8,24 @@ public class CardInfo : MonoBehaviour
 {
     public Color normalCol, targetCol, spellTargetCol;
     public GameObject hideObj, highlightedObj;
-    public TextMeshProUGUI nameTxt, attackTxt, healthTxt, manacostTxt;
+    public TextMeshProUGUI nameTxt, attackTxt, healthTxt, manaCostTxt;
     public Image logo;
-    public CardController CC;
+    public CardController CC; //?
 
     public void HideCardInfo()
     {
         hideObj.SetActive(true);
-        manacostTxt.text = "";
+        manaCostTxt.text = "";
     }
 
     public void ShowCardInfo()
     {
         hideObj.SetActive(false);
-
-        logo.sprite = CC.card.logo;
+        logo.sprite = CC.self.logo;
         logo.preserveAspect = true;
-        nameTxt.text = CC.card.name;
+        nameTxt.text = CC.self.name;
 
-        if (CC.card.isSpell)
+        if (CC.self.isSpell)
         {
             attackTxt.gameObject.SetActive(false);
             healthTxt.gameObject.SetActive(false);
@@ -37,9 +36,9 @@ public class CardInfo : MonoBehaviour
 
     public void RefreshData() 
     {
-        attackTxt.text = CC.card.attack.ToString();
-        healthTxt.text = CC.card.health.ToString();
-        manacostTxt.text = CC.card.manacost.ToString();
+        attackTxt.text = CC.self.attack.ToString();
+        healthTxt.text = CC.self.health.ToString();
+        manaCostTxt.text = CC.self.manaCost.ToString();
     }
 
     public void HighlightCard(bool highlight) 
@@ -49,7 +48,7 @@ public class CardInfo : MonoBehaviour
 
     public void HighlightManaAvaliability(int currentMana)
     {
-        GetComponent<CanvasGroup>().alpha = currentMana >= CC.card.manacost ? 1 : 0.5f;
+        GetComponent<CanvasGroup>().alpha = currentMana >= CC.self.manaCost ? 1 : 0.5f;
     }
 
     public void HighlightAsTarget(bool highlight)

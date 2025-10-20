@@ -20,7 +20,7 @@ public class CollectionManager : MonoBehaviour
     {
         if (!isInitialized)
         {
-            allCards = new List<Card>(CardManager.AllCards).AsReadOnly();
+            allCards = new List<Card>(CardDatabase.AllCards).AsReadOnly();
             isInitialized = true;
         }
 
@@ -79,7 +79,7 @@ public class CollectionManager : MonoBehaviour
         CardInfoUI cardInfo = cardGO.GetComponent<CardInfoUI>();
         cardInfo.SetName(card.name);
         cardInfo.SetLogo(card.logo);
-        cardInfo.SetStats(card.attack, card.health, card.manacost);
+        cardInfo.SetStats(card.attack, card.health, card.manaCost);
 
         Destroy(cardGO.GetComponent<CardMovement>());
         Destroy(cardGO.GetComponent<CardAbility>());

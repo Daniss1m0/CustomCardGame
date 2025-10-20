@@ -88,7 +88,7 @@ GameObject:
   - component: {fileID: 3939767238190545015}
   - component: {fileID: 6578928391901988861}
   m_Layer: 5
-  m_Name: HighlightedObj
+  m_Name: HighlightedColor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -544,7 +544,7 @@ GameObject:
   - component: {fileID: 1492242163370924450}
   - component: {fileID: -5443182898796484096}
   m_Layer: 5
-  m_Name: CardPref
+  m_Name: CardPrefab
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -656,7 +656,7 @@ MonoBehaviour:
   nameTxt: {fileID: 567506245719870983}
   attackTxt: {fileID: 5137814731308018515}
   healthTxt: {fileID: 2142409535197705870}
-  manacostTxt: {fileID: 4238930164348061605}
+  manaCostTxt: {fileID: 4238930164348061605}
   logo: {fileID: 4814674246185262947}
   CC: {fileID: 7746042770806402134}
 --- !u!114 &3853763607972049300
@@ -671,10 +671,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3eced5f3e6d913c4e9ba4cc3a53ce021, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  isDraggable: 0
+  defaultParent: {fileID: 0}
+  defaultTempCardParent: {fileID: 0}
   CC: {fileID: 7746042770806402134}
-  DefaultParent: {fileID: 0}
-  DefaultTempCardParent: {fileID: 0}
-  IsDraggable: 0
 --- !u!114 &-1192024366490733886
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -688,7 +688,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   shield: {fileID: 4452543675989470293}
-  provocation: {fileID: 7652263375041960339}
+  taunt: {fileID: 7652263375041960339}
   CC: {fileID: 7746042770806402134}
 --- !u!114 &3691121292238534741
 MonoBehaviour:
@@ -743,7 +743,7 @@ GameObject:
   - component: {fileID: 7106533533044472123}
   - component: {fileID: 6279243690754278109}
   m_Layer: 5
-  m_Name: Manacost
+  m_Name: ManaCost
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -957,7 +957,7 @@ GameObject:
   - component: {fileID: 773290027902657320}
   - component: {fileID: 4829321373806986917}
   m_Layer: 5
-  m_Name: ShieldObj
+  m_Name: ShieldColor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1170,7 +1170,7 @@ GameObject:
   - component: {fileID: 8045728959107096763}
   - component: {fileID: 5406265039667152527}
   m_Layer: 5
-  m_Name: ProvocationObj
+  m_Name: TauntColor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

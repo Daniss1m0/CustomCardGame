@@ -53,16 +53,16 @@ public class UIController : MonoBehaviour
 
     public void UpdateHPAndMana()
     {
-        PlayerMana.text = GameManagerScr.Instance.currentGame.player.mana.ToString();
-        EnemyMana.text = GameManagerScr.Instance.currentGame.enemy.mana.ToString();
-        PlayerHP.text = GameManagerScr.Instance.currentGame.player.hp.ToString();
-        EnemyHP.text = GameManagerScr.Instance.currentGame.enemy.hp.ToString();
+        PlayerMana.text = GameManager.Instance.currentGame.player.mana.ToString();
+        EnemyMana.text = GameManager.Instance.currentGame.enemy.mana.ToString();
+        PlayerHP.text = GameManager.Instance.currentGame.player.hp.ToString();
+        EnemyHP.text = GameManager.Instance.currentGame.enemy.hp.ToString();
     }
 
     public void ShowResult()
     {
         ResultGO.SetActive(true);
-        if (GameManagerScr.Instance.currentGame.enemy.hp == 0)
+        if (GameManager.Instance.currentGame.enemy.hp == 0)
             ResultTxt.text = "WIN";
         else
             ResultTxt.text = "LOSE";
@@ -75,7 +75,7 @@ public class UIController : MonoBehaviour
 
     public void DisableTurnBtn()
     {
-        EndTurnBtn.interactable = GameManagerScr.Instance.IsPlayerTurn;
+        EndTurnBtn.interactable = GameManager.Instance.IsPlayerTurn;
     }
 
     public void OnOptionsButton()

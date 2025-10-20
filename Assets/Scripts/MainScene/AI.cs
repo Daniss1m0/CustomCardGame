@@ -84,34 +84,34 @@ public class AI : MonoBehaviour
     {
         switch (((SpellCard)card.self).spellTarget)
         {
-            case SpellCard.TargetType.NO_TARGET:
+            case SpellCard.TargetType.None:
                 
                 switch (((SpellCard)card.self).spell)
                 {
-                    case SpellCard.SpellType.HEAL_ALLY_FIELD_CARDS:
+                    case SpellCard.SpellType.HealAlliesField:
                         if (GameManager.Instance.enemyFieldCards.Count > 0)
                             StartCoroutine(CastCard(card));
                         break;
-                    case SpellCard.SpellType.DAMAGE_ENEMY_FIELD_CARDS:
+                    case SpellCard.SpellType.DamageEnemiesField:
                         if (GameManager.Instance.playerFieldCards.Count > 0)
                             StartCoroutine(CastCard(card));
                         break;
-                    case SpellCard.SpellType.HEAL_ALLY_HERO:
+                    case SpellCard.SpellType.HealHero:
                         StartCoroutine(CastCard(card));
                         break;
-                    case SpellCard.SpellType.DAMAGE_ENEMY_HERO:
+                    case SpellCard.SpellType.DamageHero:
                         StartCoroutine(CastCard(card));
                         break;
                 }
                 break;
 
-            case SpellCard.TargetType.ALLY_CARD_TARGET:
+            case SpellCard.TargetType.AllyCard:
 
                 if (GameManager.Instance.enemyFieldCards.Count > 0)
                     StartCoroutine(CastCard(card, GameManager.Instance.enemyFieldCards[Random.Range(0, GameManager.Instance.enemyFieldCards.Count)]));
                 break;
 
-            case SpellCard.TargetType.ENEMY_CARD_TARGET:
+            case SpellCard.TargetType.EnemyCard:
 
                 if (GameManager.Instance.playerFieldCards.Count > 0)
                     StartCoroutine(CastCard(card, GameManager.Instance.playerFieldCards[Random.Range(0, GameManager.Instance.playerFieldCards.Count)]));
@@ -121,7 +121,7 @@ public class AI : MonoBehaviour
 
     IEnumerator CastCard(CardController spell, CardController target = null)
     {
-        if (((SpellCard)spell.self).spellTarget == SpellCard.TargetType.NO_TARGET)
+        if (((SpellCard)spell.self).spellTarget == SpellCard.TargetType.None)
         {
             spell.GetComponent<CardMovement>().MoveToField(GameManager.Instance.EnemyField);
             yield return new WaitForSeconds(.51f);

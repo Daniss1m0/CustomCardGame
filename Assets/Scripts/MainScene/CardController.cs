@@ -29,7 +29,7 @@ public class CardController : MonoBehaviour
 
     public void OnCast()
     {
-        if (self.isSpell && ((SpellCard)self).spellTarget != SpellCard.TargetType.NO_TARGET)
+        if (self.isSpell && ((SpellCard)self).spellTarget != SpellCard.TargetType.None)
             return;
 
         if (isPlayerCard)
@@ -80,7 +80,7 @@ public class CardController : MonoBehaviour
 
         switch (spellCard.spell)
         {
-            case SpellCard.SpellType.HEAL_ALLY_FIELD_CARDS:
+            case SpellCard.SpellType.HealAlliesField:
 
                 var allyCards = isPlayerCard ? gameManager.playerFieldCards : gameManager.enemyFieldCards;
 
@@ -92,7 +92,7 @@ public class CardController : MonoBehaviour
                 
                 break;
 
-            case SpellCard.SpellType.DAMAGE_ENEMY_FIELD_CARDS:
+            case SpellCard.SpellType.DamageEnemiesField:
 
                 var enemyCards = isPlayerCard ? new List<CardController>(gameManager.enemyFieldCards) : 
                                                 new List<CardController>(gameManager.playerFieldCards);
@@ -102,7 +102,7 @@ public class CardController : MonoBehaviour
 
                 break;
 
-            case SpellCard.SpellType.HEAL_ALLY_HERO:
+            case SpellCard.SpellType.HealHero:
 
                 if (isPlayerCard)
                     gameManager.currentGame.player.hp += spellCard.spellValue;
@@ -113,7 +113,7 @@ public class CardController : MonoBehaviour
 
                 break;
 
-            case SpellCard.SpellType.DAMAGE_ENEMY_HERO:
+            case SpellCard.SpellType.DamageHero:
 
                 if (isPlayerCard)
                     gameManager.currentGame.enemy.hp -= spellCard.spellValue;
@@ -125,37 +125,37 @@ public class CardController : MonoBehaviour
 
                 break;
 
-            case SpellCard.SpellType.HEAL_ALLY_CARD:
+            case SpellCard.SpellType.HealCard:
                 target.self.health += spellCard.spellValue;
                 break;
 
-            case SpellCard.SpellType.DAMAGE_ENEMY_CARD:
+            case SpellCard.SpellType.DamageCard:
                 
                 GiveDamageTo(target, spellCard.spellValue);
                 
                 break;
 
-            case SpellCard.SpellType.SHIELD_ON_ALLY_CARD:
+            case SpellCard.SpellType.AddShield:
                 
-                if (!target.self.abilities.Exists(x => x == Card.AbilityType.SHIELD))
-                    target.self.abilities.Add(Card.AbilityType.SHIELD);
-                
-                break;
-
-            case SpellCard.SpellType.PROVOCATION_ON_ALLY_CARD:
-                
-                if (!target.self.abilities.Exists(x => x == Card.AbilityType.PROVOCATION))
-                    target.self.abilities.Add(Card.AbilityType.PROVOCATION);
+                if (!target.self.abilities.Exists(x => x == Card.AbilityType.Shield))
+                    target.self.abilities.Add(Card.AbilityType.Shield);
                 
                 break;
 
-            case SpellCard.SpellType.BUFF_CARD_DAMAGE:
+            case SpellCard.SpellType.AddTaunt:
+                
+                if (!target.self.abilities.Exists(x => x == Card.AbilityType.Taunt))
+                    target.self.abilities.Add(Card.AbilityType.Taunt);
+                
+                break;
+
+            case SpellCard.SpellType.BuffAttack:
                 
                 target.self.attack += spellCard.spellValue;
                 
                 break;
 
-            case SpellCard.SpellType.DEBUFF_CARD_DAMAGE:
+            case SpellCard.SpellType.DebuffAttack:
                 
                 target.self.attack = Mathf.Clamp(target.self.attack - spellCard.spellValue, 0, int.MaxValue);
                 

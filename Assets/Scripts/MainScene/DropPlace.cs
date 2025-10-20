@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public enum FieldType 
+public enum FieldType
 {
-    SELF_HAND,
-    SELF_FIELD,
-    ENEMY_HAND,
-    ENEMY_FIELD
+    PlayerHand,
+    PlayerField,
+    EnemyHand,
+    EnemyField
 }
 
 public class DropPlace : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPointerExitHandler
@@ -17,7 +17,7 @@ public class DropPlace : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoi
 
     public void OnDrop(PointerEventData eventData)
     {
-        if (type != FieldType.SELF_FIELD)
+        if (type != FieldType.PlayerField)
             return;
 
         CardController card = eventData.pointerDrag.GetComponent<CardController>();
@@ -33,7 +33,7 @@ public class DropPlace : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoi
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        if (eventData.pointerDrag == null || type == FieldType.ENEMY_FIELD || type == FieldType.ENEMY_HAND || type == FieldType.SELF_HAND)
+        if (eventData.pointerDrag == null || type == FieldType.EnemyField || type == FieldType.EnemyHand || type == FieldType.PlayerHand)
             return;
 
         CardMovement card = eventData.pointerDrag.GetComponent<CardMovement>();

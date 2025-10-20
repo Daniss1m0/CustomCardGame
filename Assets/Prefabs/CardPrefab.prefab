@@ -88,7 +88,7 @@ GameObject:
   - component: {fileID: 3939767238190545015}
   - component: {fileID: 6578928391901988861}
   m_Layer: 5
-  m_Name: HighlightedObj
+  m_Name: HighlightedColor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -688,7 +688,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   shield: {fileID: 4452543675989470293}
-  provocation: {fileID: 7652263375041960339}
+  taunt: {fileID: 7652263375041960339}
   CC: {fileID: 7746042770806402134}
 --- !u!114 &3691121292238534741
 MonoBehaviour:
@@ -957,7 +957,7 @@ GameObject:
   - component: {fileID: 773290027902657320}
   - component: {fileID: 4829321373806986917}
   m_Layer: 5
-  m_Name: ShieldObj
+  m_Name: ShieldColor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1170,7 +1170,7 @@ GameObject:
   - component: {fileID: 8045728959107096763}
   - component: {fileID: 5406265039667152527}
   m_Layer: 5
-  m_Name: ProvocationObj
+  m_Name: TauntColor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

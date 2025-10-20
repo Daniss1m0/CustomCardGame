@@ -30,10 +30,10 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
 
         isDraggable = GameManager.Instance.IsPlayerTurn &&
         (
-            (defaultParent.GetComponent<DropPlace>().type == FieldType.SELF_HAND &&
+            (defaultParent.GetComponent<DropPlace>().type == FieldType.PlayerHand &&
             GameManager.Instance.currentGame.player.mana >= CC.self.manaCost)
             ||
-            (defaultParent.GetComponent<DropPlace>().type == FieldType.SELF_FIELD &&
+            (defaultParent.GetComponent<DropPlace>().type == FieldType.PlayerField &&
             CC.self.canAttack)
         );
 
@@ -65,7 +65,7 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
             if (tempCard.transform.parent != defaultTempCardParent)
                 tempCard.transform.SetParent(defaultTempCardParent);
 
-            if (defaultParent.GetComponent<DropPlace>().type != FieldType.SELF_FIELD)
+            if (defaultParent.GetComponent<DropPlace>().type != FieldType.PlayerField)
                 CheckPosition();
         }
     }

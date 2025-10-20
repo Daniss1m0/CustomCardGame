@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class CardAbility : MonoBehaviour
 {
-    public GameObject shield, provocation;
+    public GameObject shield, taunt;
     public CardController CC;
     
     public void OnCast()
@@ -13,19 +13,19 @@ public class CardAbility : MonoBehaviour
         {
             switch (ability)
             {
-                case Card.AbilityType.INSTANT_ACTIVE:
+                case Card.AbilityType.Charge:
                     CC.self.canAttack = true;
                     if (CC.isPlayerCard)
                         CC.info.HighlightCard(true);
 
                     break;
 
-                case Card.AbilityType.SHIELD:
+                case Card.AbilityType.Shield:
                     shield.SetActive(true);
                     break;
 
-                case Card.AbilityType.PROVOCATION:
-                    provocation.SetActive(true);
+                case Card.AbilityType.Taunt:
+                    taunt.SetActive(true);
                     break;
             }
         }
@@ -37,7 +37,7 @@ public class CardAbility : MonoBehaviour
         {
             switch (ability)
             {
-                case Card.AbilityType.DOUBLE_ATTACK:
+                case Card.AbilityType.DoubleAttack:
                     if (CC.self.timesDealedDamage == 1)
                     {
                         CC.self.canAttack = true;
@@ -57,11 +57,11 @@ public class CardAbility : MonoBehaviour
         {
             switch (ability)
             {
-                case Card.AbilityType.SHIELD:
+                case Card.AbilityType.Shield:
                     shield.SetActive(true);
                     break;
 
-                case Card.AbilityType.COUNTER_ATTACK:
+                case Card.AbilityType.CounterAttack:
                     if (attacker != null)
                         attacker.self.GetDamage(CC.self.attack);
                     break;
@@ -77,7 +77,7 @@ public class CardAbility : MonoBehaviour
         {
             switch (ability)
             {
-                case Card.AbilityType.REGENERATION_EACH_TURN:
+                case Card.AbilityType.Regeneration:
                     CC.self.health += 2;
                     CC.info.RefreshData();
                     break;

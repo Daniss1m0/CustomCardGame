@@ -8,8 +8,8 @@ public class AttackedHero : MonoBehaviour, IDropHandler
     
     public enum HeroType
     {
-        ENEMY,
-        PLAYER
+        Enemy,
+        Player
     }
 
     public HeroType type;
@@ -21,7 +21,7 @@ public class AttackedHero : MonoBehaviour, IDropHandler
 
         CardController card = eventData.pointerDrag.GetComponent<CardController>();
 
-        if (card && card.self.canAttack && type == HeroType.ENEMY && !GameManager.Instance.enemyFieldCards.Exists(x => x.self.IsProvocation))
+        if (card && card.self.canAttack && type == HeroType.Enemy && !GameManager.Instance.enemyFieldCards.Exists(x => x.self.IsProvocation))
                 GameManager.Instance.DamageHero(card, true);
     }
 

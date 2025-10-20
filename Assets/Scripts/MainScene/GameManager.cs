@@ -269,11 +269,11 @@ public class GameManager : MonoBehaviour
 
             switch (spellCard.spellTarget)
             {
-                case SpellCard.TargetType.NO_TARGET:
+                case SpellCard.TargetType.None:
                     targets.Clear();
                     break;
 
-                case SpellCard.TargetType.ALLY_CARD_TARGET:
+                case SpellCard.TargetType.AllyCard:
                     targets = playerFieldCards;
                     break;
 

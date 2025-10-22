@@ -21,11 +21,11 @@ public class CardController : MonoBehaviour
 
         if (isPlayerCard)
         {
-            info.ShowCardInfo();
+            info.ShowCard();
             GetComponent<AttackedCard>().enabled = false;
         }
         else
-            info.HideCardInfo();
+            info.HideCard();
 
         // ? ability.Setup(card.abilities);
     }
@@ -47,7 +47,7 @@ public class CardController : MonoBehaviour
             gameManager.enemyHandCards.Remove(this);
             gameManager.enemyFieldCards.Add(this);
             gameManager.ReduceMana(false, self.manaCost);
-            info.ShowCardInfo();
+            info.ShowCard();
         }
 
         self.isPlaced = true;
@@ -64,14 +64,14 @@ public class CardController : MonoBehaviour
     public void OnTakeDamage(CardController attacker = null)
     {
         CheckForAlive();
-        ability.OnDamageTake(attacker);
+        ability.OnTakeDamage(attacker);
     }
 
     public void OnDamageDeal()
     {
         self.timesDealedDamage++;
         self.canAttack = false;
-        info.HighlightCard(false);
+        info.SetHighlight(false);
 
         if (self.HasAbility)
             ability.OnDamageDeal();
@@ -90,7 +90,7 @@ public class CardController : MonoBehaviour
                 foreach (var card in allyCards)
                 {
                     card.self.health += spellCard.spellValue;
-                    card.info.RefreshData();
+                    card.info.UpdateStats();
                 }
                 
                 break;
@@ -181,21 +181,13 @@ public class CardController : MonoBehaviour
         target.OnTakeDamage();
     }
 
-    public void CheckForAlive()
-    {
-        if (self.IsAlive)
-            info.RefreshData();
-        else
-            DestroyCard();
-    }
-
     void RemoveFromList(List<CardController> list)
     {
         if(list.Contains(this))
             list.Remove(this); //?
     }
 
-    public void DestroyCard() // upper?
+    public void DestroyCard()
     {
         movement.OnEndDrag(null);
         //movement.StopAllActions();
@@ -206,5 +198,13 @@ public class CardController : MonoBehaviour
         RemoveFromList(gameManager.playerHandCards);
 
         Destroy(gameObject);
+    }
+
+    public void CheckForAlive()
+    {
+        if (self.IsAlive)
+            info.UpdateStats();
+        else
+            DestroyCard();
     }
 }

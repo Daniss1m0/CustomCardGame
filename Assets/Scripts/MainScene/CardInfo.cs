@@ -14,15 +14,13 @@ public class CardInfo : MonoBehaviour
     [SerializeField] private GameObject hideState, highlightState;
 
     private Image background;
-
-
-    public void HideCardInfo()
+    
+    private void Awake()
     {
-        hideState.SetActive(true);
-        manaCostTxt.text = "";
+        background = GetComponent<Image>();
     }
 
-    public void ShowCardInfo()
+    public void ShowCard()
     {
         hideState.SetActive(false);
         logo.sprite = CC.self.logo;
@@ -35,33 +33,42 @@ public class CardInfo : MonoBehaviour
             healthTxt.gameObject.SetActive(false);
         }
 
-        RefreshData();
+        UpdateStats();
     }
 
-    public void RefreshData() 
+    public void HideCard()
+    {
+        hideState.SetActive(true);
+        nameTxt.text = "";
+        attackTxt.text = "";
+        healthTxt.text = "";
+        manaCostTxt.text = "";
+    }
+
+    public void UpdateStats() 
     {
         attackTxt.text = CC.self.attack.ToString();
         healthTxt.text = CC.self.health.ToString();
         manaCostTxt.text = CC.self.manaCost.ToString();
     }
 
-    public void HighlightCard(bool highlight) 
+    public void SetHighlight(bool highlight) 
     {
         highlightState.SetActive(highlight);
     }
 
-    public void HighlightManaAvaliability(int currentMana)
+    public void HighlightAsTarget(bool active)
+    {
+        background.color = active ? targetColor : normalColor;
+    }
+
+    public void HighlightAsSpellTarget(bool active)
+    {
+        background.color = active ? spellTargetColor : normalColor;
+    }
+
+    public void SetManaAvailability(int currentMana)
     {
         GetComponent<CanvasGroup>().alpha = currentMana >= CC.self.manaCost ? 1 : 0.5f;
-    }
-
-    public void HighlightAsTarget(bool highlight)
-    {
-        GetComponent<Image>().color = highlight ? targetColor : normalColor;
-    }
-
-    public void HighlightAsSpellTarget(bool highlight)
-    {
-        GetComponent<Image>().color = highlight ? spellTargetColor : normalColor;
     }
 }

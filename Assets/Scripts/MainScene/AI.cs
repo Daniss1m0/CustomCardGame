@@ -130,7 +130,7 @@ public class AI : MonoBehaviour
         }
         else
         {
-            spell.info.ShowCardInfo();
+            spell.info.ShowCard();
             spell.GetComponent<CardMovement>().MoveToTarget(target.transform);
             yield return new WaitForSeconds(.51f);
 

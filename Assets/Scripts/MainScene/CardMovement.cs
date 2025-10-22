@@ -7,11 +7,14 @@ using UnityEngine.UI;
 
 public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
-    public bool isDraggable;
-    public Transform defaultParent, defaultTempCardParent;
     public CardController CC;
+
+    [SerializeField] private float moveDuration = 0.5f;
+
+    public Transform defaultParent, tempParent;
     
-    private int startID;
+    private int startIndex;
+    private bool isDraggable;
     private Vector3 offset;
     private Camera mainCamera;
     private GameObject tempCard;
@@ -26,7 +29,7 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
     {
         offset = transform.position - mainCamera.ScreenToWorldPoint(eventData.position);
 
-        defaultParent = defaultTempCardParent = transform.parent;
+        defaultParent = tempParent = transform.parent;
 
         isDraggable = GameManager.Instance.IsPlayerTurn &&
         (
@@ -40,7 +43,7 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
         if (!isDraggable)
             return;
 
-        startID = transform.GetSiblingIndex();
+        startIndex = transform.GetSiblingIndex();
 
         if (CC.self.isSpell || CC.self.canAttack)
             GameManager.Instance.HighlightTargets(CC, true);
@@ -62,8 +65,8 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
 
         if (!CC.self.isSpell)
         {
-            if (tempCard.transform.parent != defaultTempCardParent)
-                tempCard.transform.SetParent(defaultTempCardParent);
+            if (tempCard.transform.parent != tempParent)
+                tempCard.transform.SetParent(tempParent);
 
             if (defaultParent.GetComponent<DropPlace>().type != FieldType.PlayerField)
                 CheckPosition();
@@ -87,11 +90,11 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
 
     private void CheckPosition()
     {
-        int newIndex = defaultTempCardParent.childCount;
+        int newIndex = tempParent.childCount;
 
-        for (int i = 0; i < defaultTempCardParent.childCount; i++)
+        for (int i = 0; i < tempParent.childCount; i++)
         {
-            if (transform.position.x < defaultTempCardParent.GetChild(i).position.x)
+            if (transform.position.x < tempParent.GetChild(i).position.x)
             {
                 newIndex = i;
 
@@ -103,7 +106,7 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
         }
 
         if (tempCard.transform.parent == defaultParent)
-            newIndex = startID;
+            newIndex = startIndex;
 
         tempCard.transform.SetSiblingIndex(newIndex);
     }

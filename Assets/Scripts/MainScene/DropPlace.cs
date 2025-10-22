@@ -39,7 +39,7 @@ public class DropPlace : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoi
         CardMovement card = eventData.pointerDrag.GetComponent<CardMovement>();
 
         if (card)
-            card.defaultTempCardParent = transform;
+            card.tempParent = transform;
     }
 
     public void OnPointerExit(PointerEventData eventData)
@@ -49,7 +49,7 @@ public class DropPlace : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoi
 
         CardMovement card = eventData.pointerDrag.GetComponent<CardMovement>();
 
-        if (card && card.defaultTempCardParent == transform)
-            card.defaultTempCardParent = card.defaultParent;
+        if (card && card.tempParent == transform)
+            card.tempParent = card.defaultParent;
     }
 }

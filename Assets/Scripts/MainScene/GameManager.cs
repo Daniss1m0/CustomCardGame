@@ -138,7 +138,7 @@ public class GameManager : MonoBehaviour
         UIController.Instance.UpdateTurnTime(turnTime);
 
         foreach (var card in playerFieldCards)
-            card.info.HighlightCard(false);
+            card.info.SetHighlight(false);
 
         CheckCardsForManaAvailability();
 
@@ -147,7 +147,7 @@ public class GameManager : MonoBehaviour
             foreach (var card in playerFieldCards) 
             {
                 card.self.canAttack = true;
-                card.info.HighlightCard(true);
+                card.info.SetHighlight(true);
                 card.ability.OnNewTurn();
             }
 
@@ -256,7 +256,7 @@ public class GameManager : MonoBehaviour
     public void CheckCardsForManaAvailability()
     {
         foreach (var card in playerHandCards)
-            card.info.HighlightManaAvaliability(currentGame.player.mana);
+            card.info.SetManaAvailability(currentGame.player.mana);
     }
 
     public void HighlightTargets(CardController attacker,bool highlight)

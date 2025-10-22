@@ -4,9 +4,12 @@ using UnityEngine;
 
 public class CardAbility : MonoBehaviour
 {
-    public GameObject shield, taunt;
     public CardController CC;
-    
+
+    [SerializeField] private GameObject shield, taunt;
+
+    //setup?
+
     public void OnCast()
     {
         foreach (var ability in CC.self.abilities)
@@ -16,7 +19,7 @@ public class CardAbility : MonoBehaviour
                 case Card.AbilityType.Charge:
                     CC.self.canAttack = true;
                     if (CC.isPlayerCard)
-                        CC.info.HighlightCard(true);
+                        CC.info.SetHighlight(true);
 
                     break;
 
@@ -42,14 +45,14 @@ public class CardAbility : MonoBehaviour
                     {
                         CC.self.canAttack = true;
                         if (CC.isPlayerCard)
-                            CC.info.HighlightCard(true);
+                            CC.info.SetHighlight(true);
                     }
                     break;
             }
         }
     }
 
-    public void OnDamageTake(CardController attacker = null)
+    public void OnTakeDamage(CardController attacker = null)
     {
         shield.SetActive(false);
 
@@ -79,7 +82,7 @@ public class CardAbility : MonoBehaviour
             {
                 case Card.AbilityType.Regeneration:
                     CC.self.health += 2;
-                    CC.info.RefreshData();
+                    CC.info.UpdateStats();
                     break;
             }
         }

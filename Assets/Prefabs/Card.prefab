@@ -649,9 +649,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   CC: {fileID: 7746042770806402134}
-  normalColor: {r: 0, g: 0, b: 0, a: 0}
-  targetColor: {r: 0, g: 0, b: 0, a: 0}
-  spellTargetColor: {r: 0, g: 0, b: 0, a: 0}
+  normalColor: {r: 0.63522005, g: 0.63522005, b: 0.63522005, a: 0}
+  targetColor: {r: 1, g: 0, b: 0, a: 0}
+  spellTargetColor: {r: 1, g: 0, b: 0.9191389, a: 0}
   nameTxt: {fileID: 567506245719870983}
   attackTxt: {fileID: 5137814731308018515}
   healthTxt: {fileID: 2142409535197705870}
@@ -671,10 +671,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3eced5f3e6d913c4e9ba4cc3a53ce021, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  CC: {fileID: 7746042770806402134}
   isDraggable: 0
   defaultParent: {fileID: 0}
   defaultTempCardParent: {fileID: 0}
-  CC: {fileID: 7746042770806402134}
 --- !u!114 &-1192024366490733886
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -687,9 +687,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8a6ad6be61d39e24ebd1c4610b08b90c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  CC: {fileID: 7746042770806402134}
   shield: {fileID: 4452543675989470293}
   taunt: {fileID: 7652263375041960339}
-  CC: {fileID: 7746042770806402134}
 --- !u!114 &3691121292238534741
 MonoBehaviour:
   m_ObjectHideFlags: 0

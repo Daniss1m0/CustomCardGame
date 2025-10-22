@@ -6,9 +6,10 @@ public class CardController : MonoBehaviour
 {
     public bool isPlayerCard;
     public Card self; //?
-    public CardInfo info; //?
-    public CardMovement movement;
-    public CardAbility ability;
+
+    [SerializeField] public CardInfo info; //?
+    [SerializeField] public CardMovement movement;
+    [SerializeField] public CardAbility ability;
     
     private GameManager gameManager;
 
@@ -25,6 +26,8 @@ public class CardController : MonoBehaviour
         }
         else
             info.HideCardInfo();
+
+        // ? ability.Setup(card.abilities);
     }
 
     public void OnCast()
@@ -188,13 +191,14 @@ public class CardController : MonoBehaviour
 
     void RemoveFromList(List<CardController> list)
     {
-        if (list.Exists(x => x == this))
-            list.Remove(this);
+        if(list.Contains(this))
+            list.Remove(this); //?
     }
 
-    public void DestroyCard()
+    public void DestroyCard() // upper?
     {
         movement.OnEndDrag(null);
+        //movement.StopAllActions();
 
         RemoveFromList(gameManager.enemyFieldCards);
         RemoveFromList(gameManager.enemyHandCards);

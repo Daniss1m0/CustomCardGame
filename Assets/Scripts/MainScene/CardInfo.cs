@@ -6,21 +6,25 @@ using TMPro;
 
 public class CardInfo : MonoBehaviour
 {
-    public Color normalCol, targetCol, spellTargetCol;
-    public GameObject hideObj, highlightedObj;
-    public TextMeshProUGUI nameTxt, attackTxt, healthTxt, manaCostTxt;
-    public Image logo;
     public CardController CC; //?
+
+    [SerializeField] private Color normalColor, targetColor, spellTargetColor;
+    [SerializeField] private TextMeshProUGUI nameTxt, attackTxt, healthTxt, manaCostTxt;
+    [SerializeField] private Image logo;
+    [SerializeField] private GameObject hideState, highlightState;
+
+    private Image background;
+
 
     public void HideCardInfo()
     {
-        hideObj.SetActive(true);
+        hideState.SetActive(true);
         manaCostTxt.text = "";
     }
 
     public void ShowCardInfo()
     {
-        hideObj.SetActive(false);
+        hideState.SetActive(false);
         logo.sprite = CC.self.logo;
         logo.preserveAspect = true;
         nameTxt.text = CC.self.name;
@@ -43,7 +47,7 @@ public class CardInfo : MonoBehaviour
 
     public void HighlightCard(bool highlight) 
     {
-        highlightedObj.SetActive(highlight);
+        highlightState.SetActive(highlight);
     }
 
     public void HighlightManaAvaliability(int currentMana)
@@ -53,11 +57,11 @@ public class CardInfo : MonoBehaviour
 
     public void HighlightAsTarget(bool highlight)
     {
-        GetComponent<Image>().color = highlight ? targetCol : normalCol;
+        GetComponent<Image>().color = highlight ? targetColor : normalColor;
     }
 
     public void HighlightAsSpellTarget(bool highlight)
     {
-        GetComponent<Image>().color = highlight ? spellTargetCol : normalCol;
+        GetComponent<Image>().color = highlight ? spellTargetColor : normalColor;
     }
 }

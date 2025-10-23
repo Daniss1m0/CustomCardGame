@@ -7,11 +7,15 @@ public class CardController : MonoBehaviour
     public bool isPlayerCard;
     public Card self; //?
 
-    [SerializeField] public CardInfo info; //?
-    [SerializeField] public CardMovement movement;
-    [SerializeField] public CardAbility ability;
+    [SerializeField] private CardInfo info; //public
+    [SerializeField] private CardMovement movement;
+    [SerializeField] private CardAbility ability;
     
     private GameManager gameManager;
+
+    public CardInfo Info => info;
+    public CardAbility Ability => ability;
+    public CardMovement Movement => movement;
 
     public void Init(Card card, bool isPlayerCard)
     {
@@ -21,13 +25,13 @@ public class CardController : MonoBehaviour
 
         if (isPlayerCard)
         {
-            info.ShowCard();
-            GetComponent<AttackedCard>().enabled = false;
+            info.ShowCard(self);
+            GetComponent<AttackedCard>().enabled = false; //?
         }
         else
             info.HideCard();
 
-        // ? ability.Setup(card.abilities);
+        ability.Setup(self.abilities);
     }
 
     public void OnCast()
@@ -47,13 +51,13 @@ public class CardController : MonoBehaviour
             gameManager.enemyHandCards.Remove(this);
             gameManager.enemyFieldCards.Add(this);
             gameManager.ReduceMana(false, self.manaCost);
-            info.ShowCard();
+            info.ShowCard(self);
         }
 
         self.isPlaced = true;
 
         if (self.HasAbility)
-            ability.OnCast();
+            ability.OnCast(self, isPlayerCard, info);
 
         if (self.isSpell)
             UseSpell(null);
@@ -64,7 +68,7 @@ public class CardController : MonoBehaviour
     public void OnTakeDamage(CardController attacker = null)
     {
         CheckForAlive();
-        ability.OnTakeDamage(attacker);
+        ability.OnTakeDamage(self, attacker);
     }
 
     public void OnDamageDeal()
@@ -74,7 +78,7 @@ public class CardController : MonoBehaviour
         info.SetHighlight(false);
 
         if (self.HasAbility)
-            ability.OnDamageDeal();
+            ability.OnDamageDeal(self, isPlayerCard, info);
     }
 
     public void UseSpell(CardController target)
@@ -90,7 +94,7 @@ public class CardController : MonoBehaviour
                 foreach (var card in allyCards)
                 {
                     card.self.health += spellCard.spellValue;
-                    card.info.UpdateStats();
+                    card.info.UpdateStats(card.self);
                 }
                 
                 break;
@@ -159,15 +163,15 @@ public class CardController : MonoBehaviour
                 break;
 
             case SpellCard.SpellType.DebuffAttack:
-                
-                target.self.attack = Mathf.Clamp(target.self.attack - spellCard.spellValue, 0, int.MaxValue);
-                
+
+                target.self.attack = Mathf.Max(0, target.self.attack - spellCard.spellValue);
+
                 break;
         }
 
         if (target != null)
         {
-            target.ability.OnCast();
+            target.ability.OnCast(target.self, target.isPlayerCard, info);
             target.CheckForAlive();
         }
 
@@ -192,7 +196,7 @@ public class CardController : MonoBehaviour
         movement.OnEndDrag(null);
         //movement.StopAllActions();
 
-        RemoveFromList(gameManager.enemyFieldCards);
+        RemoveFromList(gameManager.enemyFieldCards); // gameManager.playerHandCards.Remove(this);
         RemoveFromList(gameManager.enemyHandCards);
         RemoveFromList(gameManager.playerFieldCards);
         RemoveFromList(gameManager.playerHandCards);
@@ -203,7 +207,7 @@ public class CardController : MonoBehaviour
     public void CheckForAlive()
     {
         if (self.IsAlive)
-            info.UpdateStats();
+            info.UpdateStats(self);
         else
             DestroyCard();
     }

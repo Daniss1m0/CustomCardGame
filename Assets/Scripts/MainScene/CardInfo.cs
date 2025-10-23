@@ -6,8 +6,6 @@ using TMPro;
 
 public class CardInfo : MonoBehaviour
 {
-    public CardController CC; //?
-
     [SerializeField] private Color normalColor, targetColor, spellTargetColor;
     [SerializeField] private TextMeshProUGUI nameTxt, attackTxt, healthTxt, manaCostTxt;
     [SerializeField] private Image logo;
@@ -20,20 +18,20 @@ public class CardInfo : MonoBehaviour
         background = GetComponent<Image>();
     }
 
-    public void ShowCard()
+    public void ShowCard(Card card)
     {
         hideState.SetActive(false);
-        logo.sprite = CC.self.logo;
+        logo.sprite = card.logo;
         logo.preserveAspect = true;
-        nameTxt.text = CC.self.name;
+        nameTxt.text = card.name;
 
-        if (CC.self.isSpell)
+        if (card.isSpell)
         {
             attackTxt.gameObject.SetActive(false);
             healthTxt.gameObject.SetActive(false);
         }
 
-        UpdateStats();
+        UpdateStats(card);
     }
 
     public void HideCard()
@@ -45,11 +43,11 @@ public class CardInfo : MonoBehaviour
         manaCostTxt.text = "";
     }
 
-    public void UpdateStats() 
+    public void UpdateStats(Card card) 
     {
-        attackTxt.text = CC.self.attack.ToString();
-        healthTxt.text = CC.self.health.ToString();
-        manaCostTxt.text = CC.self.manaCost.ToString();
+        attackTxt.text = card.attack.ToString();
+        healthTxt.text = card.health.ToString();
+        manaCostTxt.text = card.manaCost.ToString();
     }
 
     public void SetHighlight(bool highlight) 
@@ -67,8 +65,8 @@ public class CardInfo : MonoBehaviour
         background.color = active ? spellTargetColor : normalColor;
     }
 
-    public void SetManaAvailability(int currentMana)
+    public void SetManaAvailability(int currentMana, int cardCost)
     {
-        GetComponent<CanvasGroup>().alpha = currentMana >= CC.self.manaCost ? 1 : 0.5f;
+        GetComponent<CanvasGroup>().alpha = currentMana >= cardCost ? 1 : 0.5f;
     }
 }

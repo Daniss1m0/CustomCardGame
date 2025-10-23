@@ -58,7 +58,7 @@ public class AI : MonoBehaviour
                 Debug.Log(activeCard.self.name + "(" + activeCard.self.attack + ";" + activeCard.self.health + "))" + "---> " +
                 enemy.self.name + " (" + enemy.self.attack + ";" + enemy.self.health + ")");
 
-                activeCard.movement.MoveToTarget(enemy.transform);
+                activeCard.Movement.MoveToTarget(enemy.transform);
                 yield return new WaitForSeconds(.75f);
 
                 GameManager.Instance.CardsFight(activeCard, enemy);
@@ -130,7 +130,7 @@ public class AI : MonoBehaviour
         }
         else
         {
-            spell.info.ShowCard();
+            spell.Info.ShowCard(spell.self);
             spell.GetComponent<CardMovement>().MoveToTarget(target.transform);
             yield return new WaitForSeconds(.51f);
 

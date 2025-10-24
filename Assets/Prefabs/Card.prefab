@@ -88,7 +88,7 @@ GameObject:
   - component: {fileID: 3939767238190545015}
   - component: {fileID: 6578928391901988861}
   m_Layer: 5
-  m_Name: HighlightedColor
+  m_Name: HighlightState
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -544,7 +544,7 @@ GameObject:
   - component: {fileID: 1492242163370924450}
   - component: {fileID: -5443182898796484096}
   m_Layer: 5
-  m_Name: CardPrefab
+  m_Name: Card
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -648,17 +648,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba12d265c9fafde4bb83bbb5043c02a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  normalCol: {r: 0.6117647, g: 0.5411765, b: 0.5411765, a: 0}
-  targetCol: {r: 0.3764706, g: 0.09019608, b: 0.09019608, a: 0}
-  spellTargetCol: {r: 1, g: 0, b: 0.4627451, a: 0}
-  hideObj: {fileID: 8276660956730707615}
-  highlightedObj: {fileID: 747441501028711005}
+  CC: {fileID: 7746042770806402134}
+  normalColor: {r: 0.63522005, g: 0.63522005, b: 0.63522005, a: 0}
+  targetColor: {r: 1, g: 0, b: 0, a: 0}
+  spellTargetColor: {r: 1, g: 0, b: 0.9191389, a: 0}
   nameTxt: {fileID: 567506245719870983}
   attackTxt: {fileID: 5137814731308018515}
   healthTxt: {fileID: 2142409535197705870}
   manaCostTxt: {fileID: 4238930164348061605}
   logo: {fileID: 4814674246185262947}
-  CC: {fileID: 7746042770806402134}
+  hideState: {fileID: 8276660956730707615}
+  highlightState: {fileID: 747441501028711005}
 --- !u!114 &3853763607972049300
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -671,10 +671,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3eced5f3e6d913c4e9ba4cc3a53ce021, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  CC: {fileID: 7746042770806402134}
   isDraggable: 0
   defaultParent: {fileID: 0}
   defaultTempCardParent: {fileID: 0}
-  CC: {fileID: 7746042770806402134}
 --- !u!114 &-1192024366490733886
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -687,9 +687,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8a6ad6be61d39e24ebd1c4610b08b90c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  CC: {fileID: 7746042770806402134}
   shield: {fileID: 4452543675989470293}
   taunt: {fileID: 7652263375041960339}
-  CC: {fileID: 7746042770806402134}
 --- !u!114 &3691121292238534741
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1032,7 +1032,7 @@ GameObject:
   - component: {fileID: 6216894639055449024}
   - component: {fileID: 4238930164348061605}
   m_Layer: 5
-  m_Name: ManacostTxt
+  m_Name: ManaCostTxt
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1245,7 +1245,7 @@ GameObject:
   - component: {fileID: 339761555615787}
   - component: {fileID: 3972785161207549058}
   m_Layer: 5
-  m_Name: HideObj
+  m_Name: HideState
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

@@ -21,8 +21,8 @@ public class Game
     private List<Card> GiveDeckCard()
     {
         List<Card> list = new List<Card>();
-        list.Add(CardDatabase.AllCards[6].GetCopy());
-        
+        list.Add(CardDatabase.AllCards[6].GetCopy()); //example manual add of a specific card
+
         for (int i = 0; i < 20; i++)
         {
             var card = CardDatabase.AllCards[Random.Range(0, CardDatabase.AllCards.Count)];
@@ -138,7 +138,7 @@ public class GameManager : MonoBehaviour
         UIController.Instance.UpdateTurnTime(turnTime);
 
         foreach (var card in playerFieldCards)
-            card.info.HighlightCard(false);
+            card.Info.SetHighlight(false);
 
         CheckCardsForManaAvailability();
 
@@ -147,8 +147,8 @@ public class GameManager : MonoBehaviour
             foreach (var card in playerFieldCards) 
             {
                 card.self.canAttack = true;
-                card.info.HighlightCard(true);
-                card.ability.OnNewTurn();
+                card.Info.SetHighlight(true);
+                card.Ability.OnNewTurn(card.self);
             }
 
             while (turnTime-- > 0)
@@ -164,7 +164,7 @@ public class GameManager : MonoBehaviour
             foreach (var card in enemyFieldCards)
             {
                 card.self.canAttack = true;
-                card.ability.OnNewTurn();
+                card.Ability.OnNewTurn(card.self);
             }
 
             enemyAI.MakeTurn();
@@ -256,7 +256,7 @@ public class GameManager : MonoBehaviour
     public void CheckCardsForManaAvailability()
     {
         foreach (var card in playerHandCards)
-            card.info.HighlightManaAvaliability(currentGame.player.mana);
+            card.Info.SetManaAvailability(currentGame.player.mana, card.self.manaCost);
     }
 
     public void HighlightTargets(CardController attacker,bool highlight)
@@ -296,9 +296,9 @@ public class GameManager : MonoBehaviour
         foreach (var card in targets)
         {
             if (attacker.self.isSpell)
-                card.info.HighlightAsSpellTarget(highlight);
+                card.Info.HighlightAsSpellTarget(highlight);
             else
-                card.info.HighlightAsTarget(highlight);
+                card.Info.HighlightAsTarget(highlight);
         }
     }
 }

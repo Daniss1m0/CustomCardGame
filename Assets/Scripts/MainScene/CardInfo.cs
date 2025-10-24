@@ -6,58 +6,67 @@ using TMPro;
 
 public class CardInfo : MonoBehaviour
 {
-    public Color normalCol, targetCol, spellTargetCol;
-    public GameObject hideObj, highlightedObj;
-    public TextMeshProUGUI nameTxt, attackTxt, healthTxt, manaCostTxt;
-    public Image logo;
-    public CardController CC; //?
+    [SerializeField] private Color normalColor, targetColor, spellTargetColor;
+    [SerializeField] private TextMeshProUGUI nameTxt, attackTxt, healthTxt, manaCostTxt;
+    [SerializeField] private Image logo;
+    [SerializeField] private GameObject hideState, highlightState;
 
-    public void HideCardInfo()
+    private Image background;
+    
+    private void Awake()
     {
-        hideObj.SetActive(true);
-        manaCostTxt.text = "";
+        background = GetComponent<Image>();
     }
 
-    public void ShowCardInfo()
+    public void ShowCard(Card card)
     {
-        hideObj.SetActive(false);
-        logo.sprite = CC.self.logo;
+        hideState.SetActive(false);
+        logo.sprite = card.logo;
         logo.preserveAspect = true;
-        nameTxt.text = CC.self.name;
+        nameTxt.text = card.name;
 
-        if (CC.self.isSpell)
+        if (card.isSpell)
         {
             attackTxt.gameObject.SetActive(false);
             healthTxt.gameObject.SetActive(false);
         }
 
-        RefreshData();
+        UpdateStats(card);
     }
 
-    public void RefreshData() 
+    public void HideCard()
     {
-        attackTxt.text = CC.self.attack.ToString();
-        healthTxt.text = CC.self.health.ToString();
-        manaCostTxt.text = CC.self.manaCost.ToString();
+        hideState.SetActive(true);
+        nameTxt.text = "";
+        attackTxt.text = "";
+        healthTxt.text = "";
+        manaCostTxt.text = "";
     }
 
-    public void HighlightCard(bool highlight) 
+    public void UpdateStats(Card card) 
     {
-        highlightedObj.SetActive(highlight);
+        attackTxt.text = card.attack.ToString();
+        healthTxt.text = card.health.ToString();
+        manaCostTxt.text = card.manaCost.ToString();
     }
 
-    public void HighlightManaAvaliability(int currentMana)
+    public void SetHighlight(bool highlight) 
     {
-        GetComponent<CanvasGroup>().alpha = currentMana >= CC.self.manaCost ? 1 : 0.5f;
+        highlightState.SetActive(highlight);
     }
 
-    public void HighlightAsTarget(bool highlight)
+    public void HighlightAsTarget(bool active)
     {
-        GetComponent<Image>().color = highlight ? targetCol : normalCol;
+        background.color = active ? targetColor : normalColor;
     }
 
-    public void HighlightAsSpellTarget(bool highlight)
+    public void HighlightAsSpellTarget(bool active)
     {
-        GetComponent<Image>().color = highlight ? spellTargetCol : normalCol;
+        background.color = active ? spellTargetColor : normalColor;
+    }
+
+    public void SetManaAvailability(int currentMana, int cardCost)
+    {
+        GetComponent<CanvasGroup>().alpha = currentMana >= cardCost ? 1 : 0.5f;
     }
 }

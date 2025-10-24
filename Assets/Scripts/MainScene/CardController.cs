@@ -6,11 +6,16 @@ public class CardController : MonoBehaviour
 {
     public bool isPlayerCard;
     public Card self; //?
-    public CardInfo info; //?
-    public CardMovement movement;
-    public CardAbility ability;
+
+    [SerializeField] private CardInfo info;
+    [SerializeField] private CardMovement movement;
+    [SerializeField] private CardAbility ability;
     
     private GameManager gameManager;
+
+    public CardInfo Info => info;
+    public CardAbility Ability => ability;
+    public CardMovement Movement => movement;
 
     public void Init(Card card, bool isPlayerCard)
     {
@@ -18,13 +23,15 @@ public class CardController : MonoBehaviour
         this.isPlayerCard = isPlayerCard;
         gameManager = GameManager.Instance;
 
+        if (movement == null) movement = GetComponent<CardMovement>();
+
         if (isPlayerCard)
         {
-            info.ShowCardInfo();
-            GetComponent<AttackedCard>().enabled = false;
+            info.ShowCard(self);
+            GetComponent<AttackedCard>().enabled = false; //?
         }
         else
-            info.HideCardInfo();
+            info.HideCard();
     }
 
     public void OnCast()
@@ -44,13 +51,13 @@ public class CardController : MonoBehaviour
             gameManager.enemyHandCards.Remove(this);
             gameManager.enemyFieldCards.Add(this);
             gameManager.ReduceMana(false, self.manaCost);
-            info.ShowCardInfo();
+            info.ShowCard(self);
         }
 
         self.isPlaced = true;
 
         if (self.HasAbility)
-            ability.OnCast();
+            ability.OnCast(self, isPlayerCard, info);
 
         if (self.isSpell)
             UseSpell(null);
@@ -61,17 +68,45 @@ public class CardController : MonoBehaviour
     public void OnTakeDamage(CardController attacker = null)
     {
         CheckForAlive();
-        ability.OnDamageTake(attacker);
+        ability.OnTakeDamage(self, attacker);
     }
 
     public void OnDamageDeal()
     {
         self.timesDealedDamage++;
         self.canAttack = false;
-        info.HighlightCard(false);
+        info.SetHighlight(false);
 
         if (self.HasAbility)
-            ability.OnDamageDeal();
+            ability.OnDamageDeal(self, isPlayerCard, info);
+    }
+
+    public void DestroyCard()
+    {
+        movement.OnEndDrag(null);
+        //movement.StopAllActions();
+
+        gameManager.playerHandCards.Remove(this);
+        gameManager.enemyHandCards.Remove(this);
+        gameManager.playerFieldCards.Remove(this);
+        gameManager.enemyFieldCards.Remove(this);
+
+        Destroy(gameObject);
+    }
+
+    public void CheckForAlive()
+    {
+        if (self.IsAlive)
+            info.UpdateStats(self);
+        else
+            DestroyCard();
+    }
+
+    void GiveDamageTo(CardController target, int damage)
+    {
+        target.self.GetDamage(damage);
+        target.CheckForAlive();
+        target.OnTakeDamage();
     }
 
     public void UseSpell(CardController target)
@@ -87,7 +122,7 @@ public class CardController : MonoBehaviour
                 foreach (var card in allyCards)
                 {
                     card.self.health += spellCard.spellValue;
-                    card.info.RefreshData();
+                    card.info.UpdateStats(card.self);
                 }
                 
                 break;
@@ -156,51 +191,18 @@ public class CardController : MonoBehaviour
                 break;
 
             case SpellCard.SpellType.DebuffAttack:
-                
-                target.self.attack = Mathf.Clamp(target.self.attack - spellCard.spellValue, 0, int.MaxValue);
-                
+
+                target.self.attack = Mathf.Max(0, target.self.attack - spellCard.spellValue);
+
                 break;
         }
 
         if (target != null)
         {
-            target.ability.OnCast();
+            target.ability.OnCast(target.self, target.isPlayerCard, info);
             target.CheckForAlive();
         }
 
         DestroyCard();
-    }
-
-    void GiveDamageTo(CardController target, int damage)
-    {
-        target.self.GetDamage(damage);
-        target.CheckForAlive();
-        target.OnTakeDamage();
-    }
-
-    public void CheckForAlive()
-    {
-        if (self.IsAlive)
-            info.RefreshData();
-        else
-            DestroyCard();
-    }
-
-    void RemoveFromList(List<CardController> list)
-    {
-        if (list.Exists(x => x == this))
-            list.Remove(this);
-    }
-
-    public void DestroyCard()
-    {
-        movement.OnEndDrag(null);
-
-        RemoveFromList(gameManager.enemyFieldCards);
-        RemoveFromList(gameManager.enemyHandCards);
-        RemoveFromList(gameManager.playerFieldCards);
-        RemoveFromList(gameManager.playerHandCards);
-
-        Destroy(gameObject);
     }
 }

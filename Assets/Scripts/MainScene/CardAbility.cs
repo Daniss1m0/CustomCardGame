@@ -1,85 +1,96 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class CardAbility : MonoBehaviour
 {
-    public GameObject shield, taunt;
-    public CardController CC;
-    
-    public void OnCast()
+    [SerializeField] private GameObject shield, taunt;
+
+    public void OnCast(Card card, bool isPlayerCard, CardInfo info = null)
     {
-        foreach (var ability in CC.self.abilities)
+        foreach (var ability in card.abilities)
         {
             switch (ability)
             {
                 case Card.AbilityType.Charge:
-                    CC.self.canAttack = true;
-                    if (CC.isPlayerCard)
-                        CC.info.HighlightCard(true);
-
+                   
+                    card.canAttack = true;
+                    if (isPlayerCard && info != null)
+                        info.SetHighlight(true);
+                    
                     break;
 
                 case Card.AbilityType.Shield:
+                    
                     shield.SetActive(true);
+                    
                     break;
 
                 case Card.AbilityType.Taunt:
+                    
                     taunt.SetActive(true);
+                    
                     break;
             }
         }
     }
 
-    public void OnDamageDeal()
+    public void OnDamageDeal(Card card, bool isPlayerCard, CardInfo info = null)
     {
-        foreach (var ability in CC.self.abilities)
+        foreach (var ability in card.abilities)
         {
             switch (ability)
             {
                 case Card.AbilityType.DoubleAttack:
-                    if (CC.self.timesDealedDamage == 1)
+                    
+                    if (card.timesDealedDamage == 1)
                     {
-                        CC.self.canAttack = true;
-                        if (CC.isPlayerCard)
-                            CC.info.HighlightCard(true);
+                        card.canAttack = true;
+                        if (isPlayerCard && info != null)
+                            info.SetHighlight(true);
                     }
+                    
                     break;
             }
         }
     }
 
-    public void OnDamageTake(CardController attacker = null)
+    public void OnTakeDamage(Card card, CardController attacker)
     {
         shield.SetActive(false);
 
-        foreach (var ability in CC.self.abilities)
+        foreach (var ability in card.abilities)
         {
             switch (ability)
             {
                 case Card.AbilityType.Shield:
+                    
                     shield.SetActive(true);
+
                     break;
 
                 case Card.AbilityType.CounterAttack:
+                    
                     if (attacker != null)
-                        attacker.self.GetDamage(CC.self.attack);
+                        attacker.self.GetDamage(card.attack);
+                    
                     break;
             }
         }
     }
 
-    public void OnNewTurn()
+    public void OnNewTurn(Card card, CardInfo info = null)
     {
-        CC.self.timesDealedDamage = 0;
+        card.timesDealedDamage = 0;
 
-        foreach (var ability in CC.self.abilities)
+        foreach (var ability in card.abilities)
         {
             switch (ability)
             {
                 case Card.AbilityType.Regeneration:
-                    CC.self.health += 2;
-                    CC.info.RefreshData();
+                    
+                    card.health += 2;
+                    info?.UpdateStats(card);
+                    
                     break;
             }
         }

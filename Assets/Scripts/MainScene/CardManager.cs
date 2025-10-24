@@ -25,16 +25,16 @@ public class Card
     public bool HasAbility => abilities.Count > 0;
     public bool IsProvocation => abilities.Exists(x => x == AbilityType.Taunt);
 
-    public Card(string name, int attack, int health, int manaCost, string logoPath, AbilityType abilityType = 0)
+    public Card(string name, int manaCost, string logoPath, int attack, int health, AbilityType abilityType = 0)
     {
         this.name = name;
+        this.manaCost = manaCost;
+        logo = Resources.Load<Sprite>(logoPath);
         this.attack = attack;
         this.health = health;
-        this.manaCost = manaCost;
 
         canAttack = false;
         isPlaced = false;
-        logo = Resources.Load<Sprite>(logoPath);
 
         abilities = new List<AbilityType>();
         if (abilityType != 0)
@@ -46,10 +46,11 @@ public class Card
     public Card(Card card)
     {
         name = card.name;
+        manaCost = card.manaCost;
         logo = card.logo;
         attack = card.attack;
         health = card.health;
-        manaCost = card.manaCost;
+
         canAttack = false;
         isPlaced = false;
 
@@ -100,8 +101,8 @@ public class SpellCard : Card
     public SpellType spell;
     public TargetType spellTarget;
 
-    public SpellCard(string name, int manacost, string logoPath, SpellType spellType = 0, int spellValue = 0, TargetType targetType = 0) 
-        : base(name, 0, 0, manacost, logoPath)
+    public SpellCard(string name, int manacost, string logoPath, SpellType spellType = 0, int spellValue = 0, TargetType targetType = 0) //manaCost = spellValue?
+        : base(name, manacost, logoPath, 0, 0)
     {
         isSpell = true;
         this.spellValue = spellValue;
@@ -130,16 +131,16 @@ public class CardManager : MonoBehaviour
     public void Awake()
     {
         //CardDatabase.AllCards.Add(new Card("Absolwent", 5, 5, 6, "Sprites/Cards/Absolwent)"));
-        CardDatabase.AllCards.Add(new Card("Asystent", 4, 3, 5, "Sprites/Cards/Asystent"));
-        CardDatabase.AllCards.Add(new Card("Inzynier", 3, 3, 4, "Sprites/Cards/Inzynier"));
-        CardDatabase.AllCards.Add(new Card("Student", 2, 1, 2, "Sprites/Cards/Student"));
+        CardDatabase.AllCards.Add(new Card("Asystent", 5, "Sprites/Cards/Asystent", 4, 3));
+        CardDatabase.AllCards.Add(new Card("Inzynier", 4, "Sprites/Cards/Inzynier", 3, 3));
+        CardDatabase.AllCards.Add(new Card("Student", 2, "Sprites/Cards/Student", 2, 3));
 
-        CardDatabase.AllCards.Add(new Card("Magister", 1, 2, 3, "Sprites/Cards/Magister", Card.AbilityType.Taunt));
-        CardDatabase.AllCards.Add(new Card("Rektor", 4, 2, 5, "Sprites/Cards/Rektor", Card.AbilityType.Regeneration));
-        CardDatabase.AllCards.Add(new Card("Biblioteka", 3, 2, 4, "Sprites/Cards/Biblioteka", Card.AbilityType.DoubleAttack));
-        CardDatabase.AllCards.Add(new Card("Uczen", 2, 1, 2, "Sprites/Cards/Uczen", Card.AbilityType.Charge));
-        CardDatabase.AllCards.Add(new Card("Wykladowca", 5, 1, 7, "Sprites/Cards/Wykladowca", Card.AbilityType.Shield));
-        CardDatabase.AllCards.Add(new Card("Doktorant", 3, 1, 1, "Sprites/Cards/Doktorant", Card.AbilityType.CounterAttack));
+        CardDatabase.AllCards.Add(new Card("Magister", 3, "Sprites/Cards/Magister", 1, 2, Card.AbilityType.Taunt));
+        CardDatabase.AllCards.Add(new Card("Rektor", 5, "Sprites/Cards/Rektor", 4, 2, Card.AbilityType.Regeneration));
+        CardDatabase.AllCards.Add(new Card("Biblioteka", 4, "Sprites/Cards/Biblioteka", 3, 2, Card.AbilityType.DoubleAttack));
+        CardDatabase.AllCards.Add(new Card("Uczen", 1, "Sprites/Cards/Uczen", 1, 2, Card.AbilityType.Charge));
+        CardDatabase.AllCards.Add(new Card("Wykladowca", 7, "Sprites/Cards/Wykladowca", 5, 1, Card.AbilityType.Shield));
+        CardDatabase.AllCards.Add(new Card("Doktorant", 1, "Sprites/Cards/Doktorant", 3, 1, Card.AbilityType.CounterAttack));
 
         CardDatabase.AllCards.Add(new SpellCard("Podrecznik", 2, "Sprites/Cards/Podrecznik",
             SpellCard.SpellType.HealAlliesField, 2, SpellCard.TargetType.None));

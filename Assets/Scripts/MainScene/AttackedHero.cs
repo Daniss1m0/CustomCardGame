@@ -8,8 +8,8 @@ public class AttackedHero : MonoBehaviour, IDropHandler
     
     public enum HeroType
     {
-        Enemy,
-        Player
+        Player,
+        Enemy
     }
 
     public HeroType type;

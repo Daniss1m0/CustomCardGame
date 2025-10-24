@@ -7,12 +7,10 @@ using UnityEngine.UI;
 
 public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
-    public CardController CC;
-
     [SerializeField] private float moveDuration = 0.5f;
 
     public Transform defaultParent, tempParent;
-    
+
     private int startIndex;
     private bool isDraggable;
     private Vector3 offset;
@@ -27,62 +25,57 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
 
     public void OnBeginDrag(PointerEventData eventData)
     {
+        var controller = GetComponent<CardController>(); //mb change later
         offset = transform.position - mainCamera.ScreenToWorldPoint(eventData.position);
-
         defaultParent = tempParent = transform.parent;
 
         isDraggable = GameManager.Instance.IsPlayerTurn &&
-        (
-            (defaultParent.GetComponent<DropPlace>().type == FieldType.PlayerHand &&
-            GameManager.Instance.currentGame.player.mana >= CC.self.manaCost)
-            ||
-            (defaultParent.GetComponent<DropPlace>().type == FieldType.PlayerField &&
-            CC.self.canAttack)
-        );
+                      (
+                        (defaultParent.GetComponent<DropPlace>().type == FieldType.PlayerHand &&
+                        GameManager.Instance.currentGame.player.mana >= controller.self.manaCost)
+                        ||
+                        (defaultParent.GetComponent<DropPlace>().type == FieldType.PlayerField &&
+                        controller.self.canAttack)
+                      );
 
-        if (!isDraggable)
-            return;
+        if (!isDraggable) return;
 
         startIndex = transform.GetSiblingIndex();
 
-        if (CC.self.isSpell || CC.self.canAttack)
-            GameManager.Instance.HighlightTargets(CC, true);
+        if (controller.self.isSpell || controller.self.canAttack)
+            GameManager.Instance.HighlightTargets(controller, true);
 
         tempCard.transform.SetParent(defaultParent);
         tempCard.transform.SetSiblingIndex(transform.GetSiblingIndex());
-
         transform.SetParent(defaultParent.parent);
         GetComponent<CanvasGroup>().blocksRaycasts = false;
     }
 
     public void OnDrag(PointerEventData eventData)
     {
-        if (!isDraggable)
-            return;
+        if (!isDraggable) return;
 
         Vector3 newPos = mainCamera.ScreenToWorldPoint(eventData.position);
         transform.position = newPos + offset;
 
-        if (!CC.self.isSpell)
-        {
-            if (tempCard.transform.parent != tempParent)
-                tempCard.transform.SetParent(tempParent);
+        var controller = GetComponent<CardController>();
 
-            if (defaultParent.GetComponent<DropPlace>().type != FieldType.PlayerField)
-                CheckPosition();
+        if (!controller.self.isSpell)
+        {
+            if (tempCard.transform.parent != tempParent) tempCard.transform.SetParent(tempParent);
+            if (defaultParent.GetComponent<DropPlace>().type != FieldType.PlayerField) CheckPosition();
         }
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        if (!isDraggable)
-            return;
+        if (!isDraggable) return;
 
-        GameManager.Instance.HighlightTargets(CC, false);
+        var controller = GetComponent<CardController>();
+        GameManager.Instance.HighlightTargets(controller, false);
 
         transform.SetParent(defaultParent);
         GetComponent<CanvasGroup>().blocksRaycasts = true;
-
         transform.SetSiblingIndex(tempCard.transform.GetSiblingIndex());
         tempCard.transform.SetParent(GameObject.Find("Canvas").transform);
         tempCard.transform.localPosition = new Vector3(2340, 0, 0);
@@ -91,30 +84,24 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
     private void CheckPosition()
     {
         int newIndex = tempParent.childCount;
-
         for (int i = 0; i < tempParent.childCount; i++)
         {
             if (transform.position.x < tempParent.GetChild(i).position.x)
             {
                 newIndex = i;
-
-                if (tempCard.transform.GetSiblingIndex() < newIndex)
-                    newIndex--;
-
+                if (tempCard.transform.GetSiblingIndex() < newIndex) newIndex--;
                 break;
             }
         }
 
-        if (tempCard.transform.parent == defaultParent)
-            newIndex = startIndex;
-
+        if (tempCard.transform.parent == defaultParent) newIndex = startIndex;
         tempCard.transform.SetSiblingIndex(newIndex);
     }
 
-    public void MoveToField(Transform field) 
+    public void MoveToField(Transform field)
     {
         transform.SetParent(GameObject.Find("Canvas").transform);
-        transform.DOMove(field.position, .5f);
+        transform.DOMove(field.position, moveDuration);
     }
 
     public void MoveToTarget(Transform target)
@@ -122,7 +109,7 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
         StartCoroutine(MoveToTargetCor(target));
     }
 
-    IEnumerator MoveToTargetCor(Transform target)
+    private IEnumerator MoveToTargetCor(Transform target)
     {
         Vector3 pos = transform.position;
         Transform parent = transform.parent;
@@ -132,14 +119,10 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
             transform.parent.GetComponent<HorizontalLayoutGroup>().enabled = false;
 
         transform.SetParent(GameObject.Find("Canvas").transform);
-
-        transform.DOMove(target.position, .25f);
-
-        yield return new WaitForSeconds(.25f);
-
-        transform.DOMove(pos, .25f);
-
-        yield return new WaitForSeconds(.25f);
+        transform.DOMove(target.position, moveDuration / 2);
+        yield return new WaitForSeconds(moveDuration / 2);
+        transform.DOMove(pos, moveDuration / 2);
+        yield return new WaitForSeconds(moveDuration / 2);
 
         transform.SetParent(parent);
         transform.SetSiblingIndex(index);

@@ -101,7 +101,7 @@ public class SpellCard : Card
     public SpellType spell;
     public TargetType spellTarget;
 
-    public SpellCard(string name, int manacost, string logoPath, SpellType spellType = 0, int spellValue = 0, TargetType targetType = 0) 
+    public SpellCard(string name, int manacost, string logoPath, SpellType spellType = 0, int spellValue = 0, TargetType targetType = 0) //manaCost = spellValue?
         : base(name, manacost, logoPath, 0, 0)
     {
         isSpell = true;

@@ -7,7 +7,7 @@ public class CardController : MonoBehaviour
     public bool isPlayerCard;
     public Card self; //?
 
-    [SerializeField] private CardInfo info; //public
+    [SerializeField] private CardInfo info;
     [SerializeField] private CardMovement movement;
     [SerializeField] private CardAbility ability;
     
@@ -22,6 +22,8 @@ public class CardController : MonoBehaviour
         self = card;
         this.isPlayerCard = isPlayerCard;
         gameManager = GameManager.Instance;
+
+        if (movement == null) movement = GetComponent<CardMovement>();
 
         if (isPlayerCard)
         {
@@ -79,6 +81,34 @@ public class CardController : MonoBehaviour
 
         if (self.HasAbility)
             ability.OnDamageDeal(self, isPlayerCard, info);
+    }
+
+    public void DestroyCard()
+    {
+        movement.OnEndDrag(null);
+        //movement.StopAllActions();
+
+        gameManager.playerHandCards.Remove(this);
+        gameManager.enemyHandCards.Remove(this);
+        gameManager.playerFieldCards.Remove(this);
+        gameManager.enemyFieldCards.Remove(this);
+
+        Destroy(gameObject);
+    }
+
+    public void CheckForAlive()
+    {
+        if (self.IsAlive)
+            info.UpdateStats(self);
+        else
+            DestroyCard();
+    }
+
+    void GiveDamageTo(CardController target, int damage)
+    {
+        target.self.GetDamage(damage);
+        target.CheckForAlive();
+        target.OnTakeDamage();
     }
 
     public void UseSpell(CardController target)
@@ -176,39 +206,5 @@ public class CardController : MonoBehaviour
         }
 
         DestroyCard();
-    }
-
-    void GiveDamageTo(CardController target, int damage)
-    {
-        target.self.GetDamage(damage);
-        target.CheckForAlive();
-        target.OnTakeDamage();
-    }
-
-    void RemoveFromList(List<CardController> list)
-    {
-        if(list.Contains(this))
-            list.Remove(this); //?
-    }
-
-    public void DestroyCard()
-    {
-        movement.OnEndDrag(null);
-        //movement.StopAllActions();
-
-        RemoveFromList(gameManager.enemyFieldCards); // gameManager.playerHandCards.Remove(this);
-        RemoveFromList(gameManager.enemyHandCards);
-        RemoveFromList(gameManager.playerFieldCards);
-        RemoveFromList(gameManager.playerHandCards);
-
-        Destroy(gameObject);
-    }
-
-    public void CheckForAlive()
-    {
-        if (self.IsAlive)
-            info.UpdateStats(self);
-        else
-            DestroyCard();
     }
 }

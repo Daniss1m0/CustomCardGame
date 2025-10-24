@@ -2571,6 +2571,7 @@ MonoBehaviour:
   playerHero: {fileID: 228459500}
   enemyHero: {fileID: 856375458}
   enemyAI: {fileID: 856375459}
+  turnManager: {fileID: 1761630150}
   playerHandCards: []
   enemyHandCards: []
   playerFieldCards: []
@@ -5989,6 +5990,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1761630149}
+  - component: {fileID: 1761630150}
   m_Layer: 0
   m_Name: Turn Manager
   m_TagString: Untagged
@@ -6011,6 +6013,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 900407067}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1761630150
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1761630148}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 071193ac565dba64ab440bd7651432e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TurnManager
+  turnTimeDefault: 30
 --- !u!1 &1766040398
 GameObject:
   m_ObjectHideFlags: 0
@@ -7539,7 +7554,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2371344435708253971, guid: 554e7fdb1335c564bbd2ae233c9c6b03, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 2312
+      value: 2209
       objectReference: {fileID: 0}
     - target: {fileID: 2371344435708253971, guid: 554e7fdb1335c564bbd2ae233c9c6b03, type: 3}
       propertyPath: m_AnchoredPosition.y

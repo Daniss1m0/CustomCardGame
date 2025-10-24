@@ -1,0 +1,61 @@
+using UnityEngine;
+using System.Collections;
+
+public class TurnManager : MonoBehaviour
+{
+    public int turnTimeDefault = 30;
+    private Coroutine turnCoroutine;
+
+    public void StartTurnLoop()
+    {
+        if (turnCoroutine != null) 
+            StopCoroutine(turnCoroutine);
+
+        turnCoroutine = StartCoroutine(TurnFunc());
+    }
+
+    public void StopTurnLoop()
+    {
+        if (turnCoroutine != null) 
+            StopCoroutine(turnCoroutine);
+        
+        turnCoroutine = null;
+    }
+
+    private IEnumerator TurnFunc() //be possible to SetHighlight(false) in PlayerHandCards when its not player's turn 
+    {
+        int turnTime = turnTimeDefault;
+        UIController.Instance.UpdateTurnTime(turnTime);
+
+        foreach (var card in GameManager.Instance.playerFieldCards)
+            card.Info.SetHighlight(false);
+
+        GameManager.Instance.CheckCardsForManaAvailability();
+
+        if (GameManager.Instance.IsPlayerTurn)
+            foreach (var card in GameManager.Instance.playerFieldCards)
+            {
+                card.self.canAttack = true;
+                card.Info.SetHighlight(true);
+                card.Ability.OnNewTurn(card.self);
+            }
+        else
+        {
+            foreach (var card in GameManager.Instance.enemyFieldCards)
+            {
+                card.self.canAttack = true;
+                card.Ability.OnNewTurn(card.self);
+            }
+
+            GameManager.Instance.enemyAI.MakeTurn();
+        }
+
+        while (turnTime-- > 0)
+        {
+            UIController.Instance.UpdateTurnTime(turnTime);
+            yield return new WaitForSeconds(1f);
+        }
+
+        GameManager.Instance.ChangeTurn();
+    }
+}

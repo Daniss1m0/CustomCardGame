@@ -13,6 +13,9 @@ public class Game
     {
         player = new Player();
         enemy = new Player();
+        
+        enemy.manaPool = 0; //later will be compensation
+        enemy.mana = 0; //still problem with enemy mana UI
 
         playerDeck = GiveDeckCard();
         enemyDeck = GiveDeckCard();
@@ -22,7 +25,7 @@ public class Game
     {
         List<Card> list = new List<Card>();
         list.Add(CardDatabase.AllCards[6].GetCopy()); //example manual add of a specific card
-
+        
         for (int i = 0; i < 20; i++)
         {
             var card = CardDatabase.AllCards[Random.Range(0, CardDatabase.AllCards.Count)];
@@ -44,12 +47,13 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject cardPrefab;
     [SerializeField] private Transform playerHand, enemyHand, playerField, enemyField;
     [SerializeField] private AttackedHero playerHero, enemyHero;
-    [SerializeField] private AI enemyAI;
-    
+    [SerializeField] public AI enemyAI; //later private?
+    [SerializeField] private TurnManager turnManager;
+
     public List<CardController> playerHandCards = new List<CardController>(), enemyHandCards = new List<CardController>(),
                                 playerFieldCards = new List<CardController>(), enemyFieldCards = new List<CardController>(); //?
-    
-    private int turn, turnTime = 30;
+
+    private int turn;
 
     public bool IsPlayerTurn => turn % 2 == 0;
     public AttackedHero PlayerHero => playerHero;
@@ -73,23 +77,30 @@ public class GameManager : MonoBehaviour
 
         currentGame = new Game();
 
+        if (turnManager == null)
+            turnManager = FindAnyObjectByType<TurnManager>();
+
         GiveHandCards(currentGame.playerDeck, playerHand);
         GiveHandCards(currentGame.enemyDeck, enemyHand);
 
         UIController.Instance.StartGame();
 
-        StartCoroutine(TurnFunc());
+        if (turnManager != null)
+            turnManager.StartTurnLoop();
+        else
+            Debug.LogError("TurnManager not found — add TurnManager to scene.");
     }
 
     private void ClearCards(List<CardController> cards)
     {
         foreach (var card in cards)
-            Destroy(card.gameObject);
+            if (card != null) 
+                Destroy(card.gameObject);
     }
 
     public void RestartGame()
     {
-        StopAllCoroutines();
+        turnManager?.StopTurnLoop();
 
         ClearCards(playerHandCards);
         ClearCards(playerFieldCards);
@@ -132,56 +143,8 @@ public class GameManager : MonoBehaviour
             enemyHandCards.Add(cardController);
     }
 
-    private IEnumerator TurnFunc() 
-    {
-        turnTime = 30;
-        UIController.Instance.UpdateTurnTime(turnTime);
-
-        foreach (var card in playerFieldCards)
-            card.Info.SetHighlight(false);
-
-        CheckCardsForManaAvailability();
-
-        if (IsPlayerTurn)
-        {
-            foreach (var card in playerFieldCards) 
-            {
-                card.self.canAttack = true;
-                card.Info.SetHighlight(true);
-                card.Ability.OnNewTurn(card.self);
-            }
-
-            while (turnTime-- > 0)
-            {
-                UIController.Instance.UpdateTurnTime(turnTime);
-                yield return new WaitForSeconds(1);
-            }
-
-            ChangeTurn();
-        }
-        else
-        {
-            foreach (var card in enemyFieldCards)
-            {
-                card.self.canAttack = true;
-                card.Ability.OnNewTurn(card.self);
-            }
-
-            enemyAI.MakeTurn();
-
-            while (turnTime-- > 0)
-            {
-                UIController.Instance.UpdateTurnTime(turnTime);
-                yield return new WaitForSeconds(1);
-            }
-
-            ChangeTurn();
-        }
-    }
-
     public void ChangeTurn()
     {
-        StopAllCoroutines();
         turn++;
         UIController.Instance.DisableTurnBtn();
 
@@ -200,7 +163,8 @@ public class GameManager : MonoBehaviour
             currentGame.enemy.RestoreRoundMana();
         }
 
-        StartCoroutine(TurnFunc());
+        if (turnManager != null) 
+            turnManager.StartTurnLoop();
     }
 
     void GiveNewCards()
@@ -248,7 +212,8 @@ public class GameManager : MonoBehaviour
     {
         if (currentGame.enemy.hp == 0 || currentGame.player.hp == 0)
         {
-            StopAllCoroutines();
+            turnManager?.StopTurnLoop();
+
             UIController.Instance.ShowResult();
         }
     }

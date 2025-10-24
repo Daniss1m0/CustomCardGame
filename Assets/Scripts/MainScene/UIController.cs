@@ -9,16 +9,9 @@ public class UIController : MonoBehaviour
 {
     public static UIController Instance;
 
-    public TextMeshProUGUI PlayerMana, EnemyMana;
-    public TextMeshProUGUI PlayerHP, EnemyHP;
-
-    public GameObject ResultGO;
-    public TextMeshProUGUI ResultTxt;
-
-    public TextMeshProUGUI TurnTime;
+    public TextMeshProUGUI PlayerMana, EnemyMana, PlayerHP, EnemyHP, ResultTxt, TurnTime;
     public Button EndTurnBtn;
-
-    public GameObject optionsPanel;
+    public GameObject ResultGO, optionsPanel;
 
     private void Awake()
     {

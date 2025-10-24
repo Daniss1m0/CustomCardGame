@@ -5,12 +5,6 @@ public class CardAbility : MonoBehaviour
 {
     [SerializeField] private GameObject shield, taunt;
 
-    public void Setup(List<Card.AbilityType> abilities)
-    {
-        shield.SetActive(abilities.Contains(Card.AbilityType.Shield));
-        taunt.SetActive(abilities.Contains(Card.AbilityType.Taunt));
-    }
-
     public void OnCast(Card card, bool isPlayerCard, CardInfo info = null)
     {
         foreach (var ability in card.abilities)

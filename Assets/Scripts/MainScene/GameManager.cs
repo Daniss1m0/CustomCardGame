@@ -21,8 +21,8 @@ public class Game
     private List<Card> GiveDeckCard()
     {
         List<Card> list = new List<Card>();
-        list.Add(CardDatabase.AllCards[6].GetCopy());
-        
+        list.Add(CardDatabase.AllCards[6].GetCopy()); //example manual add of a specific card
+
         for (int i = 0; i < 20; i++)
         {
             var card = CardDatabase.AllCards[Random.Range(0, CardDatabase.AllCards.Count)];

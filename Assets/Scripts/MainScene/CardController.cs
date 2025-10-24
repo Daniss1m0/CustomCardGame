@@ -32,8 +32,6 @@ public class CardController : MonoBehaviour
         }
         else
             info.HideCard();
-
-        ability.Setup(self.abilities);
     }
 
     public void OnCast()

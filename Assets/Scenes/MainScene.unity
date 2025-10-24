@@ -3808,14 +3808,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7879dc7c9efe1ab48aa47fb01faff8a2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  PlayerMana: {fileID: 1766040399}
-  EnemyMana: {fileID: 1744781570}
-  PlayerHP: {fileID: 318518644}
-  EnemyHP: {fileID: 1546779915}
-  ResultGO: {fileID: 1202712388}
-  ResultTxt: {fileID: 540705658}
-  TurnTime: {fileID: 1910776032}
-  EndTurnBtn: {fileID: 1082041107}
+  playerManaTxt: {fileID: 1766040399}
+  enemyManaTxt: {fileID: 1744781570}
+  playerHPTxt: {fileID: 318518644}
+  enemyHPTxt: {fileID: 1546779915}
+  resultTxt: {fileID: 540705658}
+  turnTimeTxt: {fileID: 1910776032}
+  endTurnBtn: {fileID: 1082041107}
+  result: {fileID: 1202712388}
   optionsPanel: {fileID: 46767531}
 --- !u!4 &1140106807
 Transform:

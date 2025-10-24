@@ -9,9 +9,9 @@ public class UIController : MonoBehaviour
 {
     public static UIController Instance;
 
-    public TextMeshProUGUI PlayerMana, EnemyMana, PlayerHP, EnemyHP, ResultTxt, TurnTime;
-    public Button EndTurnBtn;
-    public GameObject ResultGO, optionsPanel;
+    public TextMeshProUGUI playerManaTxt, enemyManaTxt, playerHPTxt, enemyHPTxt, resultTxt, turnTimeTxt;
+    public Button endTurnBtn;
+    public GameObject result, optionsPanel;
 
     private void Awake()
     {
@@ -24,51 +24,38 @@ public class UIController : MonoBehaviour
         }
     }
 
-    public void RefreshUIReferences()
-    {
-        PlayerMana = GameObject.Find("PlayerMana").GetComponent<TextMeshProUGUI>();
-        EnemyMana = GameObject.Find("EnemyMana").GetComponent<TextMeshProUGUI>();
-        PlayerHP = GameObject.Find("PlayerHP").GetComponent<TextMeshProUGUI>();
-        EnemyHP = GameObject.Find("EnemyHP").GetComponent<TextMeshProUGUI>();
-        ResultGO = GameObject.Find("ResultGO");
-        ResultTxt = GameObject.Find("ResultTxt").GetComponent<TextMeshProUGUI>();
-        TurnTime = GameObject.Find("TurnTime").GetComponent<TextMeshProUGUI>();
-        EndTurnBtn = GameObject.Find("EndTurnBtn").GetComponent<Button>();
-        optionsPanel = GameObject.Find("OptionsPanel");
-    }
-
     public void StartGame()
     {
-        EndTurnBtn.interactable = true;
-        ResultGO.SetActive(false);
+        endTurnBtn.interactable = true;
+        result.SetActive(false);
         UpdateHPAndMana();
     }
 
     public void UpdateHPAndMana()
     {
-        PlayerMana.text = GameManager.Instance.currentGame.player.mana.ToString();
-        EnemyMana.text = GameManager.Instance.currentGame.enemy.mana.ToString();
-        PlayerHP.text = GameManager.Instance.currentGame.player.hp.ToString();
-        EnemyHP.text = GameManager.Instance.currentGame.enemy.hp.ToString();
+        playerManaTxt.text = GameManager.Instance.currentGame.player.mana.ToString();
+        enemyManaTxt.text = GameManager.Instance.currentGame.enemy.mana.ToString();
+        playerHPTxt.text = GameManager.Instance.currentGame.player.hp.ToString();
+        enemyHPTxt.text = GameManager.Instance.currentGame.enemy.hp.ToString();
     }
 
     public void ShowResult()
     {
-        ResultGO.SetActive(true);
+        result.SetActive(true);
         if (GameManager.Instance.currentGame.enemy.hp == 0)
-            ResultTxt.text = "WIN";
+            resultTxt.text = "WIN";
         else
-            ResultTxt.text = "LOSE";
+            resultTxt.text = "LOSE";
     }
 
     public void UpdateTurnTime(int time)
     {
-        TurnTime.text = time.ToString();
+        turnTimeTxt.text = time.ToString();
     }
 
     public void DisableTurnBtn()
     {
-        EndTurnBtn.interactable = GameManager.Instance.IsPlayerTurn;
+        endTurnBtn.interactable = GameManager.Instance.IsPlayerTurn;
     }
 
     public void OnOptionsButton()

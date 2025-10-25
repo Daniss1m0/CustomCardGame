@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 395b7b7ae31a2704b99c2de0177f0838, type: 3}
+  m_Name: Egzamin
+  m_EditorClassIdentifier: Assembly-CSharp::CardData
+  cardName: Egzamin
+  manaCost: 2
+  logo: {fileID: 1287180105818975217, guid: ec779a747cd5f3b48aac61068c1ccf7e, type: 3}
+  isSpell: 0
+  attack: 0
+  health: 0
+  abilities: 
+  spellType: 8
+  spellTarget: 2
+  spellValue: 2

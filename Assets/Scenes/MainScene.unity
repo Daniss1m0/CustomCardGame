@@ -272,6 +272,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 124338497}
+  - component: {fileID: 124338498}
   m_Layer: 0
   m_Name: Deck Manager
   m_TagString: Untagged
@@ -294,6 +295,23 @@ Transform:
   m_Children: []
   m_Father: {fileID: 900407067}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &124338498
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 124338496}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2425e1284942d0d4f9204c1329567757, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DeckManager
+  playerHand: {fileID: 1850512381}
+  enemyHand: {fileID: 437836524}
+  playerField: {fileID: 865766834}
+  enemyField: {fileID: 152074215}
+  cardPrefab: {fileID: 3200919704871707934, guid: 941f6405a9f4c074eb161d54445056ff, type: 3}
 --- !u!1 &132839951
 GameObject:
   m_ObjectHideFlags: 0
@@ -2563,15 +2581,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d95dd02d58cdcc84bb812fb6fc3b2406, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cardPrefab: {fileID: 3200919704871707934, guid: 941f6405a9f4c074eb161d54445056ff, type: 3}
-  playerHand: {fileID: 1850512381}
-  enemyHand: {fileID: 437836524}
-  playerField: {fileID: 865766834}
-  enemyField: {fileID: 152074215}
+  turnManager: {fileID: 1761630150}
+  deckManager: {fileID: 124338498}
   playerHero: {fileID: 228459500}
   enemyHero: {fileID: 856375458}
   enemyAI: {fileID: 856375459}
-  turnManager: {fileID: 1761630150}
   playerHandCards: []
   enemyHandCards: []
   playerFieldCards: []

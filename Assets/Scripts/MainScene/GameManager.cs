@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-public class Game
+public class Game //Game class in separate file?
 {
     public Player player, enemy;
     public List<Card> playerDeck, enemyDeck;
@@ -29,6 +29,7 @@ public class Game
         for (int i = 0; i < 20; i++)
         {
             var card = CardDatabase.AllCards[Random.Range(0, CardDatabase.AllCards.Count)];
+
             if (card.isSpell)
                 list.Add(((SpellCard)card).GetCopy());
             else
@@ -44,11 +45,10 @@ public class GameManager : MonoBehaviour
 
     public Game currentGame; // public Game CurrentGame { get; private set; }?
 
-    [SerializeField] private GameObject cardPrefab;
-    [SerializeField] private Transform playerHand, enemyHand, playerField, enemyField;
-    [SerializeField] private AttackedHero playerHero, enemyHero;
-    [SerializeField] public AI enemyAI; //later private?
     [SerializeField] private TurnManager turnManager;
+    [SerializeField] private DeckManager deckManager;
+    [SerializeField] private AttackedHero playerHero, enemyHero;
+    [SerializeField] public AI enemyAI; //later private or just remove
 
     public List<CardController> playerHandCards = new List<CardController>(), enemyHandCards = new List<CardController>(),
                                 playerFieldCards = new List<CardController>(), enemyFieldCards = new List<CardController>(); //?
@@ -57,13 +57,15 @@ public class GameManager : MonoBehaviour
 
     public bool IsPlayerTurn => turn % 2 == 0;
     public AttackedHero PlayerHero => playerHero;
-    public Transform EnemyField => enemyField;
+    public Transform EnemyField => deckManager?.EnemyField;
 
 
     private void Awake() 
     {
         if (Instance == null)
             Instance = this;
+        else
+            Destroy(gameObject);
     }
 
     private void Start()
@@ -80,67 +82,26 @@ public class GameManager : MonoBehaviour
         if (turnManager == null)
             turnManager = FindAnyObjectByType<TurnManager>();
 
-        GiveHandCards(currentGame.playerDeck, playerHand);
-        GiveHandCards(currentGame.enemyDeck, enemyHand);
+        if (deckManager == null)
+            deckManager = FindAnyObjectByType<DeckManager>();
+
+        deckManager?.GiveInitialHands(currentGame);
 
         UIController.Instance.StartGame();
 
         if (turnManager != null)
             turnManager.StartTurnLoop();
         else
-            Debug.LogError("TurnManager not found — add TurnManager to scene.");
-    }
-
-    private void ClearCards(List<CardController> cards)
-    {
-        foreach (var card in cards)
-            if (card != null) 
-                Destroy(card.gameObject);
+            Debug.LogError("Add TurnManager to scene.");
     }
 
     public void RestartGame()
     {
-        turnManager?.StopTurnLoop();
+        turnManager?.StopTurnLoop(); //unity null conditional operator?
 
-        ClearCards(playerHandCards);
-        ClearCards(playerFieldCards);
-        ClearCards(enemyHandCards);
-        ClearCards(enemyFieldCards);
-
-        playerHandCards.Clear();
-        playerFieldCards.Clear();
-        enemyHandCards.Clear();
-        enemyFieldCards.Clear();
+        deckManager?.ClearAll();
 
         StartGame();
-    }
-
-    private void GiveCardToHand(List<Card> deck, Transform hand)
-    {
-        if (deck.Count == 0)
-            return;
-
-        CreateCardPrefab(deck[0], hand);
-        deck.RemoveAt(0);
-    }
-
-    private void GiveHandCards(List<Card> deck, Transform hand)
-    {
-        for (int i = 0; i < 4; i++)
-            GiveCardToHand(deck, hand);
-    }
-
-    private void CreateCardPrefab(Card card, Transform hand)
-    {
-        GameObject tempCard = Instantiate(cardPrefab, hand, false);
-        CardController cardController = tempCard.GetComponent<CardController>();
-
-        cardController.Init(card, hand == playerHand);
-
-        if (cardController.isPlayerCard)
-            playerHandCards.Add(cardController);
-        else
-            enemyHandCards.Add(cardController);
     }
 
     public void ChangeTurn()
@@ -150,7 +111,7 @@ public class GameManager : MonoBehaviour
 
         if (IsPlayerTurn)
         {
-            GiveNewCards();
+            deckManager?.GiveNewCards(currentGame);
 
             currentGame.player.IncreaseManaPool();
             currentGame.player.RestoreRoundMana();
@@ -163,14 +124,7 @@ public class GameManager : MonoBehaviour
             currentGame.enemy.RestoreRoundMana();
         }
 
-        if (turnManager != null) 
-            turnManager.StartTurnLoop();
-    }
-
-    void GiveNewCards()
-    {
-        GiveCardToHand(currentGame.playerDeck, playerHand);
-        GiveCardToHand(currentGame.enemyDeck, enemyHand);
+        turnManager?.StartTurnLoop();
     }
 
     public void CardsFight(CardController attacker, CardController defender)

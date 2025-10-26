@@ -15,7 +15,7 @@ MonoBehaviour:
   cardName: Kserowka
   manaCost: 2
   logo: {fileID: 5350717596340596694, guid: c8419a5227e14b34baa866a683825643, type: 3}
-  isSpell: 0
+  isSpell: 1
   attack: 0
   health: 0
   abilities: 

@@ -15,7 +15,7 @@ MonoBehaviour:
   cardName: Kawa
   manaCost: 2
   logo: {fileID: 3512967321281318031, guid: 19632cc8fe7ec68458eef08ffe9e5eb5, type: 3}
-  isSpell: 0
+  isSpell: 1
   attack: 0
   health: 0
   abilities: 

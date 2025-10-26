@@ -15,7 +15,7 @@ MonoBehaviour:
   cardName: Projekt
   manaCost: 2
   logo: {fileID: 5276808485251192155, guid: 73553456be55dac45952894b113ae7d8, type: 3}
-  isSpell: 0
+  isSpell: 1
   attack: 0
   health: 0
   abilities: 

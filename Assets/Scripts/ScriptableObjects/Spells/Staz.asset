@@ -15,7 +15,7 @@ MonoBehaviour:
   cardName: Staz
   manaCost: 2
   logo: {fileID: -8531315919232405398, guid: c840c1aeb35f24844ac05841bc2a2781, type: 3}
-  isSpell: 0
+  isSpell: 1
   attack: 0
   health: 0
   abilities: 

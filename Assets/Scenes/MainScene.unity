@@ -7224,6 +7224,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 45d9a70e36282a642bce964ceae69d9c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CardManager
+  allCardData:
+  - {fileID: 11400000, guid: dbacc68007bbb1745b47fb6fb43d6a68, type: 2}
+  - {fileID: 11400000, guid: 738d6e981cd3d23469a6ace6342f27e4, type: 2}
+  - {fileID: 11400000, guid: 7bdc49f3c729a864e88af3e179ec0b78, type: 2}
+  - {fileID: 11400000, guid: 3c257eadc23f25d4d8c692e68b11ff1d, type: 2}
+  - {fileID: 11400000, guid: 8c02244c2075cab4ab0fefa47bc7b4ba, type: 2}
+  - {fileID: 11400000, guid: 3822340d373dc144793488d148f6b232, type: 2}
+  - {fileID: 11400000, guid: 906193bfae20bac43ba48c26e5fe7e3e, type: 2}
+  - {fileID: 11400000, guid: 56b4fc1de15a4294e858609ac760d7c0, type: 2}
+  - {fileID: 11400000, guid: 85512b4f3c5f43e4e9ee40d3723be01a, type: 2}
+  - {fileID: 11400000, guid: 57fca2697ced5524db102012231b07dc, type: 2}
 --- !u!1 &2035853836
 GameObject:
   m_ObjectHideFlags: 0

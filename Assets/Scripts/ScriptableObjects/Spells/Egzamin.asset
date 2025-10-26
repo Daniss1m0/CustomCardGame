@@ -15,7 +15,7 @@ MonoBehaviour:
   cardName: Egzamin
   manaCost: 2
   logo: {fileID: 1287180105818975217, guid: ec779a747cd5f3b48aac61068c1ccf7e, type: 3}
-  isSpell: 0
+  isSpell: 1
   attack: 0
   health: 0
   abilities: 

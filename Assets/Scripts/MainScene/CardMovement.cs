@@ -19,8 +19,11 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
 
     void Awake()
     {
-        mainCamera = Camera.allCameras[0];
-        tempCard = GameObject.Find("TempCard");
+        if (mainCamera == null) 
+            mainCamera = Camera.main;
+
+        if (tempCard == null) 
+            tempCard = GameObject.Find("TempCard");
     }
 
     public void OnBeginDrag(PointerEventData eventData)

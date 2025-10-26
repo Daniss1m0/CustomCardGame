@@ -15,7 +15,7 @@ MonoBehaviour:
   cardName: Blad
   manaCost: 2
   logo: {fileID: -4600785504250711460, guid: c4871e43a253c51408e5aeeb41bb4dfd, type: 3}
-  isSpell: 0
+  isSpell: 1
   attack: 0
   health: 0
   abilities: 

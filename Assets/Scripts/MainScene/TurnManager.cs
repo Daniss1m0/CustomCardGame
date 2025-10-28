@@ -37,14 +37,14 @@ public class TurnManager : MonoBehaviour
             {
                 card.self.canAttack = true;
                 card.Info.SetHighlight(true);
-                card.Ability.OnNewTurn(card.self);
+                card.Ability.OnNewTurn(card.self, card.Info);
             }
         else
         {
             foreach (var card in GameManager.Instance.enemyFieldCards)
             {
                 card.self.canAttack = true;
-                card.Ability.OnNewTurn(card.self);
+                card.Ability.OnNewTurn(card.self, card.Info);
             }
 
             GameManager.Instance.enemyAI.MakeTurn();

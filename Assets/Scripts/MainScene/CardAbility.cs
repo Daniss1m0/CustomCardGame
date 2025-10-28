@@ -89,7 +89,7 @@ public class CardAbility : MonoBehaviour
                 case Card.AbilityType.Regeneration:
                     
                     card.health += 2;
-                    info?.UpdateStats(card);
+                    info.UpdateStats(card);
                     
                     break;
             }

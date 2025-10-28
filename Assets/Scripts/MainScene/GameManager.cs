@@ -24,7 +24,7 @@ public class Game //Game class in separate file?
     private List<Card> GiveDeckCard()
     {
         List<Card> list = new List<Card>();
-        list.Add(CardDatabase.AllCards[6].GetCopy()); //example manual add of a specific card
+        list.Add(CardDatabase.AllCards[8].GetCopy()); //example manual add of a specific card
         
         for (int i = 0; i < 20; i++)
         {
@@ -44,21 +44,19 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance;
 
     public Game currentGame; // public Game CurrentGame { get; private set; }?
+    public List<CardController> playerHandCards = new(), enemyHandCards = new(),
+                                playerFieldCards = new(), enemyFieldCards = new();
 
     [SerializeField] private TurnManager turnManager;
     [SerializeField] private DeckManager deckManager;
     [SerializeField] private AttackedHero playerHero, enemyHero;
     [SerializeField] public AI enemyAI; //later private or just remove
 
-    public List<CardController> playerHandCards = new List<CardController>(), enemyHandCards = new List<CardController>(),
-                                playerFieldCards = new List<CardController>(), enemyFieldCards = new List<CardController>(); //?
-
     private int turn;
 
     public bool IsPlayerTurn => turn % 2 == 0;
     public AttackedHero PlayerHero => playerHero;
-    public Transform EnemyField => deckManager?.EnemyField;
-
+    public Transform EnemyField => deckManager != null ? deckManager.EnemyField : null;
 
     private void Awake() 
     {
@@ -85,7 +83,7 @@ public class GameManager : MonoBehaviour
         if (deckManager == null)
             deckManager = FindAnyObjectByType<DeckManager>();
 
-        deckManager?.GiveInitialHands(currentGame);
+        deckManager.GiveInitialHands(currentGame);
 
         UIManager.Instance.StartGame();
 
@@ -97,9 +95,9 @@ public class GameManager : MonoBehaviour
 
     public void RestartGame()
     {
-        turnManager?.StopTurnLoop(); //unity null conditional operator?
+        turnManager.StopTurnLoop();
 
-        deckManager?.ClearAll();
+        deckManager.ClearAll();
 
         StartGame();
     }
@@ -111,7 +109,7 @@ public class GameManager : MonoBehaviour
 
         if (IsPlayerTurn)
         {
-            deckManager?.GiveNewCards(currentGame);
+            deckManager.GiveNewCards(currentGame);
 
             currentGame.player.IncreaseManaPool();
             currentGame.player.RestoreRoundMana();
@@ -124,7 +122,7 @@ public class GameManager : MonoBehaviour
             currentGame.enemy.RestoreRoundMana();
         }
 
-        turnManager?.StartTurnLoop();
+        turnManager.StartTurnLoop();
     }
 
     public void CardsFight(CardController attacker, CardController defender)
@@ -166,7 +164,7 @@ public class GameManager : MonoBehaviour
     {
         if (currentGame.enemy.hp == 0 || currentGame.player.hp == 0)
         {
-            turnManager?.StopTurnLoop();
+            turnManager.StopTurnLoop();
 
             UIManager.Instance.ShowResult();
         }
@@ -180,7 +178,7 @@ public class GameManager : MonoBehaviour
 
     public void HighlightTargets(CardController attacker,bool highlight)
     {
-        List<CardController> targets = new List<CardController>();
+        List<CardController> targets = new();
 
         if (attacker.self.isSpell)
         {
@@ -189,15 +187,21 @@ public class GameManager : MonoBehaviour
             switch (spellCard.spellTarget)
             {
                 case SpellCard.TargetType.None:
+
                     targets.Clear();
+
                     break;
 
                 case SpellCard.TargetType.AllyCard:
+
                     targets = playerFieldCards;
+
                     break;
 
                 default:
+
                     targets = enemyFieldCards;
+
                     break;
             }
         }

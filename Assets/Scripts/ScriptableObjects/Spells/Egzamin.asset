@@ -21,4 +21,4 @@ MonoBehaviour:
   abilities: 
   spellType: 8
   spellTarget: 2
-  spellValue: 2
+  spellPower: 2

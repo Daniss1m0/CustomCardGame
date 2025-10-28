@@ -21,4 +21,4 @@ MonoBehaviour:
   abilities: 03000000
   spellType: 0
   spellTarget: 0
-  spellValue: 0
+  spellPower: 0

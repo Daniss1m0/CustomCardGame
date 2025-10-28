@@ -1,14 +1,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public static class CardDatabase //?
+public static class CardDatabase
 {
-    public static List<Card> AllCards = new List<Card>();
+    public static List<Card> AllCards = new();
 }
 
 public class CardManager : MonoBehaviour
 {
-    public List<CardData> allCardData = new List<CardData>();
+    public List<CardData> allCardData = new();
 
     public void Awake()
     {
@@ -27,7 +27,5 @@ public class CardManager : MonoBehaviour
             else
                 CardDatabase.AllCards.Add(new Card(data));
         }
-
-        Debug.Log($"Loaded {CardDatabase.AllCards.Count} cards from CardData.");
     }
 }

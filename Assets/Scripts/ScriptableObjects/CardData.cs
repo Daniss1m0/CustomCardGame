@@ -15,10 +15,10 @@ public class CardData : ScriptableObject
     public int health;
 
     [Header("Abilities")]
-    public List<Card.AbilityType> abilities = new List<Card.AbilityType>();
+    public List<Card.AbilityType> abilities = new();
 
     [Header("Spell (if isSpell)")]
     public SpellCard.SpellType spellType = SpellCard.SpellType.None;
     public SpellCard.TargetType spellTarget = SpellCard.TargetType.None;
-    public int spellValue = 0;
+    public int spellPower = 0;
 }

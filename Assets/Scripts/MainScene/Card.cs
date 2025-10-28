@@ -22,7 +22,7 @@ public class Card
     public List<AbilityType> abilities;
 
     public bool IsAlive => health > 0;
-    public bool HasAbility => abilities.Count > 0; //null?
+    public bool HasAbility => abilities.Count > 0;
     public bool IsProvocation => abilities.Exists(x => x == AbilityType.Taunt);
 
     public Card(CardData data)
@@ -67,12 +67,12 @@ public class Card
             health -= dmg;
     }
 
-    public Card GetCopy() => new Card(this);
+    public Card GetCopy() => new(this);
 }
 
 public class SpellCard : Card
 {
-    public int spellValue;
+    public int spellPower;
 
     public enum SpellType
     {
@@ -102,18 +102,18 @@ public class SpellCard : Card
     public SpellCard(CardData data) : base(data)
     {
         isSpell = true;
-        spellValue = data.spellValue;
-        spell = (SpellType)data.spellType;
-        spellTarget = (TargetType)data.spellTarget;
+        spellPower = data.spellPower;
+        spell = data.spellType;
+        spellTarget = data.spellTarget;
     }
 
     public SpellCard(SpellCard card) : base(card)
     {
         isSpell = true;
-        spellValue = card.spellValue;
+        spellPower = card.spellPower;
         spell = card.spell;
         spellTarget = card.spellTarget;
     }
 
-    public new SpellCard GetCopy() => new SpellCard(this);
+    public new SpellCard GetCopy() => new(this);
 }

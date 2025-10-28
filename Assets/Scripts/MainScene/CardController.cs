@@ -5,7 +5,7 @@ using UnityEngine;
 public class CardController : MonoBehaviour
 {
     public bool isPlayerCard;
-    public Card self; //?
+    public Card self;
 
     [SerializeField] private CardInfo info;
     [SerializeField] private CardMovement movement;
@@ -121,7 +121,7 @@ public class CardController : MonoBehaviour
 
                 foreach (var card in allyCards)
                 {
-                    card.self.health += spellCard.spellValue;
+                    card.self.health += spellCard.spellPower;
                     card.info.UpdateStats(card.self);
                 }
                 
@@ -133,16 +133,16 @@ public class CardController : MonoBehaviour
                                                 new List<CardController>(gameManager.playerFieldCards);
 
                 foreach (var card in enemyCards)
-                    GiveDamageTo(card, spellCard.spellValue);
+                    GiveDamageTo(card, spellCard.spellPower);
 
                 break;
 
             case SpellCard.SpellType.HealHero:
 
                 if (isPlayerCard)
-                    gameManager.currentGame.player.hp += spellCard.spellValue;
+                    gameManager.currentGame.player.hp += spellCard.spellPower;
                 else
-                    gameManager.currentGame.enemy.hp += spellCard.spellValue;
+                    gameManager.currentGame.enemy.hp += spellCard.spellPower;
 
                 UIManager.Instance.UpdateHPAndMana();
 
@@ -151,9 +151,9 @@ public class CardController : MonoBehaviour
             case SpellCard.SpellType.DamageHero:
 
                 if (isPlayerCard)
-                    gameManager.currentGame.enemy.hp -= spellCard.spellValue;
+                    gameManager.currentGame.enemy.hp -= spellCard.spellPower;
                 else
-                    gameManager.currentGame.player.hp -= spellCard.spellValue;
+                    gameManager.currentGame.player.hp -= spellCard.spellPower;
 
                 UIManager.Instance.UpdateHPAndMana();
                 gameManager.CheckForResult();
@@ -161,13 +161,15 @@ public class CardController : MonoBehaviour
                 break;
 
             case SpellCard.SpellType.HealCard:
-                target.self.health += spellCard.spellValue;
+
+                target.self.health += spellCard.spellPower;
+
                 break;
 
             case SpellCard.SpellType.DamageCard:
-                
-                GiveDamageTo(target, spellCard.spellValue);
-                
+
+                GiveDamageTo(target, spellCard.spellPower);
+
                 break;
 
             case SpellCard.SpellType.AddShield:
@@ -186,13 +188,13 @@ public class CardController : MonoBehaviour
 
             case SpellCard.SpellType.BuffAttack:
                 
-                target.self.attack += spellCard.spellValue;
+                target.self.attack += spellCard.spellPower;
                 
                 break;
 
             case SpellCard.SpellType.DebuffAttack:
 
-                target.self.attack = Mathf.Max(0, target.self.attack - spellCard.spellValue);
+                target.self.attack = Mathf.Max(0, target.self.attack - spellCard.spellPower);
 
                 break;
         }

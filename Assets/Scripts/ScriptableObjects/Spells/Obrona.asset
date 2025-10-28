@@ -21,4 +21,4 @@ MonoBehaviour:
   abilities: 
   spellType: 3
   spellTarget: 1
-  spellValue: 2
+  spellPower: 2

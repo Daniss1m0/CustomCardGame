@@ -5,7 +5,7 @@ using TMPro;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
-public class UIManager : MonoBehaviour //rename to UIManager?
+public class UIManager : MonoBehaviour
 {
     public static UIManager Instance;
 

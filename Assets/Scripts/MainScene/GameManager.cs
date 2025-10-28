@@ -87,7 +87,7 @@ public class GameManager : MonoBehaviour
 
         deckManager?.GiveInitialHands(currentGame);
 
-        UIController.Instance.StartGame();
+        UIManager.Instance.StartGame();
 
         if (turnManager != null)
             turnManager.StartTurnLoop();
@@ -107,7 +107,7 @@ public class GameManager : MonoBehaviour
     public void ChangeTurn()
     {
         turn++;
-        UIController.Instance.DisableTurnBtn();
+        UIManager.Instance.DisableTurnBtn();
 
         if (IsPlayerTurn)
         {
@@ -116,7 +116,7 @@ public class GameManager : MonoBehaviour
             currentGame.player.IncreaseManaPool();
             currentGame.player.RestoreRoundMana();
 
-            UIController.Instance.UpdateHPAndMana();
+            UIManager.Instance.UpdateHPAndMana();
         }
         else
         {
@@ -147,7 +147,7 @@ public class GameManager : MonoBehaviour
         else
             currentGame.enemy.mana -= manacost;
 
-        UIController.Instance.UpdateHPAndMana();
+        UIManager.Instance.UpdateHPAndMana();
     }
 
     public void DamageHero(CardController card, bool isEnemyAttacked) 
@@ -157,7 +157,7 @@ public class GameManager : MonoBehaviour
         else
             currentGame.player.GetDamage(card.self.attack);
 
-        UIController.Instance.UpdateHPAndMana();
+        UIManager.Instance.UpdateHPAndMana();
         card.OnDamageDeal();
         CheckForResult();
     }
@@ -168,7 +168,7 @@ public class GameManager : MonoBehaviour
         {
             turnManager?.StopTurnLoop();
 
-            UIController.Instance.ShowResult();
+            UIManager.Instance.ShowResult();
         }
     }
 

@@ -25,7 +25,7 @@ public class TurnManager : MonoBehaviour
     private IEnumerator TurnFunc() //be possible to SetHighlight(false) in PlayerHandCards when its not player's turn 
     {
         int turnTime = turnTimeDefault;
-        UIController.Instance.UpdateTurnTime(turnTime);
+        UIManager.Instance.UpdateTurnTime(turnTime);
 
         foreach (var card in GameManager.Instance.playerFieldCards)
             card.Info.SetHighlight(false);
@@ -52,7 +52,7 @@ public class TurnManager : MonoBehaviour
 
         while (turnTime-- > 0)
         {
-            UIController.Instance.UpdateTurnTime(turnTime);
+            UIManager.Instance.UpdateTurnTime(turnTime);
             yield return new WaitForSeconds(1f);
         }
 

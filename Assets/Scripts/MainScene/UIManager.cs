@@ -5,9 +5,9 @@ using TMPro;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
-public class UIController : MonoBehaviour //rename to UIManager?
+public class UIManager : MonoBehaviour //rename to UIManager?
 {
-    public static UIController Instance;
+    public static UIManager Instance;
 
     public TextMeshProUGUI playerManaTxt, enemyManaTxt, playerHPTxt, enemyHPTxt, resultTxt, turnTimeTxt;
     public Button endTurnBtn;

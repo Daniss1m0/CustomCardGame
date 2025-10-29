@@ -15,7 +15,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private TurnManager turnManager;
     [SerializeField] private DeckManager deckManager;
     [SerializeField] private AttackedHero playerHero, enemyHero;
-    [SerializeField] public AI enemyAI; //later private or just remove
+    [SerializeField] public AIController enemyAI; //later private or just remove
 
     private int turn;
 

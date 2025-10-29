@@ -47,7 +47,10 @@ public class TurnManager : MonoBehaviour
                 card.Ability.OnNewTurn(card.self, card.Info);
             }
 
-            GameManager.Instance.enemyAI.MakeTurn();
+            if (GameManager.Instance.enemyAI != null)
+                StartCoroutine(GameManager.Instance.enemyAI.PerformTurn());
+            else
+                Debug.LogWarning("TurnManager: enemyAI (AIController) is not assigned in GameManager.");
         }
 
         while (turnTime-- > 0)
@@ -58,4 +61,5 @@ public class TurnManager : MonoBehaviour
 
         GameManager.Instance.ChangeTurn();
     }
+
 }

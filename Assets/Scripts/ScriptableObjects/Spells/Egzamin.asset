@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Egzamin
   m_EditorClassIdentifier: Assembly-CSharp::CardData
   cardName: Egzamin
-  manaCost: 2
+  manaCost: 1
   logo: {fileID: 1287180105818975217, guid: ec779a747cd5f3b48aac61068c1ccf7e, type: 3}
   isSpell: 1
   attack: 0

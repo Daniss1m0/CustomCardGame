@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Staz
   m_EditorClassIdentifier: Assembly-CSharp::CardData
   cardName: Staz
-  manaCost: 2
+  manaCost: 1
   logo: {fileID: -8531315919232405398, guid: c840c1aeb35f24844ac05841bc2a2781, type: 3}
   isSpell: 1
   attack: 0

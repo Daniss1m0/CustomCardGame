@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Blad
   m_EditorClassIdentifier: Assembly-CSharp::CardData
   cardName: Blad
-  manaCost: 2
+  manaCost: 1
   logo: {fileID: -4600785504250711460, guid: c4871e43a253c51408e5aeeb41bb4dfd, type: 3}
   isSpell: 1
   attack: 0

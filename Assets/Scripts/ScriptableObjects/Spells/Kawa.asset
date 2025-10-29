@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Kawa
   m_EditorClassIdentifier: Assembly-CSharp::CardData
   cardName: Kawa
-  manaCost: 2
+  manaCost: 1
   logo: {fileID: 3512967321281318031, guid: 19632cc8fe7ec68458eef08ffe9e5eb5, type: 3}
   isSpell: 1
   attack: 0

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Kserowka
   m_EditorClassIdentifier: Assembly-CSharp::CardData
   cardName: Kserowka
-  manaCost: 2
+  manaCost: 1
   logo: {fileID: 5350717596340596694, guid: c8419a5227e14b34baa866a683825643, type: 3}
   isSpell: 1
   attack: 0

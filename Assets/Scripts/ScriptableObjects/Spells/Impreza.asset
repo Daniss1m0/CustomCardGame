@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Impreza
   m_EditorClassIdentifier: Assembly-CSharp::CardData
   cardName: Impreza
-  manaCost: 2
+  manaCost: 3
   logo: {fileID: 8733827537874850540, guid: 38eb6ed599c041e44b70ea21c7532cc7, type: 3}
   isSpell: 1
   attack: 0

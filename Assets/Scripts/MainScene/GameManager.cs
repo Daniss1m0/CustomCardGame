@@ -15,10 +15,16 @@ public class GameManager : MonoBehaviour
     [SerializeField] private TurnManager turnManager;
     [SerializeField] private DeckManager deckManager;
     [SerializeField] private AttackedHero playerHero, enemyHero;
-    [SerializeField] public AIController enemyAI; //later private or just remove
+
+    [SerializeField] private MonoBehaviour playerControllerBehaviour;
+    [SerializeField] private MonoBehaviour opponentControllerBehaviour;
 
     private int turn;
+    private float lastChangeTime = -10f;
+    private const float minTimeBetweenChange = 0.1f;
 
+    public IPlayerController PlayerController => playerControllerBehaviour as IPlayerController;
+    public IPlayerController OpponentController => opponentControllerBehaviour as IPlayerController;
     public bool IsPlayerTurn => turn % 2 == 0;
     public AttackedHero PlayerHero => playerHero;
     public Transform EnemyField => deckManager != null ? deckManager.EnemyField : null;
@@ -48,6 +54,9 @@ public class GameManager : MonoBehaviour
         if (deckManager == null)
             deckManager = FindAnyObjectByType<DeckManager>();
 
+        PlayerController?.Initialize(currentGame.player, true);
+        OpponentController?.Initialize(currentGame.enemy, false);
+
         deckManager.GiveInitialHands(currentGame);
 
         UIManager.Instance.StartGame();
@@ -69,6 +78,13 @@ public class GameManager : MonoBehaviour
 
     public void ChangeTurn()
     {
+        if (Time.realtimeSinceStartup - lastChangeTime < minTimeBetweenChange)
+            return;
+        lastChangeTime = Time.realtimeSinceStartup;
+
+        if (turnManager != null)
+            turnManager.StopTurnLoop();
+
         turn++;
         UIManager.Instance.DisableTurnBtn();
 
@@ -87,7 +103,125 @@ public class GameManager : MonoBehaviour
             currentGame.enemy.RestoreRoundMana();
         }
 
-        turnManager.StartTurnLoop();
+        if (turnManager != null)
+            turnManager.StartTurnLoop();
+    }
+    //why?
+    public void PlayCard(CardController card, bool isPlayerSide)
+    {
+        if (card == null) return;
+
+        if (isPlayerSide != IsPlayerTurn)
+        {
+            Debug.LogWarning("PlayCard: not that side's turn.");
+            return;
+        }
+
+        if (card.self.isPlaced)
+        {
+            Debug.LogWarning("PlayCard: card already placed.");
+            return;
+        }
+
+        if (isPlayerSide && currentGame.player.mana < card.self.manaCost)
+        {
+            Debug.LogWarning("PlayCard: player not enough mana.");
+            return;
+        }
+        if (!isPlayerSide && currentGame.enemy.mana < card.self.manaCost)
+        {
+            Debug.LogWarning("PlayCard: enemy not enough mana.");
+            return;
+        }
+
+        card.OnCast();
+    }
+
+    public void CastSpell(CardController spell, CardController target, bool isPlayerSide)
+    {
+        if (spell == null) return;
+
+        if (isPlayerSide != IsPlayerTurn)
+        {
+            Debug.LogWarning("CastSpell: not that side's turn.");
+            return;
+        }
+
+        int currentMana = isPlayerSide ? currentGame.player.mana : currentGame.enemy.mana;
+        if (currentMana < spell.self.manaCost)
+        {
+            Debug.LogWarning("CastSpell: not enough mana.");
+            return;
+        }
+
+        if (isPlayerSide)
+        {
+            if (GameManager.Instance.playerHandCards.Contains(spell))
+                GameManager.Instance.playerHandCards.Remove(spell);
+            GameManager.Instance.playerFieldCards.Add(spell);
+        }
+        else
+        {
+            if (GameManager.Instance.enemyHandCards.Contains(spell))
+                GameManager.Instance.enemyHandCards.Remove(spell);
+            GameManager.Instance.enemyFieldCards.Add(spell);
+            spell.Info?.ShowCard(spell.self);
+        }
+
+        ReduceMana(isPlayerSide, spell.self.manaCost);
+
+        spell.self.isPlaced = true;
+
+        spell.UseSpell(target);
+
+        CheckCardsForManaAvailability();
+    }
+
+
+    public void Attack(CardController attacker, CardController defender)
+    {
+        if (attacker == null || defender == null) return;
+        if (!attacker.self.canAttack) return;
+        if (!defender.self.isPlaced) return;
+
+        if (attacker.isPlayerCard)
+        {
+            if (enemyFieldCards.Exists(x => x.self.IsProvocation) && !defender.self.IsProvocation)
+                return;
+        }
+        else
+        {
+            if (playerFieldCards.Exists(x => x.self.IsProvocation) && !defender.self.IsProvocation)
+                return;
+        }
+
+        CardsFight(attacker, defender);
+    }
+
+    public void AttackHero(CardController attacker, bool targetIsEnemyHero)
+    {
+        if (attacker == null) 
+            return;
+        if (!attacker.self.canAttack) 
+            return;
+
+        if (targetIsEnemyHero)
+        {
+            if (enemyFieldCards.Exists(x => x.self.IsProvocation)) 
+                return;
+            DamageHero(attacker, true);
+        }
+        else
+        {
+            if (playerFieldCards.Exists(x => x.self.IsProvocation)) 
+                return;
+            DamageHero(attacker, false);
+        }
+    }
+
+    public void EndTurnFromController()
+    {
+        ChangeTurn();
     }
 
     public void CardsFight(CardController attacker, CardController defender)

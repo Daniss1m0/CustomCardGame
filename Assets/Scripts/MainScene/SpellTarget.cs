@@ -10,20 +10,26 @@ public class SpellTarget : MonoBehaviour, IDropHandler
         if (!GameManager.Instance.IsPlayerTurn)
             return;
 
-        CardController spell = eventData.pointerDrag.GetComponent<CardController>(),
-                       target = GetComponent<CardController>();
+        CardController spell = eventData.pointerDrag.GetComponent<CardController>();
+        CardController target = GetComponent<CardController>();
 
-        if (spell && spell.self.isSpell && spell.isPlayerCard && target.self.isPlaced && GameManager.Instance.currentGame.player.mana >= spell.self.manaCost)
+        if (spell == null || target == null) 
+            return;
+
+        if (!spell.self.isSpell || !spell.isPlayerCard || !target.self.isPlaced) 
+            return;
+
+        if (GameManager.Instance.currentGame.player.mana < spell.self.manaCost) 
+            return;
+
+        var spellCard = (SpellCard)spell.self;
+
+        if ((spellCard.spellTarget == SpellCard.TargetType.AllyCard && target.isPlayerCard) ||
+            (spellCard.spellTarget == SpellCard.TargetType.EnemyCard && !target.isPlayerCard))
         {
-            var spellCard = (SpellCard)spell.self;
+            GameManager.Instance.CastSpell(spell, target, true);
 
-            if ((spellCard.spellTarget == SpellCard.TargetType.AllyCard && target.isPlayerCard) ||
-                (spellCard.spellTarget == SpellCard.TargetType.EnemyCard && !target.isPlayerCard))
-            {
-                GameManager.Instance.ReduceMana(true, spell.self.manaCost);
-                spell.UseSpell(target);
-                GameManager.Instance.CheckCardsForManaAvailability();
-            }
+            GameManager.Instance.CheckCardsForManaAvailability();
         }
     }
 }

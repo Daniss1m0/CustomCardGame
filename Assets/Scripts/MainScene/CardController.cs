@@ -23,12 +23,14 @@ public class CardController : MonoBehaviour
         this.isPlayerCard = isPlayerCard;
         gameManager = GameManager.Instance;
 
-        if (movement == null) movement = GetComponent<CardMovement>();
+        if (movement == null) 
+            movement = GetComponent<CardMovement>();
 
         if (isPlayerCard)
         {
             info.ShowCard(self);
-            GetComponent<AttackedCard>().enabled = false; //?
+            var attackedCard = GetComponent<AttackedCard>();
+            if (attackedCard) attackedCard.enabled = false;
         }
         else
             info.HideCard();
@@ -109,7 +111,7 @@ public class CardController : MonoBehaviour
         target.OnTakeDamage();
     }
 
-    public void UseSpell(CardController target)
+    public void UseSpell(CardController target) //mb combine with HighlightTargets?
     {
         var spellCard = (SpellCard)self;
 

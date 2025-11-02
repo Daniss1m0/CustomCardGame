@@ -4,6 +4,15 @@ using UnityEngine;
 
 public class AIController : MonoBehaviour, IPlayerController
 {
+    private Player model;
+    private bool isLocal;
+
+    public void Initialize(Player playerModel, bool isLocal)
+    {
+        model = playerModel;
+        this.isLocal = isLocal;
+    }
+
     public IEnumerator PerformTurn()
     {
         yield return StartCoroutine(EnemyTurn());
@@ -29,17 +38,8 @@ public class AIController : MonoBehaviour, IPlayerController
 
             var c = playable[0];
 
-            if (c == null)
-            {
-                Debug.LogWarning("AIController: playable[0] is null, skipping.");
-                continue;
-            }
-
-            if (c.self == null)
-            {
-                Debug.LogWarning("AIController: card.self is null for card controller " + c.name);
-                continue;
-            }
+            if (c == null) continue;
+            if (c.self == null) continue;
 
             if (c.self.isSpell)
             {
@@ -56,10 +56,6 @@ public class AIController : MonoBehaviour, IPlayerController
                             var allyTarget = GameManager.Instance.enemyFieldCards[Random.Range(0, GameManager.Instance.enemyFieldCards.Count)];
                             yield return StartCoroutine(CastCardRoutine(c, allyTarget));
                         }
-                        else
-                        {
-                            Debug.Log("AIController: no ally targets for " + c.self.name);
-                        }
                         break;
 
                     case SpellCard.TargetType.EnemyCard:
@@ -68,10 +64,6 @@ public class AIController : MonoBehaviour, IPlayerController
                             var enemyTarget = GameManager.Instance.playerFieldCards[Random.Range(0, GameManager.Instance.playerFieldCards.Count)];
                             yield return StartCoroutine(CastCardRoutine(c, enemyTarget));
                         }
-                        else
-                        {
-                            Debug.Log("AIController: no enemy targets for " + c.self.name);
-                        }
                         break;
                 }
             }
@@ -79,14 +71,11 @@ public class AIController : MonoBehaviour, IPlayerController
             {
                 if (c.Movement != null)
                     c.Movement.MoveToField(GameManager.Instance.EnemyField);
-                else
-                    Debug.LogWarning("AIController: Movement is null for " + c.name);
-
                 yield return new WaitForSeconds(.51f);
 
                 if (GameManager.Instance.EnemyField != null)
                     c.transform.SetParent(GameManager.Instance.EnemyField);
-                c.OnCast();
+                GameManager.Instance.PlayCard(c, false);
             }
         }
 
@@ -107,35 +96,22 @@ public class AIController : MonoBehaviour, IPlayerController
                 else
                     target = GameManager.Instance.playerFieldCards[Random.Range(0, GameManager.Instance.playerFieldCards.Count)];
 
-                if (target == null)
-                {
-                    Debug.LogWarning("AIController: selected attack target is null");
-                    break;
-                }
-
-                Debug.Log(activeCard.self.name + "(" + activeCard.self.attack + ";" + activeCard.self.health + "))" + "---> " +
-                          target.self.name + " (" + target.self.attack + ";" + target.self.health + ")");
+                if (target == null) break;
 
                 if (activeCard.Movement != null)
                     activeCard.Movement.MoveToTarget(target.transform);
                 yield return new WaitForSeconds(.75f);
 
-                GameManager.Instance.CardsFight(activeCard, target);
+                GameManager.Instance.Attack(activeCard, target);
             }
             else
             {
-                Debug.Log(activeCard.self.name + " (" + activeCard.self.attack + ") Attacked Hero");
-
                 if (GameManager.Instance.PlayerHero != null)
                 {
                     if (activeCard.Movement != null)
                         activeCard.Movement.MoveToTarget(GameManager.Instance.PlayerHero.transform);
                     yield return new WaitForSeconds(.75f);
-                    GameManager.Instance.DamageHero(activeCard, false);
-                }
-                else
-                {
-                    Debug.LogWarning("AIController: PlayerHero is null");
+                    GameManager.Instance.AttackHero(activeCard, false);
                 }
             }
 
@@ -144,55 +120,27 @@ public class AIController : MonoBehaviour, IPlayerController
 
         yield return new WaitForSeconds(1f);
 
-        GameManager.Instance.ChangeTurn();
+        GameManager.Instance.EndTurnFromController();
     }
 
     private IEnumerator CastCardRoutine(CardController spell, CardController target = null)
     {
-        if (spell == null)
-        {
-            Debug.LogWarning("AIController.CastCardRoutine: spell is null");
-            yield break;
-        }
-
+        if (spell == null) yield break;
         var spellCard = spell.self as SpellCard;
-        if (spellCard == null)
-        {
-            Debug.LogWarning("AIController.CastCardRoutine: spell.self is not SpellCard for " + spell.name);
-            yield break;
-        }
-
-        if (spellCard.spellTarget != SpellCard.TargetType.None && target == null)
-        {
-            Debug.LogWarning("AIController.CastCardRoutine: target is null for targeted spell " + spell.self.name);
-            yield break;
-        }
+        if (spellCard == null) yield break;
 
         if (spellCard.spellTarget == SpellCard.TargetType.None)
         {
-            if (spell.Movement != null)
-                spell.Movement.MoveToField(GameManager.Instance.EnemyField);
-            else
-                Debug.LogWarning("AIController.CastCardRoutine: Movement is null on spell " + spell.name);
-
+            if (spell.Movement != null) spell.Movement.MoveToField(GameManager.Instance.EnemyField);
             yield return new WaitForSeconds(.51f);
-            spell.OnCast();
+            GameManager.Instance.PlayCard(spell, false);
         }
         else
         {
             spell.Info?.ShowCard(spell.self);
+            if (target == null) yield break;
 
-            if (target == null)
-            {
-                Debug.LogWarning("AIController.CastCardRoutine: unexpected null target for " + spell.self.name);
-                yield break;
-            }
-
-            if (spell.Movement != null)
-                spell.Movement.MoveToTarget(target.transform);
-            else
-                Debug.LogWarning("AIController.CastCardRoutine: Movement is null on spell " + spell.name);
-
+            if (spell.Movement != null) spell.Movement.MoveToTarget(target.transform);
             yield return new WaitForSeconds(.51f);
 
             if (GameManager.Instance.enemyHandCards.Contains(spell))
@@ -204,7 +152,6 @@ public class AIController : MonoBehaviour, IPlayerController
             spell.UseSpell(target);
         }
 
-        string targetStr = target == null ? "no_target" : target.self.name;
-        Debug.Log("AI spell cast: " + spell.self.name + " target: " + targetStr);
+        yield break;
     }
 }

@@ -27,7 +27,7 @@ public class DropPlace : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoi
             if (!card.self.isSpell)
                 card.Movement.defaultParent = transform;
 
-            card.OnCast();
+            GameManager.Instance.PlayCard(card, true);
         }
     }
 

@@ -40,18 +40,17 @@ public class TurnManager : MonoBehaviour
                 card.Ability.OnNewTurn(card.self, card.Info);
             }
         else
-        {
             foreach (var card in GameManager.Instance.enemyFieldCards)
             {
                 card.self.canAttack = true;
                 card.Ability.OnNewTurn(card.self, card.Info);
             }
 
-            if (GameManager.Instance.enemyAI != null)
-                StartCoroutine(GameManager.Instance.enemyAI.PerformTurn());
-            else
-                Debug.LogWarning("TurnManager: enemyAI (AIController) is not assigned in GameManager.");
-        }
+        IPlayerController controller = GameManager.Instance.IsPlayerTurn ? GameManager.Instance.PlayerController : GameManager.Instance.OpponentController;
+        if (controller != null)
+            StartCoroutine(controller.PerformTurn());
+        else
+            Debug.LogWarning("TurnManager: controller not assigned for current side.");
 
         while (turnTime-- > 0)
         {

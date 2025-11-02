@@ -27,6 +27,7 @@ public class AttackedHero : MonoBehaviour, IDropHandler
 
     public void HighlightAsTarget(bool highlight)
     {
-        GetComponent<Image>().color = highlight ? highlightCol : normalCol;
+        var img = GetComponent<Image>();
+        HighlightHelper.SetTargetHighlight(img, highlight, normalCol, highlightCol);
     }
 }

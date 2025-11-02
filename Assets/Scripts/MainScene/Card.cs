@@ -8,7 +8,7 @@ public class Card
     public bool canAttack, isPlaced, isSpell;
     public Sprite logo;
 
-    public enum AbilityType
+    public enum AbilityType //global space?
     {
         None,
         Charge,

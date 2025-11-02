@@ -12,23 +12,32 @@ public class CardInfo : MonoBehaviour
     [SerializeField] private GameObject hideState, highlightState;
 
     private Image background;
-    
+    private CanvasGroup canvasGroup;
+
     private void Awake()
     {
         background = GetComponent<Image>();
+        canvasGroup = GetComponent<CanvasGroup>();
     }
 
     public void ShowCard(Card card)
     {
         hideState.SetActive(false);
-        logo.sprite = card.logo;
-        logo.preserveAspect = true;
+        
+        if (logo != null)
+        {
+            logo.sprite = card.logo;
+            logo.preserveAspect = true;
+        }
+
         nameTxt.text = card.name;
 
         if (card.isSpell)
         {
-            attackTxt.gameObject.SetActive(false);
-            healthTxt.gameObject.SetActive(false);
+            if (attackTxt != null) 
+                attackTxt.gameObject.SetActive(false);
+            if (healthTxt != null) 
+                healthTxt.gameObject.SetActive(false);
         }
 
         UpdateStats(card);
@@ -43,30 +52,31 @@ public class CardInfo : MonoBehaviour
         manaCostTxt.text = "";
     }
 
-    public void UpdateStats(Card card) 
+    public void UpdateStats(Card card)
     {
-        attackTxt.text = card.attack.ToString();
-        healthTxt.text = card.health.ToString();
-        manaCostTxt.text = card.manaCost.ToString();
+        if (attackTxt != null) attackTxt.text = card.attack.ToString();
+        if (healthTxt != null) healthTxt.text = card.health.ToString();
+        if (manaCostTxt != null) manaCostTxt.text = card.manaCost.ToString();
     }
 
-    public void SetHighlight(bool highlight) 
+    public void SetHighlight(bool highlight)
     {
-        highlightState.SetActive(highlight);
+        if (highlightState != null)
+            highlightState.SetActive(highlight);
     }
 
     public void HighlightAsTarget(bool active)
     {
-        background.color = active ? targetColor : normalColor;
+        HighlightHelper.SetTargetHighlight(background, active, normalColor, targetColor);
     }
 
     public void HighlightAsSpellTarget(bool active)
     {
-        background.color = active ? spellTargetColor : normalColor;
+        HighlightHelper.SetSpellTargetHighlight(background, active, normalColor, spellTargetColor);
     }
 
     public void SetManaAvailability(int currentMana, int cardCost)
     {
-        GetComponent<CanvasGroup>().alpha = currentMana >= cardCost ? 1 : 0.5f;
+        HighlightHelper.SetManaAvailability(canvasGroup, currentMana >= cardCost);
     }
 }

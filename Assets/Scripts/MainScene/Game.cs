@@ -11,7 +11,7 @@ public class Game
         player = new Player();
         enemy = new Player();
 
-        enemy.manaPool = 0; //later will be compansation for first turn advantage
+        enemy.manaPool = 0;
         enemy.mana = 0;
 
         playerDeck = GiveDeckCard();

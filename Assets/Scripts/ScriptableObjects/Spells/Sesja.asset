@@ -19,6 +19,6 @@ MonoBehaviour:
   attack: 0
   health: 0
   abilities: 
-  spellType: 6
+  spellType: 7
   spellTarget: 1
-  spellValue: 2
+  spellPower: 0

@@ -44,6 +44,9 @@ public class AIController : MonoBehaviour, IPlayerController
             if (c.self.isSpell)
             {
                 var spellCard = (SpellCard)c.self;
+
+                Debug.Log($"[AI] play spell: **{c.self.name}** (Type: {spellCard.spell})"); //later remove debug
+
                 switch (spellCard.spellTarget)
                 {
                     case TargetType.None:

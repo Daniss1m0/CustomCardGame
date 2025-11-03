@@ -11,7 +11,7 @@ public class Player
     {
         hp = 30;
         mana = manaPool = 1; // Enemy has more mana at start?
-        tempMana = 0;
+        //tempMana = 0;
     }
 
     public void IncreaseManaPool()

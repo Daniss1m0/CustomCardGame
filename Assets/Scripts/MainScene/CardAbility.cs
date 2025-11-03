@@ -11,7 +11,7 @@ public class CardAbility : MonoBehaviour
         {
             switch (ability)
             {
-                case Card.AbilityType.Charge:
+                case AbilityType.Charge:
                    
                     card.canAttack = true;
                     if (isPlayerCard && info != null)
@@ -19,13 +19,13 @@ public class CardAbility : MonoBehaviour
                     
                     break;
 
-                case Card.AbilityType.Shield:
+                case AbilityType.Shield:
                     
                     shield.SetActive(true);
                     
                     break;
 
-                case Card.AbilityType.Taunt:
+                case AbilityType.Taunt:
                     
                     taunt.SetActive(true);
                     
@@ -40,7 +40,7 @@ public class CardAbility : MonoBehaviour
         {
             switch (ability)
             {
-                case Card.AbilityType.DoubleAttack:
+                case AbilityType.DoubleAttack:
                     
                     if (card.timesDealedDamage == 1)
                     {
@@ -62,13 +62,13 @@ public class CardAbility : MonoBehaviour
         {
             switch (ability)
             {
-                case Card.AbilityType.Shield:
+                case AbilityType.Shield:
                     
                     shield.SetActive(true);
 
                     break;
 
-                case Card.AbilityType.CounterAttack:
+                case AbilityType.CounterAttack:
                     
                     if (attacker != null)
                         attacker.self.GetDamage(card.attack);
@@ -86,7 +86,7 @@ public class CardAbility : MonoBehaviour
         {
             switch (ability)
             {
-                case Card.AbilityType.Regeneration:
+                case AbilityType.Regeneration:
                     
                     card.health += 2;
                     info.UpdateStats(card);

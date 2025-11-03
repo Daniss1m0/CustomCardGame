@@ -24,8 +24,8 @@ public class SpellTarget : MonoBehaviour, IDropHandler
 
         var spellCard = (SpellCard)spell.self;
 
-        if ((spellCard.spellTarget == SpellCard.TargetType.AllyCard && target.isPlayerCard) ||
-            (spellCard.spellTarget == SpellCard.TargetType.EnemyCard && !target.isPlayerCard))
+        if ((spellCard.spellTarget == TargetType.AllyCard && target.isPlayerCard) ||
+            (spellCard.spellTarget == TargetType.EnemyCard && !target.isPlayerCard))
         {
             GameManager.Instance.CastSpell(spell, target, true);
 

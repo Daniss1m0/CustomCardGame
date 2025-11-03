@@ -46,11 +46,11 @@ public class AIController : MonoBehaviour, IPlayerController
                 var spellCard = (SpellCard)c.self;
                 switch (spellCard.spellTarget)
                 {
-                    case SpellCard.TargetType.None:
+                    case TargetType.None:
                         yield return StartCoroutine(CastCardRoutine(c, null));
                         break;
 
-                    case SpellCard.TargetType.AllyCard:
+                    case TargetType.AllyCard:
                         if (GameManager.Instance.enemyFieldCards.Count > 0)
                         {
                             var allyTarget = GameManager.Instance.enemyFieldCards[Random.Range(0, GameManager.Instance.enemyFieldCards.Count)];
@@ -58,7 +58,7 @@ public class AIController : MonoBehaviour, IPlayerController
                         }
                         break;
 
-                    case SpellCard.TargetType.EnemyCard:
+                    case TargetType.EnemyCard:
                         if (GameManager.Instance.playerFieldCards.Count > 0)
                         {
                             var enemyTarget = GameManager.Instance.playerFieldCards[Random.Range(0, GameManager.Instance.playerFieldCards.Count)];
@@ -129,7 +129,7 @@ public class AIController : MonoBehaviour, IPlayerController
         var spellCard = spell.self as SpellCard;
         if (spellCard == null) yield break;
 
-        if (spellCard.spellTarget == SpellCard.TargetType.None)
+        if (spellCard.spellTarget == TargetType.None)
         {
             if (spell.Movement != null) spell.Movement.MoveToField(GameManager.Instance.EnemyField);
             yield return new WaitForSeconds(.51f);

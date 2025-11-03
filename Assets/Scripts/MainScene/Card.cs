@@ -1,23 +1,23 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum AbilityType
+{
+    None,
+    Charge,
+    DoubleAttack,
+    Taunt,
+    Shield,
+    Regeneration,
+    CounterAttack
+}
+
 public class Card
 {
     public string name;
     public int attack, health, manaCost, timesDealedDamage;
     public bool canAttack, isPlaced, isSpell;
     public Sprite logo;
-
-    public enum AbilityType //global space?
-    {
-        None,
-        Charge,
-        DoubleAttack,
-        Taunt,
-        Shield,
-        Regeneration,
-        CounterAttack
-    }
 
     public List<AbilityType> abilities;
 
@@ -70,31 +70,31 @@ public class Card
     public Card GetCopy() => new(this);
 }
 
+public enum SpellType
+{
+    None,
+    HealHero,
+    DamageHero,
+    HealCard,
+    DamageCard,
+    AddShield,
+    AddTaunt,
+    BuffAttack,
+    DebuffAttack,
+    HealAlliesField,
+    DamageEnemiesField
+}
+
+public enum TargetType
+{
+    None,
+    AllyCard,
+    EnemyCard
+}
+
 public class SpellCard : Card
 {
     public int spellPower;
-
-    public enum SpellType
-    {
-        None,
-        HealHero,
-        DamageHero,
-        HealCard,
-        DamageCard,
-        AddShield,
-        AddTaunt,
-        BuffAttack,
-        DebuffAttack,
-        HealAlliesField,
-        DamageEnemiesField
-    }
-
-    public enum TargetType
-    {
-        None,
-        AllyCard,
-        EnemyCard
-    }
 
     public SpellType spell;
     public TargetType spellTarget;

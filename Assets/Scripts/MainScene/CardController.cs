@@ -38,7 +38,7 @@ public class CardController : MonoBehaviour
 
     public void OnCast()
     {
-        if (self.isSpell && ((SpellCard)self).spellTarget != SpellCard.TargetType.None)
+        if (self.isSpell && ((SpellCard)self).spellTarget != TargetType.None)
             return;
 
         if (isPlayerCard)
@@ -117,7 +117,7 @@ public class CardController : MonoBehaviour
 
         switch (spellCard.spell)
         {
-            case SpellCard.SpellType.HealAlliesField:
+            case SpellType.HealAlliesField:
 
                 var allyCards = isPlayerCard ? gameManager.playerFieldCards : gameManager.enemyFieldCards;
 
@@ -129,7 +129,7 @@ public class CardController : MonoBehaviour
                 
                 break;
 
-            case SpellCard.SpellType.DamageEnemiesField:
+            case SpellType.DamageEnemiesField:
 
                 var enemyCards = isPlayerCard ? new List<CardController>(gameManager.enemyFieldCards) : 
                                                 new List<CardController>(gameManager.playerFieldCards);
@@ -139,7 +139,7 @@ public class CardController : MonoBehaviour
 
                 break;
 
-            case SpellCard.SpellType.HealHero:
+            case SpellType.HealHero:
 
                 if (isPlayerCard)
                     gameManager.currentGame.player.hp += spellCard.spellPower;
@@ -150,7 +150,7 @@ public class CardController : MonoBehaviour
 
                 break;
 
-            case SpellCard.SpellType.DamageHero:
+            case SpellType.DamageHero:
 
                 if (isPlayerCard)
                     gameManager.currentGame.enemy.hp -= spellCard.spellPower;
@@ -162,39 +162,39 @@ public class CardController : MonoBehaviour
 
                 break;
 
-            case SpellCard.SpellType.HealCard:
+            case SpellType.HealCard:
 
                 target.self.health += spellCard.spellPower;
 
                 break;
 
-            case SpellCard.SpellType.DamageCard:
+            case SpellType.DamageCard:
 
                 GiveDamageTo(target, spellCard.spellPower);
 
                 break;
 
-            case SpellCard.SpellType.AddShield:
+            case SpellType.AddShield:
                 
-                if (!target.self.abilities.Exists(x => x == Card.AbilityType.Shield))
-                    target.self.abilities.Add(Card.AbilityType.Shield);
-                
-                break;
-
-            case SpellCard.SpellType.AddTaunt:
-                
-                if (!target.self.abilities.Exists(x => x == Card.AbilityType.Taunt))
-                    target.self.abilities.Add(Card.AbilityType.Taunt);
+                if (!target.self.abilities.Exists(x => x == AbilityType.Shield))
+                    target.self.abilities.Add(AbilityType.Shield);
                 
                 break;
 
-            case SpellCard.SpellType.BuffAttack:
+            case SpellType.AddTaunt:
+                
+                if (!target.self.abilities.Exists(x => x == AbilityType.Taunt))
+                    target.self.abilities.Add(AbilityType.Taunt);
+                
+                break;
+
+            case SpellType.BuffAttack:
                 
                 target.self.attack += spellCard.spellPower;
                 
                 break;
 
-            case SpellCard.SpellType.DebuffAttack:
+            case SpellType.DebuffAttack:
 
                 target.self.attack = Mathf.Max(0, target.self.attack - spellCard.spellPower);
 

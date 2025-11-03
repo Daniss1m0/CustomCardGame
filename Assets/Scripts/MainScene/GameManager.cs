@@ -90,6 +90,8 @@ public class GameManager : MonoBehaviour
 
         if (IsPlayerTurn)
         {
+            currentGame.player.ClearTemporaryMana();
+
             deckManager.GiveNewCards(currentGame);
 
             currentGame.player.IncreaseManaPool();
@@ -99,8 +101,12 @@ public class GameManager : MonoBehaviour
         }
         else
         {
+            currentGame.enemy.ClearTemporaryMana();
+
             currentGame.enemy.IncreaseManaPool();
             currentGame.enemy.RestoreRoundMana();
+
+            UIManager.Instance.UpdateHPAndMana();
         }
 
         if (turnManager != null)

@@ -73,6 +73,7 @@ public class Card
 public enum SpellType
 {
     None,
+    GiveTempMana,
     HealHero,
     DamageHero,
     HealCard,

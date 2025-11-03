@@ -11,8 +11,8 @@ public class Game
         player = new Player();
         enemy = new Player();
 
-        enemy.manaPool = 0; //later will be compensation
-        enemy.mana = 0; //still problem with enemy mana UI
+        enemy.manaPool = 0; //later will be compansation for first turn advantage
+        enemy.mana = 0;
 
         playerDeck = GiveDeckCard();
         enemyDeck = GiveDeckCard();

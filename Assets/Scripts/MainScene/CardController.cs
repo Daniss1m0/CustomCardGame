@@ -111,12 +111,22 @@ public class CardController : MonoBehaviour
         target.OnTakeDamage();
     }
 
-    public void UseSpell(CardController target) //mb combine with HighlightTargets?
+    public void UseSpell(CardController target)
     {
         var spellCard = (SpellCard)self;
 
         switch (spellCard.spell)
         {
+            case SpellType.GiveTempMana:
+
+                Player targetPlayer = isPlayerCard ? gameManager.currentGame.player : gameManager.currentGame.enemy;
+                targetPlayer.tempMana += spellCard.spellPower;
+                targetPlayer.RestoreRoundMana();
+
+                UIManager.Instance.UpdateHPAndMana();
+
+                break;
+
             case SpellType.HealAlliesField:
 
                 var allyCards = isPlayerCard ? gameManager.playerFieldCards : gameManager.enemyFieldCards;

@@ -3,6 +3,8 @@ using UnityEngine;
 
 public class DeckManager : MonoBehaviour
 {
+    [SerializeField] private int initialPlayerHand = 3;//mb dont need
+    [SerializeField] private int initialEnemyHand = 4;
     [SerializeField] private Transform playerHand, enemyHand, playerField, enemyField;
     [SerializeField] private GameObject cardPrefab;
     [SerializeField] private CardData coinCard;
@@ -14,56 +16,34 @@ public class DeckManager : MonoBehaviour
     public Transform EnemyField => enemyField;
     public GameObject CardPrefab => cardPrefab;
 
-    public void GiveInitialHands(Game currentGame)
+    public bool GiveInitialHands(Game currentGame, bool randomStart = true)
     {
-        if (currentGame == null) 
-            return;
+        if (currentGame == null)
+            return true;
 
-        GiveHandCards(currentGame.playerDeck, playerHand, true, 3); //randomize later
-        GiveHandCards(currentGame.enemyDeck, enemyHand, false, 4);
+        bool playerStarts = randomStart ? (Random.value < 0.5f) : true;
+
+        int playerCount = playerStarts ? initialPlayerHand : initialEnemyHand;
+        int enemyCount = playerStarts ? initialEnemyHand : initialPlayerHand;
+
+        DrawCards(currentGame.playerDeck, playerHand, true, playerCount);
+        DrawCards(currentGame.enemyDeck, enemyHand, false, enemyCount);
 
         if (coinCard != null && coinCard.isSpell)
         {
             var coin = new SpellCard(coinCard);
-
             if (coin.spell == SpellType.GiveTempMana)
-                CreateCardInHand(coin, enemyHand, false);
+            {
+                if (playerStarts)
+                    SpawnAndRegisterCard(coin, enemyHand, false);
+                else
+                    SpawnAndRegisterCard(coin, playerHand, true);
+            }
         }
-        else
-            Debug.LogError("Coin card data is missing");
-    }
+        else if (coinCard == null)
+            Debug.LogWarning("ÑoinCard not assigned.");
 
-    private void GiveHandCards(List<Card> deck, Transform hand, bool isPlayer, int count)
-    {
-        for (int i = 0; i < count; i++)
-            GiveCardToHand(deck, hand, isPlayer);
-    }
-
-    private void CreateCardInHand(Card card, Transform hand, bool isPlayer)
-    {
-        if (cardPrefab == null || hand == null)
-        {
-            Debug.LogError("CardPrefab or hand is not assigned.");
-            return;
-        }
-
-        GameObject tempCard = Instantiate(cardPrefab, hand, false);
-        CardController cardController = tempCard.GetComponent<CardController>();
-        if (cardController == null)
-        {
-            Destroy(tempCard);
-            return;
-        }
-
-        cardController.Init(card, isPlayer);
-
-        if (GameManager.Instance == null)
-            return;
-
-        if (isPlayer)
-            GameManager.Instance.playerHandCards.Add(cardController);
-        else
-            GameManager.Instance.enemyHandCards.Add(cardController);
+        return playerStarts;
     }
 
     public void GiveNewCards(Game currentGame)
@@ -71,20 +51,25 @@ public class DeckManager : MonoBehaviour
         if (currentGame == null) 
             return;
 
-        GiveCardToHand(currentGame.playerDeck, playerHand, true);
-        GiveCardToHand(currentGame.enemyDeck, enemyHand, false);
+        DrawCards(currentGame.playerDeck, playerHand, true, 1);
+        DrawCards(currentGame.enemyDeck, enemyHand, false, 1);
     }
 
-    private void GiveCardToHand(List<Card> deck, Transform hand, bool isPlayer) //too much functions?
+    private void DrawCards(List<Card> deck, Transform hand, bool isPlayer, int count = 1)
     {
-        if (deck == null || deck.Count == 0) 
-            return;
+        if (deck == null || hand == null || count <= 0) return;
 
-        CreateCardPrefab(deck[0], hand, isPlayer);
-        deck.RemoveAt(0);
+        for (int i = 0; i < count; i++)
+        {
+            if (deck.Count == 0) 
+                break;
+            var card = deck[0];
+            SpawnAndRegisterCard(card, hand, isPlayer);
+            deck.RemoveAt(0);
+        }
     }
 
-    private void CreateCardPrefab(Card card, Transform hand, bool isPlayer)
+    private void SpawnAndRegisterCard(Card card, Transform hand, bool isPlayer)
     {
         if (cardPrefab == null || hand == null)
         {
@@ -92,46 +77,45 @@ public class DeckManager : MonoBehaviour
             return;
         }
 
-        GameObject tempCard = Instantiate(cardPrefab, hand, false);
-        CardController cardController = tempCard.GetComponent<CardController>();
-        if (cardController == null)
+        GameObject instance = Instantiate(cardPrefab, hand, false);
+        var controller = instance.GetComponent<CardController>();
+        if (controller == null)
         {
-            Destroy(tempCard);
+            Destroy(instance);
             return;
         }
 
-        cardController.Init(card, isPlayer);
+        controller.Init(card, isPlayer);
 
-        if (GameManager.Instance == null)
-            return;
+        var gm = GameManager.Instance;
+        if (gm == null) return;
 
         if (isPlayer)
-            GameManager.Instance.playerHandCards.Add(cardController);
+            gm.playerHandCards.Add(controller);
         else
-            GameManager.Instance.enemyHandCards.Add(cardController);
+            gm.enemyHandCards.Add(controller);
     }
 
     private void ClearList(List<CardController> list)
     {
-        foreach (var c in new List<CardController>(list))
+        if (list == null || list.Count == 0) return;
+        for (int i = list.Count - 1; i >= 0; i--)
         {
+            var c = list[i];
             if (c != null)
                 Destroy(c.gameObject);
         }
+        list.Clear();
     }
 
     public void ClearAll()
     {
-        if (GameManager.Instance == null) return;
+        var gm = GameManager.Instance;
+        if (gm == null) return;
 
-        ClearList(GameManager.Instance.playerHandCards);
-        ClearList(GameManager.Instance.playerFieldCards);
-        ClearList(GameManager.Instance.enemyHandCards);
-        ClearList(GameManager.Instance.enemyFieldCards);
-
-        GameManager.Instance.playerHandCards.Clear();
-        GameManager.Instance.playerFieldCards.Clear();
-        GameManager.Instance.enemyHandCards.Clear();
-        GameManager.Instance.enemyFieldCards.Clear();
+        ClearList(gm.playerHandCards);
+        ClearList(gm.playerFieldCards);
+        ClearList(gm.enemyHandCards);
+        ClearList(gm.enemyFieldCards);
     }
 }

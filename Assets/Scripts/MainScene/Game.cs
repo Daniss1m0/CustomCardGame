@@ -9,10 +9,11 @@ public class Game
     public Game()
     {
         player = new Player();
-        enemy = new Player();
-
-        enemy.manaPool = 0;
-        enemy.mana = 0;
+        enemy = new Player
+        {
+            manaPool = 0,
+            mana = 0
+        };
 
         playerDeck = GiveDeckCard();
         enemyDeck = GiveDeckCard();

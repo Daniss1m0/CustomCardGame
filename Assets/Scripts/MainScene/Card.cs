@@ -67,7 +67,7 @@ public class Card
             health -= dmg;
     }
 
-    public Card GetCopy() => new(this);
+    public virtual Card GetCopy() => new(this);
 }
 
 public enum SpellType
@@ -116,5 +116,5 @@ public class SpellCard : Card
         spellTarget = card.spellTarget;
     }
 
-    public new SpellCard GetCopy() => new(this);
+    public override Card GetCopy() => new SpellCard(this);
 }

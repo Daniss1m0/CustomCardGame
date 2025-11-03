@@ -21,7 +21,7 @@ public class Game
     private List<Card> GiveDeckCard()
     {
         List<Card> list = new List<Card>();
-        //list.Add(CardDatabase.AllCards[8].GetCopy()); //example manual add of a specific card
+        list.Add(CardDatabase.AllCards[8].GetCopy()); //example manual add of a specific card
 
         for (int i = 0; i < 20; i++)
         {

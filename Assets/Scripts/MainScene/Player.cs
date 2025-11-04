@@ -10,7 +10,7 @@ public class Player
     public Player()
     {
         hp = 30;
-        mana = manaPool = 1; // Enemy has more mana at start?
+        mana = manaPool = 0; // Enemy has more mana at start?
         //tempMana = 0;
     }
 

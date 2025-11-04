@@ -27,6 +27,8 @@ public class TurnManager : MonoBehaviour
         int turnTime = turnTimeDefault;
         UIManager.Instance.UpdateTurnTime(turnTime);
 
+        UIManager.Instance.DisableTurnBtn();
+
         foreach (var card in GameManager.Instance.playerFieldCards)
             card.Info.SetHighlight(false);
 

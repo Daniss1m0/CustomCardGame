@@ -174,7 +174,7 @@ public class GameManager : MonoBehaviour
 
         if (isPlayerSide)
         {
-            if (GameManager.Instance.playerHandCards.Contains(spell))
+            if (GameManager.Instance.playerHandCards.Contains(spell)) //why? 
                 GameManager.Instance.playerHandCards.Remove(spell);
             GameManager.Instance.playerFieldCards.Add(spell);
         }

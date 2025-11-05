@@ -7,7 +7,7 @@ using TMPro;
 public class CardInfo : MonoBehaviour
 {
     [SerializeField] private Color normalColor, targetColor, spellTargetColor;
-    [SerializeField] private TextMeshProUGUI nameTxt, attackTxt, healthTxt, manaCostTxt;
+    [SerializeField] private TextMeshProUGUI nameTxt, attackTxt, healthTxt, manaCostTxt; //change attackTxt and healthTxt to Image
     [SerializeField] private Image logo;
     [SerializeField] private GameObject hideState, highlightState;
 
@@ -54,9 +54,12 @@ public class CardInfo : MonoBehaviour
 
     public void UpdateStats(Card card)
     {
-        if (attackTxt != null) attackTxt.text = card.attack.ToString();
-        if (healthTxt != null) healthTxt.text = card.health.ToString();
-        if (manaCostTxt != null) manaCostTxt.text = card.manaCost.ToString();
+        if (attackTxt != null) 
+            attackTxt.text = card.attack.ToString();
+        if (healthTxt != null) 
+            healthTxt.text = card.health.ToString();
+        if (manaCostTxt != null) 
+            manaCostTxt.text = card.manaCost.ToString();
     }
 
     public void SetHighlight(bool highlight)

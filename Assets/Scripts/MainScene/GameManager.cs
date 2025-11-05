@@ -289,8 +289,18 @@ public class GameManager : MonoBehaviour
 
     public void CheckCardsForManaAvailability()
     {
+        bool playerCanAct = IsPlayerTurn;
+
         foreach (var card in playerHandCards)
-            card.Info.SetManaAvailability(currentGame.player.mana, card.self.manaCost);
+        {
+            if (card == null || card.Info == null) 
+                continue;
+
+            bool hasMana = currentGame.player.mana >= card.self.manaCost;
+
+            card.Info.SetAvailability(hasMana, playerCanAct);
+
+        }
     }
 
     public void HighlightTargets(CardController attacker,bool highlight)

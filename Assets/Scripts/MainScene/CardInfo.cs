@@ -82,4 +82,31 @@ public class CardInfo : MonoBehaviour
     {
         HighlightHelper.SetManaAvailability(canvasGroup, currentMana >= cardCost);
     }
+
+    public void SetAvailability(bool hasMana, bool isPlayerTurn)
+    {
+        if (!isPlayerTurn)
+        {
+            if (canvasGroup != null)
+            {
+                canvasGroup.alpha = 0.5f;
+                canvasGroup.blocksRaycasts = false;
+            }
+
+            if (highlightState != null)
+                highlightState.SetActive(false);
+
+            return;
+        }
+
+        HighlightHelper.SetManaAvailability(canvasGroup, hasMana);
+
+        bool playableNow = hasMana && isPlayerTurn;
+
+        if (highlightState != null)
+            highlightState.SetActive(playableNow);
+
+        if (canvasGroup != null)
+            canvasGroup.blocksRaycasts = playableNow;
+    }
 }

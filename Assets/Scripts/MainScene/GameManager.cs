@@ -125,7 +125,8 @@ public class GameManager : MonoBehaviour
     //why?
     public void PlayCard(CardController card, bool isPlayerSide)
     {
-        if (card == null) return;
+        if (card == null) 
+            return;
 
         if (isPlayerSide != IsPlayerTurn)
         {
@@ -155,7 +156,8 @@ public class GameManager : MonoBehaviour
 
     public void CastSpell(CardController spell, CardController target, bool isPlayerSide)
     {
-        if (spell == null) return;
+        if (spell == null) 
+            return;
 
         if (isPlayerSide != IsPlayerTurn)
         {
@@ -199,9 +201,12 @@ public class GameManager : MonoBehaviour
 
     public void Attack(CardController attacker, CardController defender)
     {
-        if (attacker == null || defender == null) return;
-        if (!attacker.self.canAttack) return;
-        if (!defender.self.isPlaced) return;
+        if (attacker == null || defender == null) 
+            return;
+        if (!attacker.self.canAttack) 
+            return;
+        if (!defender.self.isPlaced) 
+            return;
 
         if (attacker.isPlayerCard)
         {

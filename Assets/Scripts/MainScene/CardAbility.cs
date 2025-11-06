@@ -34,6 +34,27 @@ public class CardAbility : MonoBehaviour
         }
     }
 
+    public void OnApplyEffect(Card card, bool isPlayerCard, CardInfo info = null)
+    {
+        foreach (var ability in card.abilities)
+        {
+            switch (ability)
+            {
+                case AbilityType.Shield:
+
+                    shield.SetActive(true);
+
+                    break;
+
+                case AbilityType.Taunt:
+
+                    taunt.SetActive(true);
+
+                    break;
+            }
+        }
+    }
+
     public void OnDamageDeal(Card card, bool isPlayerCard, CardInfo info = null)
     {
         foreach (var ability in card.abilities)

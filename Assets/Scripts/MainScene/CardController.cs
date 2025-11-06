@@ -214,7 +214,7 @@ public class CardController : MonoBehaviour
 
         if (target != null)
         {
-            target.ability.OnCast(target.self, target.isPlayerCard, info);
+            target.ability.OnApplyEffect(target.self, target.isPlayerCard, info);
             target.CheckForAlive();
         }
 

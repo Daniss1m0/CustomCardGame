@@ -7,7 +7,7 @@ using TMPro;
 public class CardInfo : MonoBehaviour
 {
     [SerializeField] private Color normalColor, targetColor, spellTargetColor;
-    [SerializeField] private TextMeshProUGUI nameTxt, attackTxt, healthTxt, manaCostTxt; //change attackTxt and healthTxt to Image
+    [SerializeField] private TextMeshProUGUI nameTxt, attackTxt, healthTxt, manaCostTxt;
     [SerializeField] private Image logo;
     [SerializeField] private GameObject hideState, highlightState;
 

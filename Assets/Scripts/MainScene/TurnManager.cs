@@ -22,7 +22,7 @@ public class TurnManager : MonoBehaviour
         turnCoroutine = null;
     }
 
-    private IEnumerator TurnFunc() //be possible to SetHighlight(false) in PlayerHandCards when its not player's turn 
+    private IEnumerator TurnFunc()
     {
         int turnTime = turnTimeDefault;
         UIManager.Instance.UpdateTurnTime(turnTime);
@@ -52,15 +52,15 @@ public class TurnManager : MonoBehaviour
         if (controller != null)
             StartCoroutine(controller.PerformTurn());
         else
-            Debug.LogWarning("TurnManager: controller not assigned for current side.");
+            Debug.LogWarning("Ñontroller not assigned for current side.");
 
-        while (turnTime-- > 0)
+        while (turnTime > 0)
         {
-            UIManager.Instance.UpdateTurnTime(turnTime);
             yield return new WaitForSeconds(1f);
+            turnTime--;
+            UIManager.Instance.UpdateTurnTime(turnTime);
         }
 
         GameManager.Instance.ChangeTurn();
     }
-
 }

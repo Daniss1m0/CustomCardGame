@@ -15,9 +15,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private TurnManager turnManager;
     [SerializeField] private DeckManager deckManager;
     [SerializeField] private AttackedHero playerHero, enemyHero;
-
-    [SerializeField] private MonoBehaviour playerControllerBehaviour;
-    [SerializeField] private MonoBehaviour opponentControllerBehaviour;
+    [SerializeField] private MonoBehaviour playerControllerBehaviour, opponentControllerBehaviour;
 
     private int turn;
     private float lastChangeTime = -10f;
@@ -102,7 +100,7 @@ public class GameManager : MonoBehaviour
 
         if (IsPlayerTurn)
         {
-            currentGame.player.ClearTemporaryMana();
+            currentGame.player.ClearTempMana();
 
             deckManager.GiveNewCards(currentGame);
 
@@ -113,7 +111,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            currentGame.enemy.ClearTemporaryMana();
+            currentGame.enemy.ClearTempMana();
 
             currentGame.enemy.IncreaseManaPool();
             currentGame.enemy.RestoreRoundMana();
@@ -266,6 +264,7 @@ public class GameManager : MonoBehaviour
             currentGame.enemy.mana -= manacost;
 
         UIManager.Instance.UpdateHPAndMana();
+        CheckCardsForManaAvailability();
     }
 
     public void DamageHero(CardController card, bool isEnemyAttacked) 

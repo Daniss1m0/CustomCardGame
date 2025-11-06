@@ -3,15 +3,12 @@ using UnityEngine;
 
 public class Player
 {
-    public int hp, mana, manaPool, tempMana = 0;
-
-    public int MaxManaForThisTurn => Mathf.Min(manaPool, 10) + tempMana;
+    public int hp, mana, manaPool, tempMana;
 
     public Player()
     {
         hp = 30;
-        mana = manaPool = 0; // Enemy has more mana at start?
-        //tempMana = 0;
+        mana = manaPool = tempMana = 0;
     }
 
     public void IncreaseManaPool()
@@ -22,16 +19,22 @@ public class Player
 
     public void RestoreRoundMana()
     {
-        mana = MaxManaForThisTurn;
+        mana = manaPool + tempMana;
+    }
+
+    public void AddTempMana(int amount)
+    {
+        tempMana += amount;
+        mana += amount;
+    }
+
+    public void ClearTempMana()
+    {
+        tempMana = 0;
     }
 
     public void GetDamage(int dmg)
     {
         hp = Mathf.Max(0, hp - dmg);
-    }
-
-    public void ClearTemporaryMana()
-    {
-        tempMana = 0;
     }
 }

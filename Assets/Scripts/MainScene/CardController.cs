@@ -118,14 +118,15 @@ public class CardController : MonoBehaviour
         switch (spellCard.spell)
         {
             case SpellType.GiveTempMana:
-
                 Player targetPlayer = isPlayerCard ? gameManager.currentGame.player : gameManager.currentGame.enemy;
-                targetPlayer.tempMana += spellCard.spellPower;
-                targetPlayer.RestoreRoundMana();
+
+                targetPlayer.AddTempMana(spellCard.spellPower);
 
                 UIManager.Instance.UpdateHPAndMana();
+                GameManager.Instance.CheckCardsForManaAvailability();
 
                 break;
+
 
             case SpellType.HealAlliesField:
 

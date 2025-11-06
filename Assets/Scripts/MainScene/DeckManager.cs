@@ -111,7 +111,8 @@ public class DeckManager : MonoBehaviour
     public void ClearAll()
     {
         var gm = GameManager.Instance;
-        if (gm == null) return;
+        if (gm == null) 
+            return;
 
         ClearList(gm.playerHandCards);
         ClearList(gm.playerFieldCards);

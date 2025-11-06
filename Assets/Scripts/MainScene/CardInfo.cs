@@ -34,10 +34,11 @@ public class CardInfo : MonoBehaviour
 
         if (card.isSpell)
         {
-            if (attackTxt != null) 
-                attackTxt.gameObject.SetActive(false);
-            if (healthTxt != null) 
-                healthTxt.gameObject.SetActive(false);
+            if (attackTxt != null && attackTxt.transform.parent != null)
+                attackTxt.transform.parent.gameObject.SetActive(false);
+
+            if (healthTxt != null && healthTxt.transform.parent != null)
+                healthTxt.transform.parent.gameObject.SetActive(false);
         }
 
         UpdateStats(card);

@@ -174,15 +174,18 @@ public class GameManager : MonoBehaviour
 
         if (isPlayerSide)
         {
-            if (GameManager.Instance.playerHandCards.Contains(spell)) //why? 
-                GameManager.Instance.playerHandCards.Remove(spell);
-            GameManager.Instance.playerFieldCards.Add(spell);
+            if (playerHandCards.Contains(spell))
+                playerHandCards.Remove(spell);
+            
+            playerFieldCards.Add(spell);
         }
         else
         {
-            if (GameManager.Instance.enemyHandCards.Contains(spell))
-                GameManager.Instance.enemyHandCards.Remove(spell);
-            GameManager.Instance.enemyFieldCards.Add(spell);
+            if (enemyHandCards.Contains(spell))
+                enemyHandCards.Remove(spell);
+            
+            enemyFieldCards.Add(spell);
+
             spell.Info?.ShowCard(spell.self);
         }
 
@@ -293,13 +296,19 @@ public class GameManager : MonoBehaviour
 
         foreach (var card in playerHandCards)
         {
-            if (card == null || card.Info == null) 
+            if (card == null || card.Info == null)
                 continue;
 
             bool hasMana = currentGame.player.mana >= card.self.manaCost;
-
             card.Info.SetAvailability(hasMana, playerCanAct);
+        }
 
+        foreach (var card in playerFieldCards)
+        {
+            if (card == null || card.Info == null)
+                continue;
+
+            card.Info.SetHighlight(card.self.canAttack);
         }
     }
 

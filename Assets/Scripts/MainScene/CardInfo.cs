@@ -79,11 +79,6 @@ public class CardInfo : MonoBehaviour
         HighlightHelper.SetSpellTargetHighlight(background, active, normalColor, spellTargetColor);
     }
 
-    public void SetManaAvailability(int currentMana, int cardCost)
-    {
-        HighlightHelper.SetManaAvailability(canvasGroup, currentMana >= cardCost);
-    }
-
     public void SetAvailability(bool hasMana, bool isPlayerTurn)
     {
         if (!isPlayerTurn)

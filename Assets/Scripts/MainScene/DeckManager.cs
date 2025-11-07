@@ -3,8 +3,7 @@ using UnityEngine;
 
 public class DeckManager : MonoBehaviour
 {
-    [SerializeField] private int initialPlayerHand = 3;//mb dont need
-    [SerializeField] private int initialEnemyHand = 4;
+    [SerializeField] private int startPlayerHand = 3, startEnemyHand = 4; //mb dont need
     [SerializeField] private Transform playerHand, enemyHand, playerField, enemyField;
     [SerializeField] private GameObject cardPrefab;
     [SerializeField] private CardData coinCard;
@@ -16,15 +15,28 @@ public class DeckManager : MonoBehaviour
     public Transform EnemyField => enemyField;
     public GameObject CardPrefab => cardPrefab;
 
+    private void Shuffle<T>(List<T> list)
+    {
+        int n = list.Count;
+        for (int i = n - 1; i > 0; i--)
+        {
+            int j = Random.Range(0, i + 1);
+            (list[i], list[j]) = (list[j], list[i]);
+        }
+    }
+
     public bool GiveInitialHands(Game currentGame, bool randomStart = true)
     {
         if (currentGame == null)
             return true;
 
+        Shuffle(currentGame.playerDeck);
+        Shuffle(currentGame.enemyDeck);
+
         bool playerStarts = randomStart ? (Random.value < 0.5f) : true;
 
-        int playerCount = playerStarts ? initialPlayerHand : initialEnemyHand;
-        int enemyCount = playerStarts ? initialEnemyHand : initialPlayerHand;
+        int playerCount = playerStarts ? startPlayerHand : startEnemyHand;
+        int enemyCount = playerStarts ? startEnemyHand : startPlayerHand;
 
         DrawCards(currentGame.playerDeck, playerHand, true, playerCount);
         DrawCards(currentGame.enemyDeck, enemyHand, false, enemyCount);

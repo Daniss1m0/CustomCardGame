@@ -6,6 +6,8 @@ using TMPro;
 
 public class GameManager : MonoBehaviour
 {
+    private const float MIN_TIME_BETWEEN_CHANGE = 0.1f;
+    
     public static GameManager Instance;
 
     public Game currentGame; // public Game CurrentGame { get; private set; }?
@@ -19,13 +21,12 @@ public class GameManager : MonoBehaviour
 
     private int turn;
     private float lastChangeTime = -10f;
-    private const float minTimeBetweenChange = 0.1f;
 
     public IPlayerController PlayerController => playerControllerBehaviour as IPlayerController;
     public IPlayerController OpponentController => opponentControllerBehaviour as IPlayerController;
-    public bool IsPlayerTurn => turn % 2 == 0;
     public AttackedHero PlayerHero => playerHero;
     public Transform EnemyField => deckManager != null ? deckManager.EnemyField : null;
+    public bool IsPlayerTurn => turn % 2 == 0;
 
     private void Awake() 
     {
@@ -88,7 +89,7 @@ public class GameManager : MonoBehaviour
 
     public void ChangeTurn()
     {
-        if (Time.realtimeSinceStartup - lastChangeTime < minTimeBetweenChange)
+        if (Time.realtimeSinceStartup - lastChangeTime < MIN_TIME_BETWEEN_CHANGE)
             return;
         lastChangeTime = Time.realtimeSinceStartup;
 
@@ -122,32 +123,38 @@ public class GameManager : MonoBehaviour
         if (turnManager != null)
             turnManager.StartTurnLoop();
     }
-    //why?
+
     public void PlayCard(CardController card, bool isPlayerSide)
     {
-        if (card == null) 
-            return;
+        if (card == null) return;
 
         if (isPlayerSide != IsPlayerTurn)
         {
-            Debug.LogWarning("PlayCard: not that side's turn.");
+            Debug.LogWarning("Not that side's turn.");
             return;
         }
 
         if (card.self.isPlaced)
         {
-            Debug.LogWarning("PlayCard: card already placed.");
+            Debug.LogWarning("Card already placed.");
+            return;
+        }
+
+        var fieldCount = isPlayerSide ? playerFieldCards.Count : enemyFieldCards.Count;
+        if (!card.self.isSpell && fieldCount >= (deckManager != null ? DeckManager.MAX_FIELD_SIZE : 7))
+        {
+            Debug.LogWarning("Field is full.");
             return;
         }
 
         if (isPlayerSide && currentGame.player.mana < card.self.manaCost)
         {
-            Debug.LogWarning("PlayCard: player not enough mana.");
+            Debug.LogWarning("Player not enough mana.");
             return;
         }
         if (!isPlayerSide && currentGame.enemy.mana < card.self.manaCost)
         {
-            Debug.LogWarning("PlayCard: enemy not enough mana.");
+            Debug.LogWarning("Enemy not enough mana.");
             return;
         }
 
@@ -161,14 +168,14 @@ public class GameManager : MonoBehaviour
 
         if (isPlayerSide != IsPlayerTurn)
         {
-            Debug.LogWarning("CastSpell: not that side's turn.");
+            Debug.LogWarning("Not that side's turn.");
             return;
         }
 
         int currentMana = isPlayerSide ? currentGame.player.mana : currentGame.enemy.mana;
         if (currentMana < spell.self.manaCost)
         {
-            Debug.LogWarning("CastSpell: not enough mana.");
+            Debug.LogWarning("Not enough mana.");
             return;
         }
 

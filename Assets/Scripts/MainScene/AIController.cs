@@ -34,7 +34,12 @@ public class AIController : MonoBehaviour, IPlayerController
                 break;
 
             List<CardController> playable = cards.FindAll(x => GameManager.Instance.currentGame.enemy.mana >= x.self.manaCost);
-            if (playable.Count == 0) break;
+
+            if (GameManager.Instance.enemyFieldCards.Count >= DeckManager.MAX_FIELD_SIZE)
+                playable = playable.FindAll(x => x.self.isSpell);
+
+            if (playable.Count == 0)
+                break;
 
             var c = playable[0];
 

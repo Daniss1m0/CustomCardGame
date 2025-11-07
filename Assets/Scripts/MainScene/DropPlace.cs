@@ -21,6 +21,14 @@ public class DropPlace : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoi
             return;
 
         CardController card = eventData.pointerDrag.GetComponent<CardController>();
+        if (card == null) 
+            return;
+
+        if (!card.self.isSpell && GameManager.Instance.playerFieldCards.Count >= DeckManager.MAX_FIELD_SIZE)
+        {
+            Debug.Log("Player field is full.");
+            return;
+        }
 
         if (card && GameManager.Instance.IsPlayerTurn && GameManager.Instance.currentGame.player.mana >= card.self.manaCost && !card.self.isPlaced)
         {
@@ -30,6 +38,7 @@ public class DropPlace : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoi
             GameManager.Instance.PlayCard(card, true);
         }
     }
+
 
     public void OnPointerEnter(PointerEventData eventData)
     {

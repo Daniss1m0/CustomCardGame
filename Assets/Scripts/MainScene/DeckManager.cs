@@ -3,17 +3,15 @@ using UnityEngine;
 
 public class DeckManager : MonoBehaviour
 {
-    [SerializeField] private int startPlayerHand = 3, startEnemyHand = 4; //mb dont need
+    public static readonly int MAX_HAND_SIZE = 10;
+    public static readonly int MAX_FIELD_SIZE = 7;
+
+    [SerializeField] private int startPlayerHand = 3, startEnemyHand = 4;
     [SerializeField] private Transform playerHand, enemyHand, playerField, enemyField;
     [SerializeField] private GameObject cardPrefab;
     [SerializeField] private CardData coinCard;
 
-    // Properties to access private fields
-    public Transform PlayerHand => playerHand;
-    public Transform EnemyHand => enemyHand;
-    public Transform PlayerField => playerField;
     public Transform EnemyField => enemyField;
-    public GameObject CardPrefab => cardPrefab;
 
     private void Shuffle<T>(List<T> list)
     {
@@ -80,7 +78,7 @@ public class DeckManager : MonoBehaviour
             deck.RemoveAt(0);
         }
     }
-
+    /*
     private void SpawnAndRegisterCard(Card card, Transform hand, bool isPlayer)
     {
         if (cardPrefab == null || hand == null)
@@ -101,6 +99,41 @@ public class DeckManager : MonoBehaviour
 
         var gm = GameManager.Instance;
         if (gm == null) return;
+
+        if (isPlayer)
+            gm.playerHandCards.Add(controller);
+        else
+            gm.enemyHandCards.Add(controller);
+    }
+    */
+    private void SpawnAndRegisterCard(Card card, Transform hand, bool isPlayer)
+    {
+        if (cardPrefab == null || hand == null)
+        {
+            Debug.LogError("CardPrefab or hand is not assigned.");
+            return;
+        }
+
+        var gm = GameManager.Instance;
+        if (gm == null)
+            return;
+
+        var handList = isPlayer ? gm.playerHandCards : gm.enemyHandCards;
+        if (handList.Count >= MAX_HAND_SIZE)
+        {
+            Debug.Log($"{(isPlayer ? "Player" : "Enemy")} hand is full. Burning drawn card: {card.name}");
+            return;
+        }
+
+        GameObject instance = Instantiate(cardPrefab, hand, false);
+        var controller = instance.GetComponent<CardController>();
+        if (controller == null)
+        {
+            Destroy(instance);
+            return;
+        }
+
+        controller.Init(card, isPlayer);
 
         if (isPlayer)
             gm.playerHandCards.Add(controller);

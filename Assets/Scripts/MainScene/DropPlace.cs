@@ -24,9 +24,31 @@ public class DropPlace : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoi
         if (type != FieldType.PlayerField)
             return;
 
-        CardController card = eventData.pointerDrag.GetComponent<CardController>();
-        if (card == null)
+        var dragObj = eventData.pointerDrag;
+        if (dragObj == null) 
             return;
+
+        var card = dragObj.GetComponent<CardController>();
+        if (card == null) 
+            return;
+
+        if (card.self.isSpell)
+        {
+            var spell = card.self as SpellCard;
+            if (spell != null && spell.spellTarget == TargetType.None)
+            {
+                if (!GameManager.Instance.IsPlayerTurn) 
+                    return;
+
+                if (GameManager.Instance.currentGame.player.mana < card.self.manaCost) 
+                    return;
+
+                card.Movement.MoveToField(transform);
+
+                GameManager.Instance.PlayCard(card, true);
+                return;
+            }
+        }
 
         if (!card.self.isSpell && GameManager.Instance.playerFieldCards.Count >= DeckManager.MAX_FIELD_SIZE)
         {
@@ -34,7 +56,7 @@ public class DropPlace : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoi
             return;
         }
 
-        if (card && GameManager.Instance.IsPlayerTurn && GameManager.Instance.currentGame.player.mana >= card.self.manaCost && !card.self.isPlaced)
+        if (GameManager.Instance.IsPlayerTurn && GameManager.Instance.currentGame.player.mana >= card.self.manaCost && !card.self.isPlaced)
         {
             if (!card.self.isSpell)
                 card.Movement.defaultParent = transform;

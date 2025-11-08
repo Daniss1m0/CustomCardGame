@@ -79,9 +79,24 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
 
         transform.SetParent(defaultParent);
         GetComponent<CanvasGroup>().blocksRaycasts = true;
-        transform.SetSiblingIndex(tempCard.transform.GetSiblingIndex());
-        tempCard.transform.SetParent(GameObject.Find("Canvas").transform);
-        tempCard.transform.localPosition = new Vector3(2340, 0, 0);
+
+        if (tempCard != null)
+        {
+            // безопасно вычислим индекс
+            int sibling = Mathf.Clamp(tempCard.transform.GetSiblingIndex(), 0, defaultParent.childCount);
+            transform.SetSiblingIndex(sibling);
+            // убираем tempCard в безопасное место (канвас), чтобы не мешала
+            var canvas = GameObject.Find("Canvas");
+            if (canvas != null)
+            {
+                tempCard.transform.SetParent(canvas.transform);
+                tempCard.transform.localPosition = new Vector3(2340, 0, 0);
+            }
+        }
+        else
+        {
+            transform.SetAsLastSibling();
+        }
     }
 
     private void CheckPosition()
@@ -103,8 +118,26 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
 
     public void MoveToField(Transform field)
     {
-        transform.SetParent(GameObject.Find("Canvas").transform);
-        transform.DOMove(field.position, moveDuration);
+        if (field == null) return;
+
+        // Привилегированная проверка Canvas
+        var canvasGO = GameObject.Find("Canvas");
+        if (canvasGO != null)
+            transform.SetParent(canvasGO.transform);
+
+        // Убиваем предыдущие твины на этом трансформе (без completion)
+        if (DOTween.IsTweening(transform))
+            DOTween.Kill(transform, false);
+
+        // Если вдруг скорость нулевая — ставим мгновенно
+        if (moveDuration <= 0f)
+        {
+            transform.position = field.position;
+            return;
+        }
+
+        // Запускаем tween и привязываем его к gameObject — при уничтожении объекта tween будет убит автоматически
+        transform.DOMove(field.position, moveDuration).SetLink(gameObject);
     }
 
     public void MoveToTarget(Transform target)
@@ -114,23 +147,49 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
 
     private IEnumerator MoveToTargetCor(Transform target)
     {
+        if (target == null || transform == null)
+            yield break;
+
         Vector3 pos = transform.position;
         Transform parent = transform.parent;
         int index = transform.GetSiblingIndex();
 
-        if (transform.parent.GetComponent<HorizontalLayoutGroup>())
-            transform.parent.GetComponent<HorizontalLayoutGroup>().enabled = false;
+        var parentHL = parent?.GetComponent<HorizontalLayoutGroup>();
+        if (parentHL != null)
+            parentHL.enabled = false;
 
-        transform.SetParent(GameObject.Find("Canvas").transform);
-        transform.DOMove(target.position, moveDuration / 2);
-        yield return new WaitForSeconds(moveDuration / 2);
-        transform.DOMove(pos, moveDuration / 2);
-        yield return new WaitForSeconds(moveDuration / 2);
+        var canvasGO = GameObject.Find("Canvas");
+        if (canvasGO != null)
+            transform.SetParent(canvasGO.transform);
 
+        float halfDur = moveDuration / 2f;
+        if (halfDur <= 0f)
+        {
+            transform.position = target.position;
+        }
+        else
+        {
+            // убиваем возможные предыдущие твины
+            if (DOTween.IsTweening(transform))
+                DOTween.Kill(transform, false);
+
+            // запускаем и привязываем к объекту
+            transform.DOMove(target.position, halfDur).SetLink(gameObject);
+            yield return new WaitForSeconds(halfDur);
+
+            // если объект уничтожён — выходим
+            if (transform == null) yield break;
+
+            transform.DOMove(pos, halfDur).SetLink(gameObject);
+            yield return new WaitForSeconds(halfDur);
+        }
+
+        // восстановление родителя/индекса
+        if (transform == null) yield break;
         transform.SetParent(parent);
-        transform.SetSiblingIndex(index);
+        transform.SetSiblingIndex(Mathf.Clamp(index, 0, parent?.childCount ?? 0));
 
-        if (transform.parent.GetComponent<HorizontalLayoutGroup>())
-            transform.parent.GetComponent<HorizontalLayoutGroup>().enabled = true;
+        if (parentHL != null)
+            parentHL.enabled = true;
     }
 }

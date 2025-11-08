@@ -10,26 +10,35 @@ public class SpellTarget : MonoBehaviour, IDropHandler
         if (!GameManager.Instance.IsPlayerTurn)
             return;
 
-        CardController spell = eventData.pointerDrag.GetComponent<CardController>();
-        CardController target = GetComponent<CardController>();
-
-        if (spell == null || target == null) 
+        var dragObj = eventData.pointerDrag;
+        if (dragObj == null) 
             return;
 
-        if (!spell.self.isSpell || !spell.isPlayerCard || !target.self.isPlaced) 
+        var spell = dragObj.GetComponent<CardController>();
+        var target = GetComponent<CardController>();
+        if (spell == null || !spell.self.isSpell || !spell.isPlayerCard) 
             return;
 
-        if (GameManager.Instance.currentGame.player.mana < spell.self.manaCost) 
+        var spellCard = spell.self as SpellCard;
+        if (spellCard == null) 
             return;
 
-        var spellCard = (SpellCard)spell.self;
-
-        if ((spellCard.spellTarget == TargetType.AllyCard && target.isPlayerCard) ||
-            (spellCard.spellTarget == TargetType.EnemyCard && !target.isPlayerCard))
+        if (spellCard.spellTarget == TargetType.None)
         {
-            GameManager.Instance.CastSpell(spell, target, true);
+            if (GameManager.Instance.currentGame.player.mana < spell.self.manaCost) 
+                return;
 
-            GameManager.Instance.CheckCardsForManaAvailability();
+            spell.Info?.ShowCard(spell.self);
+            spell.Movement?.MoveToField(GameManager.Instance.PlayerHero != null ? GameManager.Instance.PlayerHero.transform.parent : transform);
+            GameManager.Instance.PlayCard(spell, true);
+            return;
         }
+
+        if (target == null || !target.self.isPlaced) 
+            return;
+
+        if ((spellCard.spellTarget == TargetType.AllyCard && target.isPlayerCard) || 
+            (spellCard.spellTarget == TargetType.EnemyCard && !target.isPlayerCard))
+            GameManager.Instance.CastSpell(spell, target, true);
     }
 }

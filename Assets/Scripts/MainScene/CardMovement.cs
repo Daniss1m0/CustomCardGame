@@ -82,10 +82,8 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
 
         if (tempCard != null)
         {
-            // безопасно вычислим индекс
             int sibling = Mathf.Clamp(tempCard.transform.GetSiblingIndex(), 0, defaultParent.childCount);
             transform.SetSiblingIndex(sibling);
-            // убираем tempCard в безопасное место (канвас), чтобы не мешала
             var canvas = GameObject.Find("Canvas");
             if (canvas != null)
             {
@@ -120,23 +118,19 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
     {
         if (field == null) return;
 
-        // Привилегированная проверка Canvas
         var canvasGO = GameObject.Find("Canvas");
         if (canvasGO != null)
             transform.SetParent(canvasGO.transform);
 
-        // Убиваем предыдущие твины на этом трансформе (без completion)
         if (DOTween.IsTweening(transform))
             DOTween.Kill(transform, false);
 
-        // Если вдруг скорость нулевая — ставим мгновенно
         if (moveDuration <= 0f)
         {
             transform.position = field.position;
             return;
         }
 
-        // Запускаем tween и привязываем его к gameObject — при уничтожении объекта tween будет убит автоматически
         transform.DOMove(field.position, moveDuration).SetLink(gameObject);
     }
 
@@ -169,22 +163,18 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
         }
         else
         {
-            // убиваем возможные предыдущие твины
             if (DOTween.IsTweening(transform))
                 DOTween.Kill(transform, false);
 
-            // запускаем и привязываем к объекту
             transform.DOMove(target.position, halfDur).SetLink(gameObject);
             yield return new WaitForSeconds(halfDur);
 
-            // если объект уничтожён — выходим
             if (transform == null) yield break;
 
             transform.DOMove(pos, halfDur).SetLink(gameObject);
             yield return new WaitForSeconds(halfDur);
         }
 
-        // восстановление родителя/индекса
         if (transform == null) yield break;
         transform.SetParent(parent);
         transform.SetSiblingIndex(Mathf.Clamp(index, 0, parent?.childCount ?? 0));

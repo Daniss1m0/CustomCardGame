@@ -21,15 +21,15 @@ public class DropPlace : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoi
 
     public void OnDrop(PointerEventData eventData)
     {
-        if (type != FieldType.PlayerField)
+        if (type != FieldType.PlayerField && type != FieldType.EnemyField)
             return;
 
         var dragObj = eventData.pointerDrag;
-        if (dragObj == null) 
+        if (dragObj == null)
             return;
 
         var card = dragObj.GetComponent<CardController>();
-        if (card == null) 
+        if (card == null)
             return;
 
         if (card.self.isSpell)
@@ -37,10 +37,10 @@ public class DropPlace : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoi
             var spell = card.self as SpellCard;
             if (spell != null && spell.spellTarget == TargetType.None)
             {
-                if (!GameManager.Instance.IsPlayerTurn) 
+                if (!GameManager.Instance.IsPlayerTurn || !card.isPlayerCard)
                     return;
 
-                if (GameManager.Instance.currentGame.player.mana < card.self.manaCost) 
+                if (GameManager.Instance.currentGame.player.mana < card.self.manaCost)
                     return;
 
                 card.Movement.MoveToField(transform);
@@ -50,13 +50,24 @@ public class DropPlace : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoi
             }
         }
 
-        if (!card.self.isSpell && GameManager.Instance.playerFieldCards.Count >= DeckManager.MAX_FIELD_SIZE)
+        if (!card.self.isSpell)
         {
-            Debug.Log("Player field is full.");
-            return;
+            var gm = GameManager.Instance;
+            if (type == FieldType.PlayerField)
+                if (gm.playerFieldCards.Count >= DeckManager.MAX_FIELD_SIZE)
+                {
+                    Debug.Log("Player field is full.");
+                    return;
+                }
+            else
+                if (gm.enemyFieldCards.Count >= DeckManager.MAX_FIELD_SIZE)
+                {
+                    Debug.Log("Enemy field is full.");
+                    return;
+                }
         }
 
-        if (GameManager.Instance.IsPlayerTurn && GameManager.Instance.currentGame.player.mana >= card.self.manaCost && !card.self.isPlaced)
+        if (card && GameManager.Instance.IsPlayerTurn && GameManager.Instance.currentGame.player.mana >= card.self.manaCost && !card.self.isPlaced)
         {
             if (!card.self.isSpell)
                 card.Movement.defaultParent = transform;

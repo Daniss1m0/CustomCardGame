@@ -11,33 +11,43 @@ public class SpellTarget : MonoBehaviour, IDropHandler
             return;
 
         var dragObj = eventData.pointerDrag;
-        if (dragObj == null) 
+        if (dragObj == null)
             return;
 
         var spell = dragObj.GetComponent<CardController>();
         var target = GetComponent<CardController>();
-        if (spell == null || !spell.self.isSpell || !spell.isPlayerCard) 
+        if (spell == null || !spell.self.isSpell || !spell.isPlayerCard)
             return;
 
         var spellCard = spell.self as SpellCard;
-        if (spellCard == null) 
+        if (spellCard == null)
             return;
 
         if (spellCard.spellTarget == TargetType.None)
         {
-            if (GameManager.Instance.currentGame.player.mana < spell.self.manaCost) 
+            if (GameManager.Instance.currentGame.player.mana < spell.self.manaCost)
                 return;
 
-            spell.Info?.ShowCard(spell.self);
-            spell.Movement?.MoveToField(GameManager.Instance.PlayerHero != null ? GameManager.Instance.PlayerHero.transform.parent : transform);
+            Transform fieldTransform = null;
+
+            if (target != null && target.transform.parent != null)
+                fieldTransform = target.transform.parent;
+            else
+                fieldTransform = GameManager.Instance.PlayerHero != null ? GameManager.Instance.PlayerHero.transform.parent : null;
+
+            if (fieldTransform != null)
+                spell.Movement?.MoveToField(fieldTransform);
+            else
+                spell.Movement?.MoveToField(transform);
+
             GameManager.Instance.PlayCard(spell, true);
             return;
         }
 
-        if (target == null || !target.self.isPlaced) 
+        if (target == null || !target.self.isPlaced)
             return;
 
-        if ((spellCard.spellTarget == TargetType.AllyCard && target.isPlayerCard) || 
+        if ((spellCard.spellTarget == TargetType.AllyCard && target.isPlayerCard) ||
             (spellCard.spellTarget == TargetType.EnemyCard && !target.isPlayerCard))
             GameManager.Instance.CastSpell(spell, target, true);
     }

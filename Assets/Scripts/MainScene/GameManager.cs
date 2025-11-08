@@ -96,6 +96,21 @@ public class GameManager : MonoBehaviour
         if (turnManager != null)
             turnManager.StopTurnLoop();
 
+        foreach (var c in playerFieldCards)
+        {
+            if (c == null || c.self == null || c.Info == null) 
+                continue;
+            c.self.canAttack = false;
+            c.Info.SetHighlight(false);
+        }
+        foreach (var c in enemyFieldCards)
+        {
+            if (c == null || c.self == null || c.Info == null) 
+                continue;
+            c.self.canAttack = false;
+            c.Info.SetHighlight(false);
+        }
+
         turn++;
         UIManager.Instance.DisableTurnBtn();
 

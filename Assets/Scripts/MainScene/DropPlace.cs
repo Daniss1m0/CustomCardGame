@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -13,7 +12,12 @@ public enum FieldType
 
 public class DropPlace : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPointerExitHandler
 {
+    private const float TEMP_PARENT_DELAY = 0.06f;
+    
     public FieldType type;
+
+    private Coroutine setTempCoroutine;
+    private GameObject pendingDragObj;
 
     public void OnDrop(PointerEventData eventData)
     {
@@ -21,7 +25,7 @@ public class DropPlace : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoi
             return;
 
         CardController card = eventData.pointerDrag.GetComponent<CardController>();
-        if (card == null) 
+        if (card == null)
             return;
 
         if (!card.self.isSpell && GameManager.Instance.playerFieldCards.Count >= DeckManager.MAX_FIELD_SIZE)
@@ -54,7 +58,18 @@ public class DropPlace : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoi
             if (GameManager.Instance.playerFieldCards.Count >= DeckManager.MAX_FIELD_SIZE)
                 return;
 
-        cardMovement.tempParent = transform;
+        if (cardMovement.tempParent == transform)
+            return;
+
+        if (setTempCoroutine != null)
+        {
+            StopCoroutine(setTempCoroutine);
+            setTempCoroutine = null;
+            pendingDragObj = null;
+        }
+
+        pendingDragObj = eventData.pointerDrag;
+        setTempCoroutine = StartCoroutine(DelayedSetTempParent(cardMovement, pendingDragObj));
     }
 
     public void OnPointerExit(PointerEventData eventData)
@@ -64,7 +79,45 @@ public class DropPlace : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoi
 
         CardMovement card = eventData.pointerDrag.GetComponent<CardMovement>();
 
+        if (setTempCoroutine != null && pendingDragObj == eventData.pointerDrag)
+        {
+            StopCoroutine(setTempCoroutine);
+            setTempCoroutine = null;
+            pendingDragObj = null;
+        }
+
         if (card && card.tempParent == transform)
             card.tempParent = card.defaultParent;
+    }
+
+    private IEnumerator DelayedSetTempParent(CardMovement cardMovement, GameObject dragObj)
+    {
+        yield return new WaitForSecondsRealtime(TEMP_PARENT_DELAY);
+
+        if (dragObj == null)
+        {
+            setTempCoroutine = null;
+            pendingDragObj = null;
+            yield break;
+        }
+
+        if (cardMovement == null)
+        {
+            setTempCoroutine = null;
+            pendingDragObj = null;
+            yield break;
+        }
+
+        if (cardMovement.tempParent == transform)
+        {
+            setTempCoroutine = null;
+            pendingDragObj = null;
+            yield break;
+        }
+
+        cardMovement.tempParent = transform;
+
+        setTempCoroutine = null;
+        pendingDragObj = null;
     }
 }

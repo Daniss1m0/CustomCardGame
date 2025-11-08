@@ -39,16 +39,22 @@ public class DropPlace : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoi
         }
     }
 
-
     public void OnPointerEnter(PointerEventData eventData)
     {
         if (eventData.pointerDrag == null || type == FieldType.EnemyField || type == FieldType.EnemyHand || type == FieldType.PlayerHand)
             return;
 
-        CardMovement card = eventData.pointerDrag.GetComponent<CardMovement>();
+        CardMovement cardMovement = eventData.pointerDrag.GetComponent<CardMovement>();
+        CardController cardController = eventData.pointerDrag.GetComponent<CardController>();
 
-        if (card)
-            card.tempParent = transform;
+        if (cardMovement == null)
+            return;
+
+        if (type == FieldType.PlayerField && cardController != null && !cardController.self.isSpell)
+            if (GameManager.Instance.playerFieldCards.Count >= DeckManager.MAX_FIELD_SIZE)
+                return;
+
+        cardMovement.tempParent = transform;
     }
 
     public void OnPointerExit(PointerEventData eventData)

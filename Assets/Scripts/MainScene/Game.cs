@@ -8,7 +8,7 @@ public class Game
 
     public Game()
     {
-        player = new();
+        player = new(); //player.manaPool = 10; ///example of setting mana pool for testing
         enemy = new();
 
         playerDeck = GiveDeckCard();

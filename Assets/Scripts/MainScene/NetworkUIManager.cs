@@ -11,14 +11,12 @@ public class NetworkUIManager : MonoBehaviour
 
     public void StartHostButton()
     {
-        Debug.Log("HOST");
         StartHost(defaultHostIP, defaultPort);
         HideMenuUI();
     }
 
     public void StartClientButton()
     {
-        Debug.Log("Client");
         StartClient(defaultHostIP, defaultPort);
         HideMenuUI();
     }
@@ -34,7 +32,7 @@ public class NetworkUIManager : MonoBehaviour
         var utp = NetworkManager.Singleton.GetComponent<UnityTransport>();
         utp.SetConnectionData(ip, port, "0.0.0.0");
         NetworkManager.Singleton.StartHost();
-        Debug.Log("StartHost requested");
+        Debug.Log("HOST");
     }
 
     void StartClient(string ip, ushort port)
@@ -42,6 +40,6 @@ public class NetworkUIManager : MonoBehaviour
         var utp = NetworkManager.Singleton.GetComponent<UnityTransport>();
         utp.SetConnectionData(ip, port);
         NetworkManager.Singleton.StartClient();
-        Debug.Log($"StartClient requested -> {ip}:{port}");
+        Debug.Log($"CLIENT requested -> {ip}:{port}");
     }
 }

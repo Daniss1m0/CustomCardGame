@@ -7564,7 +7564,7 @@ MonoBehaviour:
     NetworkProfilingMetrics: 1
     OldPrefabList: []
   RunInBackground: 1
-  LogLevel: 1
+  LogLevel: 0
 --- !u!114 &1986003239
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7587,8 +7587,8 @@ MonoBehaviour:
   m_MaxConnectAttempts: 60
   m_DisconnectTimeoutMS: 30000
   ConnectionData:
-    Address: 127.0.0.1
-    Port: 7777
+    Address: 
+    Port: 0
     ServerListenAddress: 0.0.0.0
   DebugSimulator:
     PacketDelayMS: 0
@@ -8266,7 +8266,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NetworkUIManager
   defaultHostIP: 127.0.0.1
-  defaultPort: 7777
+  defaultPort: 1111
   menuPanel: {fileID: 1549188227}
 --- !u!1001 &4802604817425250596
 PrefabInstance:

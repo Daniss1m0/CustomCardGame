@@ -7,7 +7,7 @@ public class NetworkUIManager : MonoBehaviour
     [SerializeField] string defaultHostIP = "127.0.0.1";
     [SerializeField] ushort defaultPort = 7777;
 
-    [SerializeField] private GameObject menuPanel;
+    [SerializeField] private GameObject menuPanel; //later delete
 
     public void StartHostButton()
     {

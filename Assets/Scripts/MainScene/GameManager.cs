@@ -54,7 +54,7 @@ public class GameManager : MonoBehaviour
         PlayerController?.Initialize(currentGame.player, true);
         OpponentController?.Initialize(currentGame.enemy, false);
 
-        bool playerStarts = deckManager.GiveInitialHands(currentGame, randomStart: true);
+        bool playerStarts = deckManager.GiveInitialHands(currentGame, randomStart: false); // true = random
         turn = playerStarts ? 0 : 1;
 
         if (playerStarts)

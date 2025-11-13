@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
 public class CardController : MonoBehaviour
@@ -10,7 +11,7 @@ public class CardController : MonoBehaviour
     [SerializeField] private CardInfo info;
     [SerializeField] private CardMovement movement;
     [SerializeField] private CardAbility ability;
-    
+
     private GameManager gameManager;
 
     public CardInfo Info => info;
@@ -23,7 +24,7 @@ public class CardController : MonoBehaviour
         this.isPlayerCard = isPlayerCard;
         gameManager = GameManager.Instance;
 
-        if (movement == null) 
+        if (movement == null)
             movement = GetComponent<CardMovement>();
 
         if (isPlayerCard)
@@ -48,7 +49,7 @@ public class CardController : MonoBehaviour
             gameManager.ReduceMana(true, self.manaCost);
             gameManager.CheckCardsForManaAvailability();
         }
-        else 
+        else
         {
             gameManager.enemyHandCards.Remove(this);
             gameManager.enemyFieldCards.Add(this);
@@ -137,12 +138,12 @@ public class CardController : MonoBehaviour
                     card.self.health += spellCard.spellPower;
                     card.info.UpdateStats(card.self);
                 }
-                
+
                 break;
 
             case SpellType.DamageEnemiesField:
 
-                var enemyCards = isPlayerCard ? new List<CardController>(gameManager.enemyFieldCards) : 
+                var enemyCards = isPlayerCard ? new List<CardController>(gameManager.enemyFieldCards) :
                                                 new List<CardController>(gameManager.playerFieldCards);
 
                 foreach (var card in enemyCards)
@@ -186,23 +187,23 @@ public class CardController : MonoBehaviour
                 break;
 
             case SpellType.AddShield:
-                
+
                 if (!target.self.abilities.Exists(x => x == AbilityType.Shield))
                     target.self.abilities.Add(AbilityType.Shield);
-                
+
                 break;
 
             case SpellType.AddTaunt:
-                
+
                 if (!target.self.abilities.Exists(x => x == AbilityType.Taunt))
                     target.self.abilities.Add(AbilityType.Taunt);
-                
+
                 break;
 
             case SpellType.BuffAttack:
-                
+
                 target.self.attack += spellCard.spellPower;
-                
+
                 break;
 
             case SpellType.DebuffAttack:
@@ -219,5 +220,141 @@ public class CardController : MonoBehaviour
         }
 
         DestroyCard();
+    }
+
+    public void SetNetworkData(int attack, int health, int manaCost, bool isSpell, int cardDataIndex, ulong ownerClientId)
+    {
+        if (self == null)
+        {
+            var tmpData = ScriptableObject.CreateInstance<CardData>();
+            self = new Card(tmpData);
+        }
+
+        self.attack = attack;
+        self.health = health;
+        self.manaCost = manaCost;
+        self.isSpell = isSpell;
+
+        if (cardDataIndex >= 0 && CardDatabase.AllCards != null && cardDataIndex < CardDatabase.AllCards.Count)
+        {
+            var dbEntry = CardDatabase.AllCards[cardDataIndex];
+            if (dbEntry != null)
+            {
+                if (!string.IsNullOrEmpty(dbEntry.name))
+                    self.name = dbEntry.name;
+                try { self.logo = dbEntry.logo; } catch { }
+            }
+        }
+
+        Info?.UpdateStats(self);
+
+        bool isMine = NetworkManager.Singleton != null && ownerClientId == NetworkManager.Singleton.LocalClientId;
+
+        if (!self.isPlaced)
+        {
+            if (isMine) Info?.ShowCard(self);
+            else Info?.HideCard();
+        }
+        else
+        {
+            Info?.ShowCard(self);
+        }
+
+        isPlayerCard = (NetworkManager.Singleton != null && ownerClientId == NetworkManager.Singleton.LocalClientId);
+    }
+
+    public void OnNetworkOwnershipChanged(bool isOwner)
+    {
+        if (Movement != null)
+            Movement.enabled = isOwner;
+
+        var cg = GetComponent<CanvasGroup>();
+        if (cg != null)
+            cg.blocksRaycasts = isOwner;
+
+        var attacked = GetComponent<AttackedCard>();
+        if (attacked != null)
+            attacked.enabled = isOwner;
+
+        if (!self.isPlaced)
+        {
+            if (isOwner) Info?.ShowCard(self);
+            else Info?.HideCard();
+        }
+        else
+        {
+            Info?.ShowCard(self);
+        }
+    }
+
+    public void SetCanAttackVisual(bool canAttack)
+    {
+        Info?.SetHighlight(canAttack);
+    }
+
+    public void OnPlacedNetworkSide(ulong ownerClientId)
+    {
+        self.isPlaced = true;
+        Info?.ShowCard(self);
+
+        var dm = FindAnyObjectByType<DeckManager>();
+        Transform targetParent = null;
+
+        if (dm != null)
+        {
+            var t = dm.GetType().GetProperty("PlayerField");
+            var e = dm.GetType().GetProperty("EnemyField");
+
+            if (ownerClientId == (NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0UL))
+            {
+                if (t != null) targetParent = t.GetValue(dm) as Transform;
+                else
+                {
+                    var ph = dm.GetType().GetProperty("PlayerHand");
+                    targetParent = ph != null ? ph.GetValue(dm) as Transform : null;
+                }
+            }
+            else
+            {
+                if (e != null) targetParent = e.GetValue(dm) as Transform;
+                else
+                {
+                    var eh = dm.GetType().GetProperty("EnemyHand");
+                    targetParent = eh != null ? eh.GetValue(dm) as Transform : null;
+                }
+            }
+        }
+
+        if (targetParent != null)
+            transform.SetParent(targetParent, false);
+    }
+
+    public void OnUnplacedNetworkSide(ulong ownerClientId)
+    {
+        self.isPlaced = false;
+
+        var dm = FindAnyObjectByType<DeckManager>();
+        Transform handParent = null;
+
+        if (dm != null)
+        {
+            var ph = dm.GetType().GetProperty("PlayerHand");
+            var eh = dm.GetType().GetProperty("EnemyHand");
+
+            if (ownerClientId == (NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0UL))
+            {
+                if (ph != null) handParent = ph.GetValue(dm) as Transform;
+            }
+            else
+            {
+                if (eh != null) handParent = eh.GetValue(dm) as Transform;
+            }
+        }
+
+        if (handParent != null)
+            transform.SetParent(handParent, false);
+
+        bool isMine = NetworkManager.Singleton != null && ownerClientId == NetworkManager.Singleton.LocalClientId;
+        if (isMine) Info?.ShowCard(self); else Info?.HideCard();
     }
 }

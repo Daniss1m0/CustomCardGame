@@ -1,8 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 
 public class GameManager : MonoBehaviour
 {
@@ -38,10 +39,10 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        StartGame();
+        //StartGame();
     }
 
-    private void StartGame()
+    public void StartGame()
     {
         currentGame = new Game();
 
@@ -51,31 +52,53 @@ public class GameManager : MonoBehaviour
         if (deckManager == null)
             deckManager = FindAnyObjectByType<DeckManager>();
 
-        PlayerController?.Initialize(currentGame.player, true);
-        OpponentController?.Initialize(currentGame.enemy, false);
-
-        bool playerStarts = deckManager.GiveInitialHands(currentGame, randomStart: false); // true = random
-        turn = playerStarts ? 0 : 1;
-
-        if (playerStarts)
+        if (NetworkManager.Singleton != null)
         {
-            currentGame.player.IncreaseManaPool();
-            currentGame.player.RestoreRoundMana();
+            if (NetworkManager.Singleton.IsServer)
+            {
+                bool playerStarts = deckManager.GiveInitialHandsNetworked(currentGame, randomStart: true);
+                turn = playerStarts ? 0 : 1;
+
+                if (playerStarts)
+                {
+                    currentGame.player.IncreaseManaPool();
+                    currentGame.player.RestoreRoundMana();
+                }
+                else
+                {
+                    currentGame.enemy.IncreaseManaPool();
+                    currentGame.enemy.RestoreRoundMana();
+                }
+
+                UIManager.Instance.UpdateHPAndMana();
+            }
+            else
+            {
+            }
         }
         else
         {
-            currentGame.enemy.IncreaseManaPool();
-            currentGame.enemy.RestoreRoundMana();
-        }
+            bool playerStarts = deckManager.GiveInitialHands(currentGame, randomStart: true);
+            turn = playerStarts ? 0 : 1;
 
-        UIManager.Instance.UpdateHPAndMana();
+            if (playerStarts)
+            {
+                currentGame.player.IncreaseManaPool();
+                currentGame.player.RestoreRoundMana();
+            }
+            else
+            {
+                currentGame.enemy.IncreaseManaPool();
+                currentGame.enemy.RestoreRoundMana();
+            }
+
+            UIManager.Instance.UpdateHPAndMana();
+        }
 
         UIManager.Instance.StartGame();
 
         if (turnManager != null)
             turnManager.StartTurnLoop();
-        else
-            Debug.LogError("Add TurnManager to scene.");
     }
 
     public void RestartGame()

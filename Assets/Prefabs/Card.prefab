@@ -674,6 +674,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 64fc17c6125f73e4bb3358e957e3f056, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CardNetwork
+  ShowTopMostFoldoutHeaderGroup: 1
+  Attack:
+    m_InternalValue: 0
+  Health:
+    m_InternalValue: 1
+  ManaCost:
+    m_InternalValue: 0
+  IsSpell:
+    m_InternalValue: 0
+  IsPlaced:
+    m_InternalValue: 0
+  CanAttack:
+    m_InternalValue: 0
+  OwnerClientIdNet:
+    m_InternalValue: 0
+  CardDataIndex:
+    m_InternalValue: -1
 --- !u!1 &3231025199717927715
 GameObject:
   m_ObjectHideFlags: 0

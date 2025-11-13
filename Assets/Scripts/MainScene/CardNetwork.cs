@@ -59,7 +59,7 @@ public class CardNetwork : NetworkBehaviour
     {
         if (visual == null)
             return;
-        //visual.SetNetworkData(Attack.Value, Health.Value, ManaCost.Value, IsSpell.Value, CardDataIndex.Value, OwnerClientIdNet.Value);
+        visual.SetNetworkData(Attack.Value, Health.Value, ManaCost.Value, IsSpell.Value, CardDataIndex.Value, OwnerClientIdNet.Value);
     }
 
     private void UpdateOwnership()
@@ -67,14 +67,14 @@ public class CardNetwork : NetworkBehaviour
         if (visual == null)
             return;
         bool isMine = OwnerClientIdNet.Value == NetworkManager.Singleton.LocalClientId;
-       // visual.OnNetworkOwnershipChanged(isMine);
+        visual.OnNetworkOwnershipChanged(isMine);
     }
 
     private void UpdateHighlight()
     {
         if (visual == null)
             return;
-       // visual.SetCanAttackVisual(CanAttack.Value);
+        visual.SetCanAttackVisual(CanAttack.Value);
     }
 
     private void OnPlacedChanged()
@@ -82,9 +82,9 @@ public class CardNetwork : NetworkBehaviour
         if (visual == null)
             return;
 
-        //if (IsPlaced.Value)
-          //  visual.OnPlacedNetworkSide(OwnerClientIdNet.Value);
-       // else
-           // visual.OnUnplacedNetworkSide(OwnerClientIdNet.Value);
+        if (IsPlaced.Value)
+            visual.OnPlacedNetworkSide(OwnerClientIdNet.Value);
+        else
+            visual.OnUnplacedNetworkSide(OwnerClientIdNet.Value);
     }
 }

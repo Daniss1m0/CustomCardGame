@@ -1,9 +1,9 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using DG.Tweening;
 using UnityEngine.UI;
+using DG.Tweening;
+using Unity.Netcode;
 
 public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
@@ -19,26 +19,40 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
 
     void Awake()
     {
-        if (mainCamera == null) 
+        if (mainCamera == null)
             mainCamera = Camera.main;
 
-        if (tempCard == null) 
+        if (tempCard == null)
             tempCard = GameObject.Find("TempCard");
+    }
+
+    private bool CanReparentNetworkObject()
+    {
+        if (TryGetComponent<NetworkObject>(out var no))
+        {
+            return NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening;
+        }
+        return true;
     }
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        var controller = GetComponent<CardController>(); //mb change later
-        offset = transform.position - mainCamera.ScreenToWorldPoint(eventData.position);
+        var controller = GetComponent<CardController>();
+        if (controller == null || mainCamera == null) return;
+
+        var screenPoint = eventData.position;
+        var worldPoint = mainCamera.ScreenToWorldPoint(new Vector3(screenPoint.x, screenPoint.y, mainCamera.nearClipPlane));
+        offset = transform.position - worldPoint;
+
         defaultParent = tempParent = transform.parent;
 
-        isDraggable = GameManager.Instance.IsPlayerTurn &&
+        var dropPlace = defaultParent != null ? defaultParent.GetComponent<DropPlace>() : null;
+        isDraggable = GameManager.Instance != null && GameManager.Instance.IsPlayerTurn &&
+                      dropPlace != null &&
                       (
-                        (defaultParent.GetComponent<DropPlace>().type == FieldType.PlayerHand &&
-                        GameManager.Instance.currentGame.player.mana >= controller.self.manaCost)
+                        (dropPlace.type == FieldType.PlayerHand && GameManager.Instance.currentGame.player.mana >= controller.self.manaCost)
                         ||
-                        (defaultParent.GetComponent<DropPlace>().type == FieldType.PlayerField &&
-                        controller.self.canAttack)
+                        (dropPlace.type == FieldType.PlayerField && controller.self.canAttack)
                       );
 
         if (!isDraggable) return;
@@ -48,25 +62,47 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
         if (controller.self.isSpell || controller.self.canAttack)
             GameManager.Instance.HighlightTargets(controller, true);
 
-        tempCard.transform.SetParent(defaultParent);
-        tempCard.transform.SetSiblingIndex(transform.GetSiblingIndex());
-        transform.SetParent(defaultParent.parent);
-        GetComponent<CanvasGroup>().blocksRaycasts = false;
+        if (tempCard != null && defaultParent != null)
+        {
+            tempCard.transform.SetParent(defaultParent, false);
+            tempCard.transform.SetSiblingIndex(transform.GetSiblingIndex());
+        }
+
+        if (defaultParent != null)
+        {
+            var targetParent = defaultParent.parent;
+            if (targetParent != null)
+            {
+                if (CanReparentNetworkObject())
+                    transform.SetParent(targetParent, false);
+                else
+                    Debug.LogWarning("[CardMovement] Can't reparent card — network not started.");
+            }
+        }
+
+        var cg = GetComponent<CanvasGroup>();
+        if (cg != null) cg.blocksRaycasts = false;
     }
 
     public void OnDrag(PointerEventData eventData)
     {
-        if (!isDraggable) return;
+        if (!isDraggable || mainCamera == null) return;
 
-        Vector3 newPos = mainCamera.ScreenToWorldPoint(eventData.position);
-        transform.position = newPos + offset;
+        var screenPoint = eventData.position;
+        var worldPoint = mainCamera.ScreenToWorldPoint(new Vector3(screenPoint.x, screenPoint.y, mainCamera.nearClipPlane));
+        transform.position = worldPoint + offset;
 
         var controller = GetComponent<CardController>();
+        if (controller == null) return;
 
         if (!controller.self.isSpell)
         {
-            if (tempCard.transform.parent != tempParent) tempCard.transform.SetParent(tempParent);
-            if (defaultParent.GetComponent<DropPlace>().type != FieldType.PlayerField) CheckPosition();
+            if (tempCard != null && tempCard.transform.parent != tempParent && tempParent != null)
+                tempCard.transform.SetParent(tempParent, false);
+
+            var dp = defaultParent != null ? defaultParent.GetComponent<DropPlace>() : null;
+            if (dp != null && dp.type != FieldType.PlayerField)
+                CheckPosition();
         }
     }
 
@@ -75,19 +111,35 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
         if (!isDraggable) return;
 
         var controller = GetComponent<CardController>();
-        GameManager.Instance.HighlightTargets(controller, false);
+        if (controller != null)
+            GameManager.Instance.HighlightTargets(controller, false);
 
-        transform.SetParent(defaultParent);
-        GetComponent<CanvasGroup>().blocksRaycasts = true;
+        if (defaultParent != null)
+        {
+            if (CanReparentNetworkObject())
+                transform.SetParent(defaultParent, false);
+            else
+                transform.SetParent(defaultParent, false);
+        }
+
+        var cg = GetComponent<CanvasGroup>();
+        if (cg != null) cg.blocksRaycasts = true;
 
         if (tempCard != null)
         {
-            int sibling = Mathf.Clamp(tempCard.transform.GetSiblingIndex(), 0, defaultParent.childCount);
+            int sibling = 0;
+            try
+            {
+                sibling = Mathf.Clamp(tempCard.transform.GetSiblingIndex(), 0, defaultParent != null ? defaultParent.childCount : 0);
+            }
+            catch { sibling = 0; }
+
             transform.SetSiblingIndex(sibling);
+
             var canvas = GameObject.Find("Canvas");
             if (canvas != null)
             {
-                tempCard.transform.SetParent(canvas.transform);
+                tempCard.transform.SetParent(canvas.transform, false);
                 tempCard.transform.localPosition = new Vector3(2340, 0, 0);
             }
         }
@@ -95,10 +147,14 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
         {
             transform.SetAsLastSibling();
         }
+
+        isDraggable = false;
     }
 
     private void CheckPosition()
     {
+        if (tempParent == null || tempCard == null || defaultParent == null) return;
+
         int newIndex = tempParent.childCount;
         for (int i = 0; i < tempParent.childCount; i++)
         {
@@ -111,7 +167,7 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
         }
 
         if (tempCard.transform.parent == defaultParent) newIndex = startIndex;
-        tempCard.transform.SetSiblingIndex(newIndex);
+        tempCard.transform.SetSiblingIndex(Mathf.Max(0, newIndex));
     }
 
     public void MoveToField(Transform field)
@@ -120,7 +176,7 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
 
         var canvasGO = GameObject.Find("Canvas");
         if (canvasGO != null)
-            transform.SetParent(canvasGO.transform);
+            transform.SetParent(canvasGO.transform, false);
 
         if (DOTween.IsTweening(transform))
             DOTween.Kill(transform, false);
@@ -154,7 +210,7 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
 
         var canvasGO = GameObject.Find("Canvas");
         if (canvasGO != null)
-            transform.SetParent(canvasGO.transform);
+            transform.SetParent(canvasGO.transform, false);
 
         float halfDur = moveDuration / 2f;
         if (halfDur <= 0f)
@@ -176,7 +232,10 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
         }
 
         if (transform == null) yield break;
-        transform.SetParent(parent);
+
+        if (parent != null)
+            transform.SetParent(parent, false);
+
         transform.SetSiblingIndex(Mathf.Clamp(index, 0, parent?.childCount ?? 0));
 
         if (parentHL != null)

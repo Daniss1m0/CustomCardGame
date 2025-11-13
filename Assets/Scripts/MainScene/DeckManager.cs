@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Netcode;
 
 public class DeckManager : MonoBehaviour
 {
@@ -78,34 +79,7 @@ public class DeckManager : MonoBehaviour
             deck.RemoveAt(0);
         }
     }
-    /*
-    private void SpawnAndRegisterCard(Card card, Transform hand, bool isPlayer)
-    {
-        if (cardPrefab == null || hand == null)
-        {
-            Debug.LogError("CardPrefab or hand is not assigned.");
-            return;
-        }
 
-        GameObject instance = Instantiate(cardPrefab, hand, false);
-        var controller = instance.GetComponent<CardController>();
-        if (controller == null)
-        {
-            Destroy(instance);
-            return;
-        }
-
-        controller.Init(card, isPlayer);
-
-        var gm = GameManager.Instance;
-        if (gm == null) return;
-
-        if (isPlayer)
-            gm.playerHandCards.Add(controller);
-        else
-            gm.enemyHandCards.Add(controller);
-    }
-    */
     private void SpawnAndRegisterCard(Card card, Transform hand, bool isPlayer)
     {
         if (cardPrefab == null || hand == null)
@@ -163,5 +137,115 @@ public class DeckManager : MonoBehaviour
         ClearList(gm.playerFieldCards);
         ClearList(gm.enemyHandCards);
         ClearList(gm.enemyFieldCards);
+    }
+
+    public bool GiveInitialHandsNetworked(Game currentGame, bool randomStart = true)
+    {
+        Shuffle(currentGame.playerDeck);
+        Shuffle(currentGame.enemyDeck);
+
+        bool playerStarts = randomStart ? (Random.value < 0.5f) : true;
+
+        int playerCount = playerStarts ? startPlayerHand : startEnemyHand;
+        int enemyCount = playerStarts ? startEnemyHand : startPlayerHand;
+
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
+        {
+            DrawCardsNetworked(currentGame.playerDeck, playerHand, /*ownerClientId*/ NetworkManager.Singleton.LocalClientId, playerCount);
+            DrawCardsNetworked(currentGame.enemyDeck, enemyHand, /*ownerClientId*/ GetOpponentClientId(), enemyCount);
+        }
+        else
+        {
+            DrawCards(currentGame.playerDeck, playerHand, true, playerCount);
+            DrawCards(currentGame.enemyDeck, enemyHand, false, enemyCount);
+        }
+
+        return playerStarts;
+    }
+
+    private void SpawnAndRegisterCardNetworked(Card card, Transform hand, ulong ownerClientId, int cardDataIndex = -1)
+    {
+        if (cardPrefab == null || hand == null)
+        {
+            Debug.LogError("CardPrefab or hand is not assigned.");
+            return;
+        }
+
+        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer)
+        {
+            Debug.LogError("SpawnAndRegisterCardNetworked called but this is not the server.");
+            return;
+        }
+
+        GameObject instance = Instantiate(cardPrefab);
+        var netObj = instance.GetComponent<NetworkObject>();
+        var cn = instance.GetComponent<CardNetwork>();
+        var visual = instance.GetComponent<CardController>();
+
+        if (netObj == null || cn == null || visual == null)
+        {
+            Debug.LogError("Card prefab missing NetworkObject/CardNetwork/CardController.");
+            Destroy(instance);
+            return;
+        }
+
+        if (ownerClientId != NetworkManager.ServerClientId && ownerClientId != NetworkManager.Singleton.LocalClientId)
+            netObj.SpawnWithOwnership(ownerClientId);
+        else
+            netObj.Spawn();
+
+        cn.OwnerClientIdNet.Value = ownerClientId;
+        cn.CardDataIndex.Value = cardDataIndex;
+        cn.Attack.Value = card.attack;
+        cn.Health.Value = card.health;
+        cn.ManaCost.Value = card.manaCost;
+        cn.IsSpell.Value = card.isSpell;
+
+        instance.transform.SetParent(hand, false);
+
+        visual.SetNetworkData(cn.Attack.Value, cn.Health.Value, cn.ManaCost.Value, cn.IsSpell.Value, cn.CardDataIndex.Value, cn.OwnerClientIdNet.Value);
+    }
+    private void DrawCardsNetworked(List<Card> deck, Transform hand, ulong ownerClientId, int count = 1)
+    {
+        for (int i = 0; i < count; i++)
+        {
+            if (deck.Count == 0) break;
+            var card = deck[0];
+            SpawnAndRegisterCardNetworked(card, hand, ownerClientId, /*index*/ GetCardDataIndex(card));
+            deck.RemoveAt(0);
+        }
+    }
+
+    private int GetCardDataIndex(Card card)
+    {
+        if (card == null || CardDatabase.AllCards == null)
+            return -1;
+
+        for (int i = 0; i < CardDatabase.AllCards.Count; i++)
+        {
+            var entry = CardDatabase.AllCards[i];
+            if (entry == null)
+                continue;
+
+            if (!string.IsNullOrEmpty(entry.name) && entry.name == card.name)
+                return i;
+        }
+
+        return -1;
+    }
+
+    private ulong GetOpponentClientId()
+    {
+        if (NetworkManager.Singleton == null)
+            return NetworkManager.ServerClientId; // 0
+
+        foreach (var kvp in NetworkManager.Singleton.ConnectedClients)
+        {
+            ulong clientId = kvp.Key;
+            if (clientId != NetworkManager.Singleton.LocalClientId)
+                return clientId;
+        }
+
+        return NetworkManager.ServerClientId;
     }
 }

@@ -224,43 +224,66 @@ public class CardController : MonoBehaviour
 
     public void SetNetworkData(int attack, int health, int manaCost, bool isSpell, int cardDataIndex, ulong ownerClientId)
     {
-        if (self == null)
+        CardData dataToUse = null;
+        try
         {
-            var tmpData = ScriptableObject.CreateInstance<CardData>();
-            self = new Card(tmpData);
+            if (cardDataIndex >= 0 && CardDatabase.AllCards != null && cardDataIndex < CardDatabase.AllCards.Count)
+            {
+                object entry = CardDatabase.AllCards[cardDataIndex];
+
+                if (entry is CardData cd)
+                {
+                    dataToUse = cd;
+                }
+                else if (entry is Card existingCard)
+                {
+                    var tmp = ScriptableObject.CreateInstance<CardData>();
+                    try { tmp.name = existingCard.name; } catch { }
+                    try { tmp.isSpell = existingCard.isSpell; } catch { tmp.isSpell = isSpell; }
+                    try { tmp.logo = existingCard.logo; } catch { }
+                    dataToUse = tmp;
+                }
+                else
+                {
+                    dataToUse = null;
+                }
+            }
         }
+        catch
+        {
+            dataToUse = null;
+        }
+
+        if (dataToUse == null)
+        {
+            dataToUse = ScriptableObject.CreateInstance<CardData>();
+            dataToUse.name = "NetCard";
+            dataToUse.isSpell = isSpell;
+        }
+
+        if (dataToUse.isSpell)
+            self = new SpellCard(dataToUse);
+        else
+            self = new Card(dataToUse);
 
         self.attack = attack;
         self.health = health;
         self.manaCost = manaCost;
         self.isSpell = isSpell;
 
-        if (cardDataIndex >= 0 && CardDatabase.AllCards != null && cardDataIndex < CardDatabase.AllCards.Count)
-        {
-            var dbEntry = CardDatabase.AllCards[cardDataIndex];
-            if (dbEntry != null)
-            {
-                if (!string.IsNullOrEmpty(dbEntry.name))
-                    self.name = dbEntry.name;
-                try { self.logo = dbEntry.logo; } catch { }
-            }
-        }
-
         Info?.UpdateStats(self);
 
         bool isMine = NetworkManager.Singleton != null && ownerClientId == NetworkManager.Singleton.LocalClientId;
-
         if (!self.isPlaced)
         {
-            if (isMine) Info?.ShowCard(self);
-            else Info?.HideCard();
+            if (isMine) Info?.ShowCard(self); else Info?.HideCard();
         }
         else
         {
             Info?.ShowCard(self);
         }
 
-        isPlayerCard = (NetworkManager.Singleton != null && ownerClientId == NetworkManager.Singleton.LocalClientId);
+        isPlayerCard = isMine;
     }
 
     public void OnNetworkOwnershipChanged(bool isOwner)

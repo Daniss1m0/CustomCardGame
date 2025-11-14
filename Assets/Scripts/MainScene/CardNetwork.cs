@@ -17,7 +17,7 @@ public class CardNetwork : NetworkBehaviour
 
     private void Awake()
     {
-        visual = GetComponent<CardController>();
+        visual = GetComponentInChildren<CardController>();
     }
 
     public override void OnNetworkSpawn()

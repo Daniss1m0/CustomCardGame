@@ -367,7 +367,12 @@ public class GameManager : MonoBehaviour
 
         if (attacker.self.isSpell)
         {
-            var spellCard = (SpellCard)attacker.self;
+            var spellCard = attacker.self as SpellCard;
+            if (spellCard == null)
+            {
+                Debug.LogWarning("HighlightTargets: attacker marked as isSpell but not a SpellCard instance.");
+                return;
+            }
 
             switch (spellCard.spellTarget)
             {

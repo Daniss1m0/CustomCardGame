@@ -165,26 +165,17 @@ public class DeckManager : MonoBehaviour
 
     private void SpawnAndRegisterCardNetworked(Card card, Transform hand, ulong ownerClientId, int cardDataIndex = -1)
     {
-        if (cardPrefab == null || hand == null)
-        {
-            Debug.LogError("CardPrefab or hand is not assigned.");
-            return;
-        }
+        if (cardPrefab == null || hand == null) { Debug.LogError("CardPrefab or hand is not assigned."); return; }
+        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer) { Debug.LogError("SpawnAndRegisterCardNetworked called but this is not the server."); return; }
 
-        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer)
-        {
-            Debug.LogError("SpawnAndRegisterCardNetworked called but this is not the server.");
-            return;
-        }
-
-        GameObject instance = Instantiate(cardPrefab);
+        GameObject instance = Instantiate(cardPrefab); // no parent
         var netObj = instance.GetComponent<NetworkObject>();
         var cn = instance.GetComponent<CardNetwork>();
-        var visual = instance.GetComponent<CardController>();
+        var visual = instance.GetComponentInChildren<CardController>(true);
 
         if (netObj == null || cn == null || visual == null)
         {
-            Debug.LogError("Card prefab missing NetworkObject/CardNetwork/CardController.");
+            Debug.LogError("Card prefab must contain NetworkObject, CardNetwork and CardController (in children).");
             Destroy(instance);
             return;
         }
@@ -201,12 +192,66 @@ public class DeckManager : MonoBehaviour
         cn.ManaCost.Value = card.manaCost;
         cn.IsSpell.Value = card.isSpell;
 
-        instance.transform.SetParent(hand, false);
+        if (visual != null && hand != null)
+        {
+            visual.transform.SetParent(hand, false);
 
-        visual.SetNetworkData(cn.Attack.Value, cn.Health.Value, cn.ManaCost.Value, cn.IsSpell.Value, cn.CardDataIndex.Value, cn.OwnerClientIdNet.Value);
+            visual.transform.localScale = Vector3.one;
+            visual.transform.localRotation = Quaternion.identity;
+            visual.transform.localPosition = Vector3.zero;
+
+            var rt = visual.GetComponent<RectTransform>();
+            if (rt != null)
+            {
+                rt.pivot = new Vector2(0.5f, 0.5f);
+                rt.anchorMin = new Vector2(0.5f, 0.5f);
+                rt.anchorMax = new Vector2(0.5f, 0.5f);
+
+                if (rt.sizeDelta == Vector2.zero)
+                    rt.sizeDelta = new Vector2(175f, 230f);
+
+                rt.anchoredPosition = Vector2.zero;
+                rt.localScale = Vector3.one;
+            }
+            else
+            {
+                visual.transform.localPosition = Vector3.zero;
+                visual.transform.localRotation = Quaternion.identity;
+                visual.transform.localScale = Vector3.one;
+            }
+
+            var handRect = hand.GetComponent<RectTransform>();
+            if (handRect != null)
+            {
+                Canvas.ForceUpdateCanvases();
+                UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(handRect);
+
+                try
+                {
+                    visual.transform.SetSiblingIndex(Mathf.Clamp(hand.childCount - 1, 0, hand.childCount));
+                }
+                catch {  }
+            }
+
+            visual.gameObject.SetActive(true);
+            var cg = visual.GetComponent<CanvasGroup>();
+            if (cg != null) { cg.alpha = 1f; cg.blocksRaycasts = true; cg.interactable = true; }
+
+            foreach (var g in visual.GetComponentsInChildren<UnityEngine.UI.Graphic>(true))
+                if (!g.enabled) g.enabled = true;
+
+            var canvas = visual.GetComponentInParent<Canvas>();
+            var rt2 = visual.GetComponent<RectTransform>();
+            string pos = rt2 != null ? $"anchored:{rt2.anchoredPosition} size:{rt2.sizeDelta}" : $"pos:{visual.transform.position}";
+            Debug.Log($"Spawned card '{card.name}' owner:{ownerClientId} visualParent:{visual.transform.parent?.name ?? "null"} {pos} | Canvas:{(canvas ? canvas.name : "null")}");
+        }
+
     }
+
     private void DrawCardsNetworked(List<Card> deck, Transform hand, ulong ownerClientId, int count = 1)
     {
+        if (deck == null || hand == null || count <= 0) return;
+
         for (int i = 0; i < count; i++)
         {
             if (deck.Count == 0) break;
@@ -237,7 +282,7 @@ public class DeckManager : MonoBehaviour
     private ulong GetOpponentClientId()
     {
         if (NetworkManager.Singleton == null)
-            return NetworkManager.ServerClientId; // 0
+            return NetworkManager.ServerClientId;
 
         foreach (var kvp in NetworkManager.Singleton.ConnectedClients)
         {

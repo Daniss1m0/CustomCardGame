@@ -8266,7 +8266,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NetworkUIManager
   defaultHostIP: 127.0.0.1
-  defaultPort: 2222
+  defaultPort: 3333
   networkUIPanel: {fileID: 1549188227}
 --- !u!1001 &4802604817425250596
 PrefabInstance:

@@ -1,6 +1,7 @@
+using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using Unity.Netcode;
+using UnityEngine;
 
 public class DeckManager : MonoBehaviour
 {
@@ -165,59 +166,118 @@ public class DeckManager : MonoBehaviour
 
     private void SpawnAndRegisterCardNetworked(Card card, Transform hand, ulong ownerClientId, int cardDataIndex = -1)
     {
-        if (cardPrefab == null || hand == null) { Debug.LogError("CardPrefab or hand is not assigned."); return; }
-        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer) { Debug.LogError("SpawnAndRegisterCardNetworked called but this is not the server."); return; }
+        if (cardPrefab == null)
+        {
+            Debug.LogError("[SpawnAndRegisterCardNetworked] cardPrefab is not assigned.");
+            return;
+        }
+        if (hand == null)
+        {
+            Debug.LogWarning("[SpawnAndRegisterCardNetworked] hand transform is null for card: " + (card != null ? card.name : "null"));
+            return;
+        }
 
-        GameObject instance = Instantiate(cardPrefab); // no parent
+        GameObject instance = Instantiate(cardPrefab);
         var netObj = instance.GetComponent<NetworkObject>();
         var cn = instance.GetComponent<CardNetwork>();
-        var visual = instance.GetComponentInChildren<CardController>(true);
+        var innerVisual = instance.GetComponentInChildren<CardController>(true);
 
-        if (netObj == null || cn == null || visual == null)
+        if (netObj == null || cn == null || innerVisual == null)
         {
-            Debug.LogError("Card prefab must contain NetworkObject, CardNetwork and CardController (in children).");
+            Debug.LogError("[SpawnAndRegisterCardNetworked] Card prefab must contain NetworkObject, CardNetwork and a child CardController (visual).");
             Destroy(instance);
             return;
         }
 
-        if (ownerClientId != NetworkManager.ServerClientId && ownerClientId != NetworkManager.Singleton.LocalClientId)
-            netObj.SpawnWithOwnership(ownerClientId);
-        else
-            netObj.Spawn();
-
-        cn.OwnerClientIdNet.Value = ownerClientId;
-        cn.CardDataIndex.Value = cardDataIndex;
-        cn.Attack.Value = card.attack;
-        cn.Health.Value = card.health;
-        cn.ManaCost.Value = card.manaCost;
-        cn.IsSpell.Value = card.isSpell;
-
-        if (visual != null && hand != null)
+        if (NetworkManager.Singleton != null)
         {
-            visual.transform.SetParent(hand, false);
-
-            visual.transform.localScale = Vector3.one;
-            visual.transform.localRotation = Quaternion.identity;
-            visual.transform.localPosition = Vector3.zero;
-
-            var rt = visual.GetComponent<RectTransform>();
-            if (rt != null)
-            {
-                rt.pivot = new Vector2(0.5f, 0.5f);
-                rt.anchorMin = new Vector2(0.5f, 0.5f);
-                rt.anchorMax = new Vector2(0.5f, 0.5f);
-
-                if (rt.sizeDelta == Vector2.zero)
-                    rt.sizeDelta = new Vector2(175f, 230f);
-
-                rt.anchoredPosition = Vector2.zero;
-                rt.localScale = Vector3.one;
-            }
+            if (ownerClientId != NetworkManager.ServerClientId && ownerClientId != NetworkManager.Singleton.LocalClientId)
+                netObj.SpawnWithOwnership(ownerClientId);
             else
+                netObj.Spawn();
+        }
+        else
+        {
+            Debug.Log("[SpawnAndRegisterCardNetworked] NetworkManager not present — running offline/spawn without network.");
+        }
+
+        try
+        {
+            cn.OwnerClientIdNet.Value = ownerClientId;
+            cn.CardDataIndex.Value = cardDataIndex;
+            cn.Attack.Value = card.attack;
+            cn.Health.Value = card.health;
+            cn.ManaCost.Value = card.manaCost;
+            cn.IsSpell.Value = card.isSpell;
+            cn.IsPlaced.Value = false;
+            cn.CanAttack.Value = false;
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogWarning("[SpawnAndRegisterCardNetworked] Failed to set NetworkVariables: " + ex);
+        }
+
+        GameObject uiClone = null;
+        try
+        {
+            uiClone = Instantiate(cardPrefab);
+
+            foreach (var cnet in uiClone.GetComponentsInChildren<CardNetwork>(true))
             {
-                visual.transform.localPosition = Vector3.zero;
-                visual.transform.localRotation = Quaternion.identity;
-                visual.transform.localScale = Vector3.one;
+                Destroy(cnet);
+            }
+
+            foreach (var nob in uiClone.GetComponentsInChildren<NetworkObject>(true))
+            {
+                Destroy(nob);
+            }
+
+            uiClone.SetActive(false);
+
+            StartCoroutine(FinishLocalCloneRoutine(uiClone, hand, card, cardDataIndex, ownerClientId, instance, innerVisual, cn));
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogError("[SpawnAndRegisterCardNetworked] Failed to create uiClone: " + ex);
+            if (uiClone != null) Destroy(uiClone);
+        }
+    }
+
+    private IEnumerator FinishLocalCloneRoutine(GameObject uiClone, Transform hand, Card card, int cardDataIndex, ulong ownerClientId, GameObject instance, CardController innerVisual, CardNetwork cn)
+    {
+        yield return null;
+
+        if (uiClone == null)
+            yield break;
+
+        try
+        {
+            uiClone.SetActive(true);
+
+            uiClone.transform.SetParent(hand, false);
+            uiClone.transform.localScale = Vector3.one;
+            uiClone.transform.localRotation = Quaternion.identity;
+            uiClone.transform.localPosition = Vector3.zero;
+
+            var rtRoot = uiClone.GetComponent<RectTransform>();
+            if (rtRoot != null)
+            {
+                rtRoot.pivot = new Vector2(0.5f, 0.5f);
+                rtRoot.anchorMin = new Vector2(0.5f, 0.5f);
+                rtRoot.anchorMax = new Vector2(0.5f, 0.5f);
+                if (rtRoot.sizeDelta == Vector2.zero) rtRoot.sizeDelta = new Vector2(176f, 230f);
+                rtRoot.anchoredPosition = Vector2.zero;
+                rtRoot.localScale = Vector3.one;
+            }
+
+            var cloneController = uiClone.GetComponent<CardController>() ?? uiClone.GetComponentInChildren<CardController>();
+            bool isOwner = NetworkManager.Singleton != null && ownerClientId == NetworkManager.Singleton.LocalClientId;
+
+            if (cloneController != null)
+            {
+                cloneController.Init(card, isOwner);
+
+                cloneController.SetNetworkData(card.attack, card.health, card.manaCost, card.isSpell, cardDataIndex, ownerClientId);
             }
 
             var handRect = hand.GetComponent<RectTransform>();
@@ -225,27 +285,81 @@ public class DeckManager : MonoBehaviour
             {
                 Canvas.ForceUpdateCanvases();
                 UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(handRect);
-
-                try
-                {
-                    visual.transform.SetSiblingIndex(Mathf.Clamp(hand.childCount - 1, 0, hand.childCount));
-                }
-                catch {  }
+                try { uiClone.transform.SetSiblingIndex(Mathf.Clamp(hand.childCount - 1, 0, hand.childCount)); } catch { }
             }
 
-            visual.gameObject.SetActive(true);
-            var cg = visual.GetComponent<CanvasGroup>();
-            if (cg != null) { cg.alpha = 1f; cg.blocksRaycasts = true; cg.interactable = true; }
+            var gm = GameManager.Instance;
+            if (gm != null && cloneController != null)
+            {
+                if (isOwner)
+                    gm.playerHandCards.Add(cloneController);
+                else
+                    gm.enemyHandCards.Add(cloneController);
+            }
 
-            foreach (var g in visual.GetComponentsInChildren<UnityEngine.UI.Graphic>(true))
-                if (!g.enabled) g.enabled = true;
+            if (innerVisual != null)
+                innerVisual.gameObject.SetActive(false);
 
-            var canvas = visual.GetComponentInParent<Canvas>();
-            var rt2 = visual.GetComponent<RectTransform>();
-            string pos = rt2 != null ? $"anchored:{rt2.anchoredPosition} size:{rt2.sizeDelta}" : $"pos:{visual.transform.position}";
-            Debug.Log($"Spawned card '{card.name}' owner:{ownerClientId} visualParent:{visual.transform.parent?.name ?? "null"} {pos} | Canvas:{(canvas ? canvas.name : "null")}");
+            Debug.Log($"Spawned card '{card.name}' owner:{ownerClientId} -> uiClone parent:{uiClone.transform.parent?.name} ownerIsLocal:{isOwner}");
+
+            if (cn != null && cloneController != null)
+            {
+                cn.Attack.OnValueChanged += (oldV, newV) =>
+                {
+                    if (cloneController == null) return;
+                    if (cloneController.self != null) cloneController.self.attack = newV;
+                    cloneController.Info?.UpdateStats(cloneController.self);
+                };
+
+                cn.Health.OnValueChanged += (oldV, newV) =>
+                {
+                    if (cloneController == null) return;
+                    if (cloneController.self != null) cloneController.self.health = newV;
+                    cloneController.Info?.UpdateStats(cloneController.self);
+                };
+
+                cn.ManaCost.OnValueChanged += (oldV, newV) =>
+                {
+                    if (cloneController == null) return;
+                    if (cloneController.self != null) cloneController.self.manaCost = newV;
+                    cloneController.Info?.UpdateStats(cloneController.self);
+                };
+
+                cn.CanAttack.OnValueChanged += (oldV, newV) =>
+                {
+                    if (cloneController == null) return;
+                    cloneController.SetCanAttackVisual(newV);
+                };
+
+                cn.OwnerClientIdNet.OnValueChanged += (oldV, newV) =>
+                {
+                    if (cloneController == null) return;
+                    bool nowOwner = NetworkManager.Singleton != null && newV == NetworkManager.Singleton.LocalClientId;
+                    cloneController.isPlayerCard = nowOwner;
+                    if (!cloneController.self.isPlaced)
+                    {
+                        if (nowOwner) cloneController.Info?.ShowCard(cloneController.self);
+                        else cloneController.Info?.HideCard();
+                    }
+                    else
+                    {
+                        cloneController.Info?.ShowCard(cloneController.self);
+                    }
+                };
+
+                cn.IsPlaced.OnValueChanged += (oldV, newV) =>
+                {
+                    if (cloneController == null) return;
+                    cloneController.self.isPlaced = newV;
+                    cloneController.Info?.ShowCard(cloneController.self);
+                };
+            }
         }
-
+        catch (System.Exception ex)
+        {
+            Debug.LogError("[FinishLocalCloneRoutine] Error finishing uiClone setup: " + ex);
+            if (uiClone != null) Destroy(uiClone);
+        }
     }
 
     private void DrawCardsNetworked(List<Card> deck, Transform hand, ulong ownerClientId, int count = 1)

@@ -73,8 +73,7 @@ public class GameManager : MonoBehaviour
                 UIManager.Instance.UpdateHPAndMana();
             }
             else
-            {
-            }
+            { }
         }
         else
         {
@@ -123,6 +122,7 @@ public class GameManager : MonoBehaviour
         {
             if (c == null || c.self == null || c.Info == null) 
                 continue;
+
             c.self.canAttack = false;
             c.Info.SetHighlight(false);
         }
@@ -130,6 +130,7 @@ public class GameManager : MonoBehaviour
         {
             if (c == null || c.self == null || c.Info == null) 
                 continue;
+
             c.self.canAttack = false;
             c.Info.SetHighlight(false);
         }

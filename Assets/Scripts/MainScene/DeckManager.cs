@@ -9,7 +9,7 @@ public class DeckManager : MonoBehaviour
     public static readonly int MAX_FIELD_SIZE = 7;
 
     [SerializeField] private int startPlayerHand = 3, startEnemyHand = 4;
-    [SerializeField] private Transform playerHand, enemyHand, playerField, enemyField;
+    [SerializeField] private Transform playerHand, enemyHand, playerField, enemyField, networkCardRoot; //new
     [SerializeField] private GameObject cardPrefab;
     [SerializeField] private CardData coinCard;
 
@@ -60,7 +60,7 @@ public class DeckManager : MonoBehaviour
 
     public void GiveNewCards(Game currentGame)
     {
-        if (currentGame == null) 
+        if (currentGame == null)
             return;
 
         DrawCards(currentGame.playerDeck, playerHand, true, 1);
@@ -73,7 +73,7 @@ public class DeckManager : MonoBehaviour
 
         for (int i = 0; i < count; i++)
         {
-            if (deck.Count == 0) 
+            if (deck.Count == 0)
                 break;
             var card = deck[0];
             SpawnAndRegisterCard(card, hand, isPlayer);
@@ -131,7 +131,7 @@ public class DeckManager : MonoBehaviour
     public void ClearAll()
     {
         var gm = GameManager.Instance;
-        if (gm == null) 
+        if (gm == null)
             return;
 
         ClearList(gm.playerHandCards);
@@ -189,17 +189,53 @@ public class DeckManager : MonoBehaviour
             return;
         }
 
-        if (NetworkManager.Singleton != null)
+        bool spawned = false;
+        try
         {
-            if (ownerClientId != NetworkManager.ServerClientId && ownerClientId != NetworkManager.Singleton.LocalClientId)
-                netObj.SpawnWithOwnership(ownerClientId);
+            if (NetworkManager.Singleton != null)
+            {
+                if (ownerClientId != NetworkManager.ServerClientId && ownerClientId != NetworkManager.Singleton.LocalClientId)
+                    netObj.SpawnWithOwnership(ownerClientId);
+                else
+                    netObj.Spawn();
+
+                spawned = true;
+            }
             else
-                netObj.Spawn();
+            {
+                Debug.Log("[SpawnAndRegisterCardNetworked] NetworkManager not present — running offline/spawn without network.");
+                spawned = true;
+            }
         }
-        else
+        catch (System.Exception ex)
         {
-            Debug.Log("[SpawnAndRegisterCardNetworked] NetworkManager not present — running offline/spawn without network.");
+            Debug.LogError("[SpawnAndRegisterCardNetworked] Spawn failed: " + ex);
+            spawned = false;
         }
+
+        Transform root = networkCardRoot;
+        if (root == null)
+        {
+            var found = GameObject.Find("Network Card Root");
+            if (found != null) root = found.transform;
+        }
+
+        if (spawned && root != null)
+        {
+            try
+            {
+                netObj.transform.SetParent(root, false);
+                netObj.transform.localScale = Vector3.one;
+                netObj.transform.localPosition = Vector3.zero;
+                netObj.transform.localRotation = Quaternion.identity;
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogWarning("[SpawnAndRegisterCardNetworked] Failed to set parent after spawn: " + ex);
+            }
+        }
+        else if (spawned)
+            Debug.Log("[SpawnAndRegisterCardNetworked] networkCardRoot not assigned/found - leaving network instance at scene root.");
 
         try
         {
@@ -223,14 +259,10 @@ public class DeckManager : MonoBehaviour
             uiClone = Instantiate(cardPrefab);
 
             foreach (var cnet in uiClone.GetComponentsInChildren<CardNetwork>(true))
-            {
                 Destroy(cnet);
-            }
 
             foreach (var nob in uiClone.GetComponentsInChildren<NetworkObject>(true))
-            {
                 Destroy(nob);
-            }
 
             uiClone.SetActive(false);
 
@@ -358,13 +390,15 @@ public class DeckManager : MonoBehaviour
         catch (System.Exception ex)
         {
             Debug.LogError("[FinishLocalCloneRoutine] Error finishing uiClone setup: " + ex);
-            if (uiClone != null) Destroy(uiClone);
+            if (uiClone != null) 
+                Destroy(uiClone);
         }
     }
 
     private void DrawCardsNetworked(List<Card> deck, Transform hand, ulong ownerClientId, int count = 1)
     {
-        if (deck == null || hand == null || count <= 0) return;
+        if (deck == null || hand == null || count <= 0) 
+            return;
 
         for (int i = 0; i < count; i++)
         {

@@ -36,9 +36,8 @@ public class NetworkUIManager : MonoBehaviour
     private void OnClientConnected(ulong clientId)
     {
         if (clientId == NetworkManager.Singleton.LocalClientId)
-        {
             HideNetworkUI();
-        }
+
         NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnected;
     }
 

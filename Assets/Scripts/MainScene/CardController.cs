@@ -15,8 +15,8 @@ public class CardController : MonoBehaviour
     private GameManager gameManager;
 
     public CardInfo Info => info;
-    public CardAbility Ability => ability;
     public CardMovement Movement => movement;
+    public CardAbility Ability => ability;
 
     public void Init(Card card, bool isPlayerCard)
     {
@@ -274,14 +274,14 @@ public class CardController : MonoBehaviour
         Info?.UpdateStats(self);
 
         bool isMine = NetworkManager.Singleton != null && ownerClientId == NetworkManager.Singleton.LocalClientId;
+        
         if (!self.isPlaced)
-        {
-            if (isMine) Info?.ShowCard(self); else Info?.HideCard();
-        }
+            if (isMine) 
+                Info?.ShowCard(self); 
+            else 
+                Info?.HideCard();
         else
-        {
             Info?.ShowCard(self);
-        }
 
         isPlayerCard = isMine;
     }
@@ -300,14 +300,12 @@ public class CardController : MonoBehaviour
             attacked.enabled = isOwner;
 
         if (!self.isPlaced)
-        {
-            if (isOwner) Info?.ShowCard(self);
-            else Info?.HideCard();
-        }
+            if (isOwner) 
+                Info?.ShowCard(self);
+            else 
+                Info?.HideCard();
         else
-        {
             Info?.ShowCard(self);
-        }
     }
 
     public void SetCanAttackVisual(bool canAttack)
@@ -378,6 +376,9 @@ public class CardController : MonoBehaviour
             transform.SetParent(handParent, false);
 
         bool isMine = NetworkManager.Singleton != null && ownerClientId == NetworkManager.Singleton.LocalClientId;
-        if (isMine) Info?.ShowCard(self); else Info?.HideCard();
+        if (isMine) 
+            Info?.ShowCard(self); 
+        else 
+            Info?.HideCard();
     }
 }

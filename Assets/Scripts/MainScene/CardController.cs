@@ -28,11 +28,7 @@ public class CardController : MonoBehaviour
             movement = GetComponent<CardMovement>();
 
         if (isPlayerCard)
-        {
             info.ShowCard(self);
-            var attackedCard = GetComponent<AttackedCard>();
-            if (attackedCard) attackedCard.enabled = false;
-        }
         else
             info.HideCard();
     }
@@ -87,7 +83,6 @@ public class CardController : MonoBehaviour
     public void DestroyCard()
     {
         movement.OnEndDrag(null);
-        //movement.StopAllActions();
 
         gameManager.playerHandCards.Remove(this);
         gameManager.enemyHandCards.Remove(this);
@@ -238,7 +233,7 @@ public class CardController : MonoBehaviour
                 else if (entry is Card existingCard)
                 {
                     var tmp = ScriptableObject.CreateInstance<CardData>();
-                    try { tmp.name = existingCard.name; } catch { }
+                    try { tmp.name = existingCard.name; } catch { tmp.name = "NetCard"; }
                     try { tmp.isSpell = existingCard.isSpell; } catch { tmp.isSpell = isSpell; }
                     try { tmp.logo = existingCard.logo; } catch { }
                     dataToUse = tmp;
@@ -266,6 +261,13 @@ public class CardController : MonoBehaviour
         else
             self = new Card(dataToUse);
 
+        try
+        {
+            if (!string.IsNullOrEmpty(dataToUse.name))
+                self.name = dataToUse.name;
+        }
+        catch {  }
+
         self.attack = attack;
         self.health = health;
         self.manaCost = manaCost;
@@ -274,14 +276,16 @@ public class CardController : MonoBehaviour
         Info?.UpdateStats(self);
 
         bool isMine = NetworkManager.Singleton != null && ownerClientId == NetworkManager.Singleton.LocalClientId;
-        
+
         if (!self.isPlaced)
-            if (isMine) 
-                Info?.ShowCard(self); 
-            else 
-                Info?.HideCard();
+        {
+            if (isMine) Info?.ShowCard(self);
+            else Info?.HideCard();
+        }
         else
+        {
             Info?.ShowCard(self);
+        }
 
         isPlayerCard = isMine;
     }

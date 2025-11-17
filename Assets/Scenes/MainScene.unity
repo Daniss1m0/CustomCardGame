@@ -313,9 +313,9 @@ MonoBehaviour:
   enemyHand: {fileID: 437836524}
   playerField: {fileID: 865766834}
   enemyField: {fileID: 152074215}
+  networkCardRoot: {fileID: 1153048709}
   cardPrefab: {fileID: 3200919704871707934, guid: 941f6405a9f4c074eb161d54445056ff, type: 3}
   coinCard: {fileID: 11400000, guid: e3263aba297af994d99e0cf093e7c13e, type: 2}
-  networkCardRoot: {fileID: 1153048709}
 --- !u!1 &132839951
 GameObject:
   m_ObjectHideFlags: 0
@@ -8324,7 +8324,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NetworkUIManager
   defaultHostIP: 127.0.0.1
-  defaultPort: 3333
+  defaultPort: 4444
   networkUIPanel: {fileID: 1549188227}
 --- !u!1001 &4802604817425250596
 PrefabInstance:

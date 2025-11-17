@@ -332,7 +332,7 @@ public class DeckManager : MonoBehaviour
             if (innerVisual != null)
                 innerVisual.gameObject.SetActive(false);
 
-            Debug.Log($"Spawned card '{card.name}' owner:{ownerClientId} -> uiClone parent:{uiClone.transform.parent?.name} ownerIsLocal:{isOwner}");
+            //Debug.Log($"'{card.name}' owner:{ownerClientId} -> uiClone parent:{uiClone.transform.parent?.name} ownerIsLocal:{isOwner}");
 
             if (cn != null && cloneController != null)
             {

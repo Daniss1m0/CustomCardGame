@@ -20,11 +20,29 @@ public class NetworkUIManager : MonoBehaviour
         while (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsListening)
             yield return null;
 
+        while (NetworkManager.Singleton.ConnectedClientsList.Count < 2)
+        {
+            Debug.Log("[NetworkUIManager] Waiting for client to connect...");
+            yield return null;
+        }
+
+        var tn = FindFirstObjectByType<TurnNetworkManager>();
+        if (tn != null)
+        {
+            var no = tn.GetComponent<NetworkObject>();
+            if (no != null && !no.IsSpawned && NetworkManager.Singleton.IsServer)
+            {
+                try { no.Spawn(); Debug.Log("[NetworkUIManager] Spawned TurnNetworkManager."); }
+                catch (System.Exception ex) { Debug.LogWarning("[NetworkUIManager] Failed to spawn TurnNetworkManager: " + ex); }
+            }
+        }
+
         HideNetworkUI();
 
         if (GameManager.Instance != null)
             GameManager.Instance.StartGame();
     }
+
 
     public void StartClientButton()
     {

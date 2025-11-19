@@ -2875,6 +2875,7 @@ MonoBehaviour:
   playerFieldCards: []
   enemyFieldCards: []
   deckManager: {fileID: 124338498}
+  turnManager: {fileID: 1131749044}
   playerHero: {fileID: 228459500}
   enemyHero: {fileID: 856375458}
   playerControllerBehaviour: {fileID: 228459501}

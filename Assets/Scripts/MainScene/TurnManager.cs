@@ -5,9 +5,8 @@ using UnityEngine;
 [RequireComponent(typeof(NetworkObject))]
 public class TurnManager : NetworkBehaviour
 {
-    public static TurnManager Instance { get; private set; }
-
     [Header("Turn settings")]
+    [Tooltip("Seconds per turn on server")]
     public int turnTimeDefault = 30;
 
     public NetworkVariable<ulong> CurrentTurnOwner = new NetworkVariable<ulong>(
@@ -22,19 +21,30 @@ public class TurnManager : NetworkBehaviour
 
     private Coroutine serverTurnCoroutine;
 
-    private void Awake() => Instance = this;
-
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
         TurnTimeRemaining.Value = 0;
+        Debug.Log($"[TurnManager] OnNetworkSpawn. IsServer={IsServer}, IsClient={IsClient}. CurrentOwner={CurrentTurnOwner.Value}");
+    }
+
+    public void SetCurrentTurnOwner(ulong ownerClientId)
+    {
+        if (!IsServer)
+        {
+            Debug.LogWarning("[TurnManager] SetCurrentTurnOwner called on non-server. Ignored.");
+            return;
+        }
+
+        CurrentTurnOwner.Value = ownerClientId;
+        Debug.Log($"[TurnManager] CurrentTurnOwner set to {ownerClientId}");
     }
 
     public void StartServerTurnLoop()
     {
         if (!IsServer)
         {
-            Debug.LogWarning("[TurnNetworkManager] StartServerTurnLoop called on non-server. Ignored.");
+            Debug.LogWarning("[TurnManager] StartServerTurnLoop called on non-server. Ignored.");
             return;
         }
 
@@ -42,11 +52,13 @@ public class TurnManager : NetworkBehaviour
             StopCoroutine(serverTurnCoroutine);
 
         serverTurnCoroutine = StartCoroutine(ServerTurnLoop());
+        Debug.Log("[TurnManager] Server turn loop started.");
     }
 
     public void StopServerTurnLoop()
     {
         if (!IsServer) return;
+
         if (serverTurnCoroutine != null)
         {
             StopCoroutine(serverTurnCoroutine);
@@ -54,13 +66,14 @@ public class TurnManager : NetworkBehaviour
         }
 
         TurnTimeRemaining.Value = 0;
+        Debug.Log("[TurnManager] Server turn loop stopped.");
     }
 
     private IEnumerator ServerTurnLoop()
     {
         while (true)
         {
-            TurnTimeRemaining.Value = turnTimeDefault;
+            TurnTimeRemaining.Value = Mathf.Max(0, turnTimeDefault);
 
             while (TurnTimeRemaining.Value > 0)
             {
@@ -68,9 +81,16 @@ public class TurnManager : NetworkBehaviour
                 TurnTimeRemaining.Value = Mathf.Max(0, TurnTimeRemaining.Value - 1);
             }
 
-            Debug.Log("[TurnNetworkManager] Server turn timer expired -> requesting server ChangeTurn.");
-            GameManager.Instance.ChangeTurn();
-            
+            Debug.Log("[TurnManager] Turn time expired on server -> calling GameManager.ChangeTurn()");
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.ChangeTurn();
+            }
+            else
+            {
+                Debug.LogWarning("[TurnManager] GameManager.Instance is null when trying to ChangeTurn.");
+            }
+
             yield return null;
         }
     }
@@ -82,8 +102,9 @@ public class TurnManager : NetworkBehaviour
 
         foreach (var kv in NetworkManager.Singleton.ConnectedClients)
         {
-            if (kv.Key != NetworkManager.ServerClientId)
-                return kv.Key;
+            var clientId = kv.Key;
+            if (clientId != NetworkManager.ServerClientId)
+                return clientId;
         }
 
         return NetworkManager.ServerClientId;
@@ -96,14 +117,17 @@ public class TurnManager : NetworkBehaviour
             return;
 
         ulong sender = rpcParams.Receive.SenderClientId;
-        Debug.Log($"[TurnNetworkManager] RequestEndTurnServerRpc from {sender}. CurrentTurnOwner={CurrentTurnOwner.Value}");
+        Debug.Log($"[TurnManager] RequestEndTurnServerRpc received from {sender}. CurrentOwner={CurrentTurnOwner.Value}");
 
         if (sender != CurrentTurnOwner.Value)
         {
-            Debug.LogWarning($"[TurnNetworkManager] RequestEndTurnServerRpc ignored from {sender} — not current owner.");
+            Debug.LogWarning($"[TurnManager] RequestEndTurnServerRpc ignored from {sender} — not current owner.");
             return;
         }
 
-        GameManager.Instance.ChangeTurn();
+        if (GameManager.Instance != null)
+            GameManager.Instance.ChangeTurn();
+        else
+            Debug.LogWarning("[TurnManager] GameManager.Instance is null — can't ChangeTurn()");
     }
 }

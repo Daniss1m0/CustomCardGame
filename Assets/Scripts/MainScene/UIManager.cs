@@ -67,4 +67,11 @@ public class UIManager : MonoBehaviour
     {
         SceneManager.LoadScene("DeckSelection");
     }
+
+    public void SetEndTurnInteractable(bool state)
+    {
+        if (endTurnBtn != null)
+            endTurnBtn.interactable = state;
+    }
+
 }

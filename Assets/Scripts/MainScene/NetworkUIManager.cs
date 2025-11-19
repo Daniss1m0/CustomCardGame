@@ -20,10 +20,16 @@ public class NetworkUIManager : MonoBehaviour
         while (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsListening)
             yield return null;
 
-        while (NetworkManager.Singleton.ConnectedClientsList.Count < 2)
+        while (NetworkManager.Singleton != null && NetworkManager.Singleton.ConnectedClientsList.Count < 2)
         {
             Debug.Log("[NetworkUIManager] Waiting for client to connect...");
-            yield return null;
+            yield return new WaitForSeconds(1f);
+        }
+
+        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsListening)
+        {
+            Debug.LogWarning("[NetworkUIManager] NetworkManager became unavailable while waiting for clients.");
+            yield break;
         }
 
         var tn = FindFirstObjectByType<TurnNetworkManager>();
@@ -42,7 +48,6 @@ public class NetworkUIManager : MonoBehaviour
         if (GameManager.Instance != null)
             GameManager.Instance.StartGame();
     }
-
 
     public void StartClientButton()
     {

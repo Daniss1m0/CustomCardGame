@@ -32,7 +32,7 @@ public class NetworkUIManager : MonoBehaviour
             yield break;
         }
 
-        var tn = FindFirstObjectByType<TurnNetworkManager>();
+        var tn = FindFirstObjectByType<TurnManager>();
         if (tn != null)
         {
             var no = tn.GetComponent<NetworkObject>();

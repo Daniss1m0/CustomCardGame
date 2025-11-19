@@ -3,9 +3,9 @@ using Unity.Netcode;
 using UnityEngine;
 
 [RequireComponent(typeof(NetworkObject))]
-public class TurnNetworkManager : NetworkBehaviour
+public class TurnManager : NetworkBehaviour
 {
-    public static TurnNetworkManager Instance { get; private set; }
+    public static TurnManager Instance { get; private set; }
 
     [Header("Turn settings")]
     public int turnTimeDefault = 30;

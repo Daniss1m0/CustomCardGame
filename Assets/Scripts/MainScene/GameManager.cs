@@ -43,14 +43,14 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator SubscribeToTurnNetworkVars()
     {
-        while (TurnNetworkManager.Instance == null)
+        while (TurnManager.Instance == null)
             yield return null;
 
-        TurnNetworkManager.Instance.CurrentTurnOwner.OnValueChanged += OnCurrentTurnOwnerChanged;
-        TurnNetworkManager.Instance.TurnTimeRemaining.OnValueChanged += OnTurnTimeChanged;
+        TurnManager.Instance.CurrentTurnOwner.OnValueChanged += OnCurrentTurnOwnerChanged;
+        TurnManager.Instance.TurnTimeRemaining.OnValueChanged += OnTurnTimeChanged;
 
-        OnCurrentTurnOwnerChanged(0, TurnNetworkManager.Instance.CurrentTurnOwner.Value);
-        OnTurnTimeChanged(0, TurnNetworkManager.Instance.TurnTimeRemaining.Value);
+        OnCurrentTurnOwnerChanged(0, TurnManager.Instance.CurrentTurnOwner.Value);
+        OnTurnTimeChanged(0, TurnManager.Instance.TurnTimeRemaining.Value);
     }
 
     private void OnCurrentTurnOwnerChanged(ulong oldOwner, ulong newOwner)
@@ -83,12 +83,12 @@ public class GameManager : MonoBehaviour
             turn = playerStarts ? 0 : 1;
 
             ulong ownerClientId = playerStarts ? NetworkManager.ServerClientId : GetAnyOtherClientId();
-            if (TurnNetworkManager.Instance != null)
+            if (TurnManager.Instance != null)
             {
-                TurnNetworkManager.Instance.CurrentTurnOwner.Value = ownerClientId;
+                TurnManager.Instance.CurrentTurnOwner.Value = ownerClientId;
                 Debug.Log($"[GameManager] CurrentTurnOwner set to {ownerClientId} (playerStarts={playerStarts})");
 
-                TurnNetworkManager.Instance.StartServerTurnLoop();
+                TurnManager.Instance.StartServerTurnLoop();
             }
             else
                 Debug.LogWarning("[GameManager] TurnNetworkManager.Instance is null when trying to set CurrentTurnOwner/start loop.");
@@ -131,7 +131,7 @@ public class GameManager : MonoBehaviour
     public void RestartGame()
     {
         if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
-            TurnNetworkManager.Instance?.StopServerTurnLoop();
+            TurnManager.Instance?.StopServerTurnLoop();
 
         deckManager.ClearAll();
 
@@ -194,9 +194,9 @@ public class GameManager : MonoBehaviour
         if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
         {
             ulong newOwner = IsPlayerTurn ? NetworkManager.ServerClientId : GetAnyOtherClientId();
-            if (TurnNetworkManager.Instance != null)
+            if (TurnManager.Instance != null)
             {
-                TurnNetworkManager.Instance.CurrentTurnOwner.Value = newOwner;
+                TurnManager.Instance.CurrentTurnOwner.Value = newOwner;
                 Debug.Log($"[GameManager] ChangeTurn -> new CurrentTurnOwner set to {newOwner}");
             }
         }
@@ -337,9 +337,9 @@ public class GameManager : MonoBehaviour
                 return;
             }
 
-            if (TurnNetworkManager.Instance != null)
+            if (TurnManager.Instance != null)
             {
-                TurnNetworkManager.Instance.RequestEndTurnServerRpc();
+                TurnManager.Instance.RequestEndTurnServerRpc();
                 return;
             }
             else
@@ -392,7 +392,7 @@ public class GameManager : MonoBehaviour
         if (currentGame.enemy.hp == 0 || currentGame.player.hp == 0)
         {
             if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
-                TurnNetworkManager.Instance?.StopServerTurnLoop();
+                TurnManager.Instance?.StopServerTurnLoop();
 
             UIManager.Instance?.ShowResult();
         }

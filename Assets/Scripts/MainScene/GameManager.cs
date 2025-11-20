@@ -1,9 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
-using TMPro;
-using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.UI;
+using Unity.Netcode;
 
 public class GameManager : MonoBehaviour
 {
@@ -42,50 +40,6 @@ public class GameManager : MonoBehaviour
         StartCoroutine(SubscribeToTurnNetworkVars());
     }
 
-    private IEnumerator SubscribeToTurnNetworkVars()
-    {
-        if (turnManager == null)
-            turnManager = FindFirstObjectByType<TurnManager>();
-
-        while (turnManager == null)
-        {
-            yield return null;
-            turnManager = FindFirstObjectByType<TurnManager>();
-        }
-
-        if (turnManager.TryGetComponent<Unity.Netcode.NetworkObject>(out var no))
-        {
-            while (!no.IsSpawned)
-                yield return null;
-        }
-
-        if (turnManager != null)
-        {
-            turnManager.CurrentTurnOwner.OnValueChanged += OnCurrentTurnOwnerChanged;
-            turnManager.TurnTimeRemaining.OnValueChanged += OnTurnTimeChanged;
-
-            OnCurrentTurnOwnerChanged(0, turnManager.CurrentTurnOwner.Value);
-            OnTurnTimeChanged(0, turnManager.TurnTimeRemaining.Value);
-        }
-    }
-
-    private void OnCurrentTurnOwnerChanged(ulong oldOwner, ulong newOwner)
-    {
-        bool amOwner = NetworkManager.Singleton != null && NetworkManager.Singleton.LocalClientId == newOwner;
-        Debug.Log($"[GameManager] CurrentTurnOwner changed -> {newOwner}. localIsOwner={amOwner}");
-
-        if (UIManager.Instance != null)
-            UIManager.Instance.SetEndTurnInteractable(amOwner);
-
-        CheckCardsForManaAvailability();
-    }
-
-    private void OnTurnTimeChanged(int oldTime, int newTime)
-    {
-        if (UIManager.Instance != null)
-            UIManager.Instance.UpdateTurnTime(newTime);
-    }
-
     public void StartGame()
     {
         currentGame = new Game();
@@ -102,12 +56,9 @@ public class GameManager : MonoBehaviour
             if (turnManager != null)
             {
                 turnManager.CurrentTurnOwner.Value = ownerClientId;
-                Debug.Log($"[GameManager] CurrentTurnOwner set to {ownerClientId} (playerStarts={playerStarts})");
-
+                turnManager.NotifyClientsOwnerClientRpc(ownerClientId);
                 turnManager.StartServerTurnLoop();
             }
-            else
-                Debug.LogWarning("[GameManager] TurnManager is null when trying to set CurrentTurnOwner/start loop.");
 
             if (playerStarts)
             {
@@ -142,6 +93,8 @@ public class GameManager : MonoBehaviour
         }
 
         UIManager.Instance?.StartGame();
+
+        turnManager.NotifyClientsOwnerClientRpc(turnManager.CurrentTurnOwner.Value);
     }
 
     public void RestartGame()
@@ -213,7 +166,9 @@ public class GameManager : MonoBehaviour
             if (turnManager != null)
             {
                 turnManager.CurrentTurnOwner.Value = newOwner;
-                Debug.Log($"[GameManager] ChangeTurn -> new CurrentTurnOwner set to {newOwner}");
+                turnManager.NotifyClientsOwnerClientRpc(newOwner);
+                turnManager.StopServerTurnLoop();
+                turnManager.StartServerTurnLoop();
             }
         }
     }
@@ -497,5 +452,50 @@ public class GameManager : MonoBehaviour
         }
 
         return NetworkManager.ServerClientId;
+    }
+
+
+    private IEnumerator SubscribeToTurnNetworkVars()
+    {
+        if (turnManager == null)
+            turnManager = FindFirstObjectByType<TurnManager>();
+
+        while (turnManager == null)
+        {
+            yield return null;
+            turnManager = FindFirstObjectByType<TurnManager>();
+        }
+
+        if (turnManager.TryGetComponent<Unity.Netcode.NetworkObject>(out var no))
+        {
+            while (!no.IsSpawned)
+                yield return null;
+        }
+
+        if (turnManager != null)
+        {
+            turnManager.CurrentTurnOwner.OnValueChanged += OnCurrentTurnOwnerChanged;
+            turnManager.TurnTimeRemaining.OnValueChanged += OnTurnTimeChanged;
+
+            OnCurrentTurnOwnerChanged(0, turnManager.CurrentTurnOwner.Value);
+            OnTurnTimeChanged(0, turnManager.TurnTimeRemaining.Value);
+        }
+    }
+
+    private void OnCurrentTurnOwnerChanged(ulong oldOwner, ulong newOwner)
+    {
+        bool amOwner = NetworkManager.Singleton != null && NetworkManager.Singleton.LocalClientId == newOwner;
+        Debug.Log($"[GameManager] CurrentTurnOwner changed -> {newOwner}. localIsOwner={amOwner}");
+
+        if (UIManager.Instance != null)
+            UIManager.Instance.SetEndTurnInteractable(amOwner);
+
+        CheckCardsForManaAvailability();
+    }
+
+    private void OnTurnTimeChanged(int oldTime, int newTime)
+    {
+        if (UIManager.Instance != null)
+            UIManager.Instance.UpdateTurnTime(newTime);
     }
 }

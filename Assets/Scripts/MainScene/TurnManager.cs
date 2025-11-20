@@ -1,6 +1,6 @@
 using System.Collections;
-using Unity.Netcode;
 using UnityEngine;
+using Unity.Netcode;
 
 [RequireComponent(typeof(NetworkObject))]
 public class TurnManager : NetworkBehaviour
@@ -64,8 +64,10 @@ public class TurnManager : NetworkBehaviour
                 yield return new WaitForSeconds(1f);
                 TurnTimeRemaining.Value = Mathf.Max(0, TurnTimeRemaining.Value - 1);
             }
+
             if (GameManager.Instance != null)
                 GameManager.Instance.ChangeTurn();
+
             yield return null;
         }
     }
@@ -91,4 +93,15 @@ public class TurnManager : NetworkBehaviour
         if (sender != CurrentTurnOwner.Value) return;
         if (GameManager.Instance != null) GameManager.Instance.ChangeTurn();
     }
+
+    [ClientRpc]
+    public void NotifyClientsOwnerClientRpc(ulong ownerClientId, ClientRpcParams clientRpcParams = default)
+    {
+        bool amOwner = NetworkManager.Singleton != null && NetworkManager.Singleton.LocalClientId == ownerClientId;
+        if (UIManager.Instance != null)
+            UIManager.Instance.SetEndTurnInteractable(amOwner);
+
+        GameManager.Instance?.CheckCardsForManaAvailability();
+    }
+
 }

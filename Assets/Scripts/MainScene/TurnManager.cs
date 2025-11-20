@@ -17,6 +17,21 @@ public class TurnManager : NetworkBehaviour
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server);
 
+    public NetworkVariable<int> PlayerMana = new NetworkVariable<int>(
+        0,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server);
+
+    public NetworkVariable<int> EnemyMana = new NetworkVariable<int>(
+        0,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server);
+
+    public NetworkVariable<ulong> PlayerOwner = new NetworkVariable<ulong>(
+        0UL,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server);
+
     private Coroutine serverTurnCoroutine;
 
     public override void OnNetworkSpawn()
@@ -24,22 +39,56 @@ public class TurnManager : NetworkBehaviour
         base.OnNetworkSpawn();
         if (IsServer)
             TurnTimeRemaining.Value = 0;
-        Debug.Log($"[TurnManager] OnNetworkSpawn. IsServer={IsServer}, IsClient={IsClient}. CurrentOwner={CurrentTurnOwner.Value}");
+        TurnTimeRemaining.OnValueChanged += OnTurnTimeRemainingChanged;
+        PlayerMana.OnValueChanged += OnPlayerManaChanged;
+        EnemyMana.OnValueChanged += OnEnemyManaChanged;
+        PlayerOwner.OnValueChanged += OnPlayerOwnerChanged;
     }
+
+    public override void OnNetworkDespawn()
+    {
+        TurnTimeRemaining.OnValueChanged -= OnTurnTimeRemainingChanged;
+        PlayerMana.OnValueChanged -= OnPlayerManaChanged;
+        EnemyMana.OnValueChanged -= OnEnemyManaChanged;
+        PlayerOwner.OnValueChanged -= OnPlayerOwnerChanged;
+    }
+
+    private void OnTurnTimeRemainingChanged(int oldV, int newV) { }
+
+    private void OnPlayerManaChanged(int oldV, int newV) { }
+
+    private void OnEnemyManaChanged(int oldV, int newV) { }
+
+    private void OnPlayerOwnerChanged(ulong oldV, ulong newV) { }
 
     public void SetCurrentTurnOwner(ulong ownerClientId)
     {
-        if (!IsServer)
-            return;
+        if (!IsServer) return;
         CurrentTurnOwner.Value = ownerClientId;
+    }
+
+    public void SetPlayerManaServer(int value)
+    {
+        if (!IsServer) return;
+        PlayerMana.Value = value;
+    }
+
+    public void SetEnemyManaServer(int value)
+    {
+        if (!IsServer) return;
+        EnemyMana.Value = value;
+    }
+
+    public void SetPlayerOwnerServer(ulong ownerClientId)
+    {
+        if (!IsServer) return;
+        PlayerOwner.Value = ownerClientId;
     }
 
     public void StartServerTurnLoop()
     {
-        if (!IsServer)
-            return;
-        if (serverTurnCoroutine != null)
-            StopCoroutine(serverTurnCoroutine);
+        if (!IsServer) return;
+        if (serverTurnCoroutine != null) StopCoroutine(serverTurnCoroutine);
         serverTurnCoroutine = StartCoroutine(ServerTurnLoop());
     }
 
@@ -74,13 +123,11 @@ public class TurnManager : NetworkBehaviour
 
     public ulong GetOtherClientIdOrServerFallback()
     {
-        if (NetworkManager.Singleton == null)
-            return NetworkManager.ServerClientId;
+        if (NetworkManager.Singleton == null) return NetworkManager.ServerClientId;
         foreach (var kv in NetworkManager.Singleton.ConnectedClients)
         {
             var clientId = kv.Key;
-            if (clientId != NetworkManager.ServerClientId)
-                return clientId;
+            if (clientId != NetworkManager.ServerClientId) return clientId;
         }
         return NetworkManager.ServerClientId;
     }
@@ -103,5 +150,4 @@ public class TurnManager : NetworkBehaviour
 
         GameManager.Instance?.CheckCardsForManaAvailability();
     }
-
 }

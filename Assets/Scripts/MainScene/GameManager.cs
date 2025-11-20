@@ -58,6 +58,7 @@ public class GameManager : MonoBehaviour
                 turnManager.CurrentTurnOwner.Value = ownerClientId;
                 turnManager.NotifyClientsOwnerClientRpc(ownerClientId);
                 turnManager.StartServerTurnLoop();
+                try { turnManager.SetPlayerOwnerServer(ownerClientId); } catch { }
             }
 
             if (playerStarts)
@@ -70,6 +71,8 @@ public class GameManager : MonoBehaviour
                 currentGame.enemy.IncreaseManaPool();
                 currentGame.enemy.RestoreRoundMana();
             }
+
+            UpdateManaNetworkIfServer();
 
             UIManager.Instance?.UpdateHPAndMana();
         }
@@ -94,7 +97,8 @@ public class GameManager : MonoBehaviour
 
         UIManager.Instance?.StartGame();
 
-        turnManager.NotifyClientsOwnerClientRpc(turnManager.CurrentTurnOwner.Value);
+        if (turnManager != null)
+            turnManager.NotifyClientsOwnerClientRpc(turnManager.CurrentTurnOwner.Value);
     }
 
     public void RestartGame()
@@ -159,6 +163,8 @@ public class GameManager : MonoBehaviour
 
             UIManager.Instance?.UpdateHPAndMana();
         }
+
+        UpdateManaNetworkIfServer();
 
         if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
         {
@@ -340,6 +346,8 @@ public class GameManager : MonoBehaviour
         else
             currentGame.enemy.mana -= manacost;
 
+        UpdateManaNetworkIfServer();
+
         UIManager.Instance?.UpdateHPAndMana();
         CheckCardsForManaAvailability();
     }
@@ -454,7 +462,6 @@ public class GameManager : MonoBehaviour
         return NetworkManager.ServerClientId;
     }
 
-
     private IEnumerator SubscribeToTurnNetworkVars()
     {
         if (turnManager == null)
@@ -472,20 +479,31 @@ public class GameManager : MonoBehaviour
                 yield return null;
         }
 
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsClient && !NetworkManager.Singleton.IsServer)
+        {
+            if (currentGame == null)
+                currentGame = new Game();
+        }
+
         if (turnManager != null)
         {
             turnManager.CurrentTurnOwner.OnValueChanged += OnCurrentTurnOwnerChanged;
             turnManager.TurnTimeRemaining.OnValueChanged += OnTurnTimeChanged;
 
+            turnManager.PlayerMana.OnValueChanged += (oldV, newV) => ApplyNetworkManaValues();
+            turnManager.EnemyMana.OnValueChanged += (oldV, newV) => ApplyNetworkManaValues();
+            turnManager.PlayerOwner.OnValueChanged += (oldV, newV) => ApplyNetworkManaValues();
+
             OnCurrentTurnOwnerChanged(0, turnManager.CurrentTurnOwner.Value);
             OnTurnTimeChanged(0, turnManager.TurnTimeRemaining.Value);
+
+            ApplyNetworkManaValues();
         }
     }
 
     private void OnCurrentTurnOwnerChanged(ulong oldOwner, ulong newOwner)
     {
         bool amOwner = NetworkManager.Singleton != null && NetworkManager.Singleton.LocalClientId == newOwner;
-        Debug.Log($"[GameManager] CurrentTurnOwner changed -> {newOwner}. localIsOwner={amOwner}");
 
         if (UIManager.Instance != null)
             UIManager.Instance.SetEndTurnInteractable(amOwner);
@@ -497,5 +515,44 @@ public class GameManager : MonoBehaviour
     {
         if (UIManager.Instance != null)
             UIManager.Instance.UpdateTurnTime(newTime);
+    }
+
+    private void UpdateManaNetworkIfServer()
+    {
+        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer) return;
+        if (turnManager == null) turnManager = FindFirstObjectByType<TurnManager>();
+        if (turnManager == null) return;
+        try { turnManager.SetPlayerManaServer(currentGame.player.mana); } catch { }
+        try { turnManager.SetEnemyManaServer(currentGame.enemy.mana); } catch { }
+    }
+
+    private void ApplyNetworkManaValues()
+    {
+        if (turnManager == null || NetworkManager.Singleton == null) return;
+        if (currentGame == null)
+            currentGame = new Game();
+
+        ulong playerOwnerClientId = turnManager.PlayerOwner.Value;
+        if (playerOwnerClientId == 0 && NetworkManager.Singleton != null)
+            playerOwnerClientId = NetworkManager.ServerClientId;
+
+        bool localIsPlayerOwner = NetworkManager.Singleton.LocalClientId == playerOwnerClientId;
+
+        int playerManaNet = turnManager.PlayerMana.Value;
+        int enemyManaNet = turnManager.EnemyMana.Value;
+
+        if (localIsPlayerOwner)
+        {
+            currentGame.player.mana = playerManaNet;
+            currentGame.enemy.mana = enemyManaNet;
+        }
+        else
+        {
+            currentGame.player.mana = enemyManaNet;
+            currentGame.enemy.mana = playerManaNet;
+        }
+
+        UIManager.Instance?.UpdateHPAndMana();
+        CheckCardsForManaAvailability();
     }
 }

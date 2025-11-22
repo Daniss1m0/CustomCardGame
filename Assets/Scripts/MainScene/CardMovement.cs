@@ -13,14 +13,28 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
 
     private int startIndex;
     private bool isDraggable;
-    private Vector3 offset;
+    private Vector2 pointerOffsetCanvas; // offset in canvas local coordinates
     private Camera mainCamera;
     private GameObject tempCard;
 
+    private RectTransform rt, canvasRect;
+    private Canvas rootCanvas;
+
     void Awake()
     {
+        rt = GetComponent<RectTransform>();
+
         if (mainCamera == null)
             mainCamera = Camera.main;
+
+        rootCanvas = GetComponentInParent<Canvas>();
+        if (rootCanvas == null)
+        {
+            var go = GameObject.Find("Canvas");
+            if (go != null) rootCanvas = go.GetComponent<Canvas>();
+        }
+        if (rootCanvas != null)
+            canvasRect = rootCanvas.GetComponent<RectTransform>();
 
         if (tempCard == null)
             tempCard = GameObject.Find("TempCard");
@@ -29,22 +43,19 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
     private bool CanReparentNetworkObject()
     {
         if (TryGetComponent<NetworkObject>(out var no))
-        {
             return NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening;
-        }
         return true;
     }
 
     public void OnBeginDrag(PointerEventData eventData)
     {
         var controller = GetComponent<CardController>();
-        if (controller == null || mainCamera == null) return;
+        if (controller == null) return;
 
-        var screenPoint = eventData.position;
-        var worldPoint = mainCamera.ScreenToWorldPoint(new Vector3(screenPoint.x, screenPoint.y, mainCamera.nearClipPlane));
-        offset = transform.position - worldPoint;
-
-        defaultParent = tempParent = transform.parent;
+        if (defaultParent == null)
+            defaultParent = transform.parent;
+        if (tempParent == null)
+            tempParent = defaultParent;
 
         var dropPlace = defaultParent != null ? defaultParent.GetComponent<DropPlace>() : null;
         isDraggable = GameManager.Instance != null && GameManager.Instance.IsPlayerTurn &&
@@ -62,22 +73,56 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
         if (controller.self.isSpell || controller.self.canAttack)
             GameManager.Instance.HighlightTargets(controller, true);
 
+        if (rootCanvas == null)
+        {
+            rootCanvas = GetComponentInParent<Canvas>();
+            if (rootCanvas == null)
+            {
+                var go = GameObject.Find("Canvas");
+                if (go != null) rootCanvas = go.GetComponent<Canvas>();
+            }
+            if (rootCanvas != null)
+                canvasRect = rootCanvas.GetComponent<RectTransform>();
+        }
+
+        EnsureTempCardExists();
+
         if (tempCard != null && defaultParent != null)
         {
             tempCard.transform.SetParent(defaultParent, false);
             tempCard.transform.SetSiblingIndex(transform.GetSiblingIndex());
+            var tr = tempCard.GetComponent<RectTransform>();
+            if (tr != null && rt != null)
+            {
+                tr.sizeDelta = rt.sizeDelta;
+                tr.pivot = rt.pivot;
+                tr.anchorMin = rt.anchorMin;
+                tr.anchorMax = rt.anchorMax;
+            }
         }
 
-        if (defaultParent != null)
+        if (rootCanvas != null)
+        {
+            transform.SetParent(rootCanvas.transform, true);
+        }
+        else if (defaultParent != null)
         {
             var targetParent = defaultParent.parent;
             if (targetParent != null)
-            {
-                if (CanReparentNetworkObject())
-                    transform.SetParent(targetParent, false);
-                else
-                    Debug.LogWarning("[CardMovement] Can't reparent card — network not started.");
-            }
+                transform.SetParent(targetParent, false);
+        }
+
+        if (canvasRect != null)
+        {
+            Vector2 canvasLocal;
+            Camera canvasCam = rootCanvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : rootCanvas.worldCamera;
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, eventData.position, canvasCam, out canvasLocal);
+
+            pointerOffsetCanvas = rt.anchoredPosition - canvasLocal;
+        }
+        else
+        {
+            pointerOffsetCanvas = Vector2.zero;
         }
 
         var cg = GetComponent<CanvasGroup>();
@@ -86,11 +131,21 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
 
     public void OnDrag(PointerEventData eventData)
     {
-        if (!isDraggable || mainCamera == null) return;
+        if (!isDraggable) return;
 
-        var screenPoint = eventData.position;
-        var worldPoint = mainCamera.ScreenToWorldPoint(new Vector3(screenPoint.x, screenPoint.y, mainCamera.nearClipPlane));
-        transform.position = worldPoint + offset;
+        if (canvasRect != null)
+        {
+            Vector2 canvasLocal;
+            Camera canvasCam = rootCanvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : rootCanvas.worldCamera;
+            if (RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, eventData.position, canvasCam, out canvasLocal))
+            {
+                rt.anchoredPosition = canvasLocal + pointerOffsetCanvas;
+            }
+        }
+        else
+        {
+            transform.position += (Vector3)eventData.delta;
+        }
 
         var controller = GetComponent<CardController>();
         if (controller == null) return;
@@ -115,12 +170,7 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
             GameManager.Instance.HighlightTargets(controller, false);
 
         if (defaultParent != null)
-        {
-            if (CanReparentNetworkObject())
-                transform.SetParent(defaultParent, false);
-            else
-                transform.SetParent(defaultParent, false);
-        }
+            transform.SetParent(defaultParent, false);
 
         var cg = GetComponent<CanvasGroup>();
         if (cg != null) cg.blocksRaycasts = true;
@@ -128,18 +178,18 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
         if (tempCard != null)
         {
             int sibling = 0;
-            try
-            {
-                sibling = Mathf.Clamp(tempCard.transform.GetSiblingIndex(), 0, defaultParent != null ? defaultParent.childCount : 0);
-            }
-            catch { sibling = 0; }
+            try { sibling = Mathf.Clamp(tempCard.transform.GetSiblingIndex(), 0, defaultParent != null ? defaultParent.childCount : 0); } catch { sibling = 0; }
 
             transform.SetSiblingIndex(sibling);
 
-            var canvas = GameObject.Find("Canvas");
-            if (canvas != null)
+            if (rootCanvas != null)
             {
-                tempCard.transform.SetParent(canvas.transform, false);
+                tempCard.transform.SetParent(rootCanvas.transform, false);
+                tempCard.transform.localPosition = new Vector3(2340, 0, 0);
+            }
+            else
+            {
+                tempCard.transform.SetParent(transform.root, false);
                 tempCard.transform.localPosition = new Vector3(2340, 0, 0);
             }
         }
@@ -170,6 +220,28 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
         tempCard.transform.SetSiblingIndex(Mathf.Max(0, newIndex));
     }
 
+    private void EnsureTempCardExists()
+    {
+        if (tempCard != null) return;
+
+        tempCard = GameObject.Find("TempCard");
+        if (tempCard != null) return;
+
+        tempCard = new GameObject("TempCard", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+        var img = tempCard.GetComponent<Image>();
+        img.color = new Color(0f, 0f, 0f, 0f);
+        img.raycastTarget = false;
+
+        if (rootCanvas != null)
+            tempCard.transform.SetParent(rootCanvas.transform, false);
+        else
+            tempCard.transform.SetParent(transform.root, false);
+
+        var tr = tempCard.GetComponent<RectTransform>();
+        if (tr != null && rt != null)
+            tr.sizeDelta = rt.sizeDelta;
+    }
+
     public void MoveToField(Transform field)
     {
         if (field == null) return;
@@ -197,20 +269,17 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
 
     private IEnumerator MoveToTargetCor(Transform target)
     {
-        if (target == null || transform == null)
-            yield break;
+        if (target == null || transform == null) yield break;
 
         Vector3 pos = transform.position;
         Transform parent = transform.parent;
         int index = transform.GetSiblingIndex();
 
-        var parentHL = parent?.GetComponent<HorizontalLayoutGroup>();
-        if (parentHL != null)
-            parentHL.enabled = false;
+        var parentHL = parent?.GetComponent<UnityEngine.UI.HorizontalLayoutGroup>();
+        if (parentHL != null) parentHL.enabled = false;
 
         var canvasGO = GameObject.Find("Canvas");
-        if (canvasGO != null)
-            transform.SetParent(canvasGO.transform, false);
+        if (canvasGO != null) transform.SetParent(canvasGO.transform, false);
 
         float halfDur = moveDuration / 2f;
         if (halfDur <= 0f)
@@ -219,8 +288,7 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
         }
         else
         {
-            if (DOTween.IsTweening(transform))
-                DOTween.Kill(transform, false);
+            if (DOTween.IsTweening(transform)) DOTween.Kill(transform, false);
 
             transform.DOMove(target.position, halfDur).SetLink(gameObject);
             yield return new WaitForSeconds(halfDur);
@@ -233,12 +301,10 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
 
         if (transform == null) yield break;
 
-        if (parent != null)
-            transform.SetParent(parent, false);
+        if (parent != null) transform.SetParent(parent, false);
 
         transform.SetSiblingIndex(Mathf.Clamp(index, 0, parent?.childCount ?? 0));
 
-        if (parentHL != null)
-            parentHL.enabled = true;
+        if (parentHL != null) parentHL.enabled = true;
     }
 }

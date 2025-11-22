@@ -18,6 +18,8 @@ public class CardController : MonoBehaviour
     public CardMovement Movement => movement;
     public CardAbility Ability => ability;
 
+    private CardNetwork linkedNetwork;
+
     public void Init(Card card, bool isPlayerCard)
     {
         self = card;
@@ -384,5 +386,16 @@ public class CardController : MonoBehaviour
             Info?.ShowCard(self); 
         else 
             Info?.HideCard();
+    }
+
+    public void LinkNetwork(CardNetwork cn)
+    {
+        linkedNetwork = cn;
+    }
+
+    public void SetMovement(CardMovement m)
+    {
+        if (m == null) return;
+        movement = m;
     }
 }

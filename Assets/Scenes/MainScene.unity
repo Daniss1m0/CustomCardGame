@@ -314,7 +314,8 @@ MonoBehaviour:
   playerField: {fileID: 865766834}
   enemyField: {fileID: 152074215}
   networkCardRoot: {fileID: 1153048709}
-  cardPrefab: {fileID: 3200919704871707934, guid: 941f6405a9f4c074eb161d54445056ff, type: 3}
+  networkCardPrefab: {fileID: 3200919704871707934, guid: 941f6405a9f4c074eb161d54445056ff, type: 3}
+  visualCardPrefab: {fileID: 979882027150900141, guid: a26a0db67b713d549a10ed908a8a3b8f, type: 3}
   coinCard: {fileID: 11400000, guid: e3263aba297af994d99e0cf093e7c13e, type: 2}
 --- !u!1 &132839951
 GameObject:
@@ -4160,6 +4161,12 @@ MonoBehaviour:
   CurrentTurnOwner:
     m_InternalValue: 0
   TurnTimeRemaining:
+    m_InternalValue: 0
+  PlayerMana:
+    m_InternalValue: 0
+  EnemyMana:
+    m_InternalValue: 0
+  PlayerOwner:
     m_InternalValue: 0
 --- !u!1 &1140106805
 GameObject:

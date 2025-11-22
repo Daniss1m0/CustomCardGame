@@ -9,8 +9,12 @@ public class DeckManager : MonoBehaviour
     public static readonly int MAX_FIELD_SIZE = 7;
 
     [SerializeField] private int startPlayerHand = 3, startEnemyHand = 4;
-    [SerializeField] private Transform playerHand, enemyHand, playerField, enemyField, networkCardRoot; //new
-    [SerializeField] private GameObject cardPrefab;
+    [SerializeField] private Transform playerHand, enemyHand, playerField, enemyField, networkCardRoot;
+
+    [Header("Prefabs")]
+    [SerializeField] private GameObject networkCardPrefab;
+    [SerializeField] private GameObject visualCardPrefab;
+
     [SerializeField] private CardData coinCard;
 
     public Transform EnemyField => enemyField;
@@ -83,9 +87,9 @@ public class DeckManager : MonoBehaviour
 
     private void SpawnAndRegisterCard(Card card, Transform hand, bool isPlayer)
     {
-        if (cardPrefab == null || hand == null)
+        if (visualCardPrefab == null || hand == null)
         {
-            Debug.LogError("CardPrefab or hand is not assigned.");
+            Debug.LogError("visualCardPrefab or hand is not assigned.");
             return;
         }
 
@@ -100,7 +104,7 @@ public class DeckManager : MonoBehaviour
             return;
         }
 
-        GameObject instance = Instantiate(cardPrefab, hand, false);
+        GameObject instance = Instantiate(visualCardPrefab, hand, false);
         var controller = instance.GetComponent<CardController>();
         if (controller == null)
         {
@@ -166,9 +170,14 @@ public class DeckManager : MonoBehaviour
 
     private void SpawnAndRegisterCardNetworked(Card card, Transform hand, ulong ownerClientId, int cardDataIndex = -1)
     {
-        if (cardPrefab == null)
+        if (networkCardPrefab == null)
         {
-            Debug.LogError("[SpawnAndRegisterCardNetworked] cardPrefab is not assigned.");
+            Debug.LogError("[SpawnAndRegisterCardNetworked] networkCardPrefab is not assigned.");
+            return;
+        }
+        if (visualCardPrefab == null)
+        {
+            Debug.LogError("[SpawnAndRegisterCardNetworked] visualCardPrefab is not assigned.");
             return;
         }
         if (hand == null)
@@ -177,15 +186,15 @@ public class DeckManager : MonoBehaviour
             return;
         }
 
-        GameObject instance = Instantiate(cardPrefab);
-        var netObj = instance.GetComponent<NetworkObject>();
-        var cn = instance.GetComponent<CardNetwork>();
-        var innerVisual = instance.GetComponentInChildren<CardController>(true);
+        GameObject netInstance = Instantiate(networkCardPrefab);
+        var netObj = netInstance.GetComponent<NetworkObject>();
+        var cn = netInstance.GetComponent<CardNetwork>();
+        var innerVisualOnNet = netInstance.GetComponentInChildren<CardController>(true);
 
-        if (netObj == null || cn == null || innerVisual == null)
+        if (netObj == null || cn == null)
         {
-            Debug.LogError("[SpawnAndRegisterCardNetworked] Card prefab must contain NetworkObject, CardNetwork and a child CardController (visual).");
-            Destroy(instance);
+            Debug.LogError("[SpawnAndRegisterCardNetworked] networkCardPrefab must contain NetworkObject and CardNetwork.");
+            Destroy(netInstance);
             return;
         }
 
@@ -253,20 +262,15 @@ public class DeckManager : MonoBehaviour
             Debug.LogWarning("[SpawnAndRegisterCardNetworked] Failed to set NetworkVariables: " + ex);
         }
 
+        if (innerVisualOnNet != null)
+            innerVisualOnNet.gameObject.SetActive(false);
+
         GameObject uiClone = null;
         try
         {
-            uiClone = Instantiate(cardPrefab);
-
-            foreach (var cnet in uiClone.GetComponentsInChildren<CardNetwork>(true))
-                Destroy(cnet);
-
-            foreach (var nob in uiClone.GetComponentsInChildren<NetworkObject>(true))
-                Destroy(nob);
-
-            uiClone.SetActive(false);
-
-            StartCoroutine(FinishLocalCloneRoutine(uiClone, hand, card, cardDataIndex, ownerClientId, instance, innerVisual, cn));
+            uiClone = Instantiate(visualCardPrefab, hand, false);
+            uiClone.SetActive(false); // prepare then activate
+            StartCoroutine(FinishLocalCloneRoutine(uiClone, hand, card, cardDataIndex, ownerClientId, netInstance, innerVisualOnNet, cn));
         }
         catch (System.Exception ex)
         {
@@ -275,12 +279,10 @@ public class DeckManager : MonoBehaviour
         }
     }
 
-    private IEnumerator FinishLocalCloneRoutine(GameObject uiClone, Transform hand, Card card, int cardDataIndex, ulong ownerClientId, GameObject instance, CardController innerVisual, CardNetwork cn)
+    private IEnumerator FinishLocalCloneRoutine(GameObject uiClone, Transform hand, Card card, int cardDataIndex, ulong ownerClientId, GameObject netInstance, CardController innerVisualOnNet, CardNetwork cn)
     {
         yield return null;
-
-        if (uiClone == null)
-            yield break;
+        if (uiClone == null) yield break;
 
         try
         {
@@ -310,6 +312,31 @@ public class DeckManager : MonoBehaviour
                 cloneController.Init(card, isOwner);
 
                 cloneController.SetNetworkData(card.attack, card.health, card.manaCost, card.isSpell, cardDataIndex, ownerClientId);
+
+                cloneController.LinkNetwork(cn);
+
+                var cloneMove = uiClone.GetComponentInChildren<CardMovement>(true);
+                if (cloneController.Movement == null && cloneMove != null)
+                    cloneController.SetMovement(cloneMove);
+
+                var rootGraphic = uiClone.GetComponent<UnityEngine.UI.Graphic>();
+                if (rootGraphic == null)
+                {
+                    var img = uiClone.AddComponent<UnityEngine.UI.Image>();
+                    img.color = new Color(0f, 0f, 0f, 0f);
+                    img.raycastTarget = true;
+                }
+                else
+                {
+                    rootGraphic.raycastTarget = true;
+                }
+
+                var cg = uiClone.GetComponent<CanvasGroup>() ?? uiClone.AddComponent<CanvasGroup>();
+                cg.blocksRaycasts = isOwner;
+                cg.interactable = isOwner;
+
+                var proxy = uiClone.GetComponent<CardEventProxy>() ?? uiClone.AddComponent<CardEventProxy>();
+                proxy.targetMovement = cloneController.Movement;
             }
 
             var handRect = hand.GetComponent<RectTransform>();
@@ -329,10 +356,8 @@ public class DeckManager : MonoBehaviour
                     gm.enemyHandCards.Add(cloneController);
             }
 
-            if (innerVisual != null)
-                innerVisual.gameObject.SetActive(false);
-
-            //Debug.Log($"'{card.name}' owner:{ownerClientId} -> uiClone parent:{uiClone.transform.parent?.name} ownerIsLocal:{isOwner}");
+            if (innerVisualOnNet != null)
+                innerVisualOnNet.gameObject.SetActive(false);
 
             if (cn != null && cloneController != null)
             {
@@ -368,6 +393,8 @@ public class DeckManager : MonoBehaviour
                     if (cloneController == null) return;
                     bool nowOwner = NetworkManager.Singleton != null && newV == NetworkManager.Singleton.LocalClientId;
                     cloneController.isPlayerCard = nowOwner;
+                    cloneController.OnNetworkOwnershipChanged(nowOwner);
+
                     if (!cloneController.self.isPlaced)
                     {
                         if (nowOwner) cloneController.Info?.ShowCard(cloneController.self);
@@ -390,14 +417,14 @@ public class DeckManager : MonoBehaviour
         catch (System.Exception ex)
         {
             Debug.LogError("[FinishLocalCloneRoutine] Error finishing uiClone setup: " + ex);
-            if (uiClone != null) 
+            if (uiClone != null)
                 Destroy(uiClone);
         }
     }
 
     private void DrawCardsNetworked(List<Card> deck, Transform hand, ulong ownerClientId, int count = 1)
     {
-        if (deck == null || hand == null || count <= 0) 
+        if (deck == null || hand == null || count <= 0)
             return;
 
         for (int i = 0; i < count; i++)

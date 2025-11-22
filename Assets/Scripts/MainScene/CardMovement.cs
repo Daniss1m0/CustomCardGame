@@ -15,7 +15,7 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
     private bool isDraggable;
     private Vector2 pointerOffsetCanvas; // offset in canvas local coordinates
     private Camera mainCamera;
-    private GameObject tempCard;
+    private GameObject cardTemp;
 
     private RectTransform rt, canvasRect;
     private Canvas rootCanvas;
@@ -36,8 +36,8 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
         if (rootCanvas != null)
             canvasRect = rootCanvas.GetComponent<RectTransform>();
 
-        if (tempCard == null)
-            tempCard = GameObject.Find("TempCard");
+        if (cardTemp == null)
+            cardTemp = GameObject.Find("CardTemp");
     }
 
     private bool CanReparentNetworkObject()
@@ -85,13 +85,13 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
                 canvasRect = rootCanvas.GetComponent<RectTransform>();
         }
 
-        EnsureTempCardExists();
+        EnsureCardTempExists();
 
-        if (tempCard != null && defaultParent != null)
+        if (cardTemp != null && defaultParent != null)
         {
-            tempCard.transform.SetParent(defaultParent, false);
-            tempCard.transform.SetSiblingIndex(transform.GetSiblingIndex());
-            var tr = tempCard.GetComponent<RectTransform>();
+            cardTemp.transform.SetParent(defaultParent, false);
+            cardTemp.transform.SetSiblingIndex(transform.GetSiblingIndex());
+            var tr = cardTemp.GetComponent<RectTransform>();
             if (tr != null && rt != null)
             {
                 tr.sizeDelta = rt.sizeDelta;
@@ -152,8 +152,8 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
 
         if (!controller.self.isSpell)
         {
-            if (tempCard != null && tempCard.transform.parent != tempParent && tempParent != null)
-                tempCard.transform.SetParent(tempParent, false);
+            if (cardTemp != null && cardTemp.transform.parent != tempParent && tempParent != null)
+                cardTemp.transform.SetParent(tempParent, false);
 
             var dp = defaultParent != null ? defaultParent.GetComponent<DropPlace>() : null;
             if (dp != null && dp.type != FieldType.PlayerField)
@@ -175,22 +175,22 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
         var cg = GetComponent<CanvasGroup>();
         if (cg != null) cg.blocksRaycasts = true;
 
-        if (tempCard != null)
+        if (cardTemp != null)
         {
             int sibling = 0;
-            try { sibling = Mathf.Clamp(tempCard.transform.GetSiblingIndex(), 0, defaultParent != null ? defaultParent.childCount : 0); } catch { sibling = 0; }
+            try { sibling = Mathf.Clamp(cardTemp.transform.GetSiblingIndex(), 0, defaultParent != null ? defaultParent.childCount : 0); } catch { sibling = 0; }
 
             transform.SetSiblingIndex(sibling);
 
             if (rootCanvas != null)
             {
-                tempCard.transform.SetParent(rootCanvas.transform, false);
-                tempCard.transform.localPosition = new Vector3(2340, 0, 0);
+                cardTemp.transform.SetParent(rootCanvas.transform, false);
+                cardTemp.transform.localPosition = new Vector3(2340, 0, 0);
             }
             else
             {
-                tempCard.transform.SetParent(transform.root, false);
-                tempCard.transform.localPosition = new Vector3(2340, 0, 0);
+                cardTemp.transform.SetParent(transform.root, false);
+                cardTemp.transform.localPosition = new Vector3(2340, 0, 0);
             }
         }
         else
@@ -203,7 +203,7 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
 
     private void CheckPosition()
     {
-        if (tempParent == null || tempCard == null || defaultParent == null) return;
+        if (tempParent == null || cardTemp == null || defaultParent == null) return;
 
         int newIndex = tempParent.childCount;
         for (int i = 0; i < tempParent.childCount; i++)
@@ -211,33 +211,33 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
             if (transform.position.x < tempParent.GetChild(i).position.x)
             {
                 newIndex = i;
-                if (tempCard.transform.GetSiblingIndex() < newIndex) newIndex--;
+                if (cardTemp.transform.GetSiblingIndex() < newIndex) newIndex--;
                 break;
             }
         }
 
-        if (tempCard.transform.parent == defaultParent) newIndex = startIndex;
-        tempCard.transform.SetSiblingIndex(Mathf.Max(0, newIndex));
+        if (cardTemp.transform.parent == defaultParent) newIndex = startIndex;
+        cardTemp.transform.SetSiblingIndex(Mathf.Max(0, newIndex));
     }
 
-    private void EnsureTempCardExists()
+    private void EnsureCardTempExists()
     {
-        if (tempCard != null) return;
+        if (cardTemp != null) return;
 
-        tempCard = GameObject.Find("TempCard");
-        if (tempCard != null) return;
+        cardTemp = GameObject.Find("CardTemp");
+        if (cardTemp != null) return;
 
-        tempCard = new GameObject("TempCard", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
-        var img = tempCard.GetComponent<Image>();
+        cardTemp = new GameObject("CardTemp", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+        var img = cardTemp.GetComponent<Image>();
         img.color = new Color(0f, 0f, 0f, 0f);
         img.raycastTarget = false;
 
         if (rootCanvas != null)
-            tempCard.transform.SetParent(rootCanvas.transform, false);
+            cardTemp.transform.SetParent(rootCanvas.transform, false);
         else
-            tempCard.transform.SetParent(transform.root, false);
+            cardTemp.transform.SetParent(transform.root, false);
 
-        var tr = tempCard.GetComponent<RectTransform>();
+        var tr = cardTemp.GetComponent<RectTransform>();
         if (tr != null && rt != null)
             tr.sizeDelta = rt.sizeDelta;
     }

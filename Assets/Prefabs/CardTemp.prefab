@@ -87,7 +87,7 @@ GameObject:
   - component: {fileID: 2812789146418893367}
   - component: {fileID: 683196542191810641}
   m_Layer: 5
-  m_Name: TempCard
+  m_Name: CardTemp
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -108,9 +108,9 @@ RectTransform:
   - {fileID: 1696530236076246909}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 2325, y: 880}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 175, y: 225}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2812789146418893367

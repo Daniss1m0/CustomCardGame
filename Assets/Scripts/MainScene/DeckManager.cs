@@ -269,7 +269,7 @@ public class DeckManager : MonoBehaviour
         try
         {
             uiClone = Instantiate(visualCardPrefab, hand, false);
-            uiClone.SetActive(false); // prepare then activate
+            uiClone.SetActive(false);
             StartCoroutine(FinishLocalCloneRoutine(uiClone, hand, card, cardDataIndex, ownerClientId, netInstance, innerVisualOnNet, cn));
         }
         catch (System.Exception ex)
@@ -316,8 +316,13 @@ public class DeckManager : MonoBehaviour
                 cloneController.LinkNetwork(cn);
 
                 var cloneMove = uiClone.GetComponentInChildren<CardMovement>(true);
-                if (cloneController.Movement == null && cloneMove != null)
+                if (cloneMove != null)
+                {
                     cloneController.SetMovement(cloneMove);
+
+                    cloneMove.defaultParent = hand;
+                    cloneMove.tempParent = hand;
+                }
 
                 var rootGraphic = uiClone.GetComponent<UnityEngine.UI.Graphic>();
                 if (rootGraphic == null)
@@ -331,12 +336,9 @@ public class DeckManager : MonoBehaviour
                     rootGraphic.raycastTarget = true;
                 }
 
-                var cg = uiClone.GetComponent<CanvasGroup>() ?? uiClone.AddComponent<CanvasGroup>();
-                cg.blocksRaycasts = isOwner;
-                cg.interactable = isOwner;
-
-                var proxy = uiClone.GetComponent<CardEventProxy>() ?? uiClone.AddComponent<CardEventProxy>();
-                proxy.targetMovement = cloneController.Movement;
+                var canvasGroup = uiClone.GetComponent<CanvasGroup>() ?? uiClone.AddComponent<CanvasGroup>();
+                canvasGroup.blocksRaycasts = isOwner;
+                canvasGroup.interactable = isOwner;
             }
 
             var handRect = hand.GetComponent<RectTransform>();
@@ -421,6 +423,7 @@ public class DeckManager : MonoBehaviour
                 Destroy(uiClone);
         }
     }
+
 
     private void DrawCardsNetworked(List<Card> deck, Transform hand, ulong ownerClientId, int count = 1)
     {

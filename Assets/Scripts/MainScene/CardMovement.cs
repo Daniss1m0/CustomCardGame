@@ -36,8 +36,7 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
         if (rootCanvas != null)
             canvasRect = rootCanvas.GetComponent<RectTransform>();
 
-        if (cardTemp == null)
-            cardTemp = GameObject.Find("CardTemp");
+        cardTemp = GameObject.Find("CardTemp");
     }
 
     private bool CanReparentNetworkObject()

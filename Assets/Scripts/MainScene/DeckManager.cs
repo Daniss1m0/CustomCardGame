@@ -10,11 +10,7 @@ public class DeckManager : MonoBehaviour
 
     [SerializeField] private int startPlayerHand = 3, startEnemyHand = 4;
     [SerializeField] private Transform playerHand, enemyHand, playerField, enemyField, networkCardRoot;
-
-    [Header("Prefabs")]
-    [SerializeField] private GameObject networkCardPrefab;
-    [SerializeField] private GameObject visualCardPrefab;
-
+    [SerializeField] private GameObject networkCardPrefab, visualCardPrefab;
     [SerializeField] private CardData coinCard;
 
     public Transform EnemyField => enemyField;
@@ -29,44 +25,67 @@ public class DeckManager : MonoBehaviour
         }
     }
 
+    private int GetCardDataIndex(Card card)
+    {
+        if (card == null || CardDatabase.AllCards == null)
+            return -1;
+
+        for (int i = 0; i < CardDatabase.AllCards.Count; i++)
+        {
+            var entry = CardDatabase.AllCards[i];
+            if (entry == null)
+                continue;
+
+            if (!string.IsNullOrEmpty(entry.name) && entry.name == card.name)
+                return i;
+        }
+
+        return -1;
+    }
+
+    private ulong GetOpponentClientId()
+    {
+        if (NetworkManager.Singleton == null)
+            return NetworkManager.ServerClientId;
+
+        foreach (var kvp in NetworkManager.Singleton.ConnectedClients)
+        {
+            ulong clientId = kvp.Key;
+            if (clientId != NetworkManager.Singleton.LocalClientId)
+                return clientId;
+        }
+
+        return NetworkManager.ServerClientId;
+    }
+
+    private void DrawCards(List<Card> deck, Transform hand, ulong ownerClientId, int count = 1)
+    {
+        if (deck == null || hand == null || count <= 0)
+            return;
+
+        for (int i = 0; i < count; i++)
+        {
+            if (deck.Count == 0) break;
+            var card = deck[0];
+            SpawnAndRegisterCard(card, hand, ownerClientId, /*index*/ GetCardDataIndex(card));
+            deck.RemoveAt(0);
+        }
+    }
+
     public void GiveNewCards(Game currentGame)
     {
         if (currentGame == null) return;
 
         if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
         {
-            DrawCardsNetworked(currentGame.playerDeck, playerHand, /*owner*/ NetworkManager.Singleton.LocalClientId, 1);
-            DrawCardsNetworked(currentGame.enemyDeck, enemyHand, /*owner*/ GetOpponentClientId(), 1);
+            DrawCards(currentGame.playerDeck, playerHand, /*owner*/ NetworkManager.Singleton.LocalClientId, 1);
+            DrawCards(currentGame.enemyDeck, enemyHand, /*owner*/ GetOpponentClientId(), 1);
         }
         else
             Debug.Log("GiveNewCards called on client - server handles drawing.");
     }
 
-    private void ClearList(List<CardController> list)
-    {
-        if (list == null || list.Count == 0) return;
-        for (int i = list.Count - 1; i >= 0; i--)
-        {
-            var c = list[i];
-            if (c != null)
-                Destroy(c.gameObject);
-        }
-        list.Clear();
-    }
-
-    public void ClearAll()
-    {
-        var gm = GameManager.Instance;
-        if (gm == null)
-            return;
-
-        ClearList(gm.playerHandCards);
-        ClearList(gm.playerFieldCards);
-        ClearList(gm.enemyHandCards);
-        ClearList(gm.enemyFieldCards);
-    }
-
-    public bool GiveInitialHandsNetworked(Game currentGame, bool randomStart = true)
+    public bool GiveInitialHands(Game currentGame, bool randomStart = true)
     {
         Shuffle(currentGame.playerDeck);
         Shuffle(currentGame.enemyDeck);
@@ -78,14 +97,14 @@ public class DeckManager : MonoBehaviour
 
         if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
         {
-            DrawCardsNetworked(currentGame.playerDeck, playerHand, /*ownerClientId*/ NetworkManager.Singleton.LocalClientId, playerCount);
-            DrawCardsNetworked(currentGame.enemyDeck, enemyHand, /*ownerClientId*/ GetOpponentClientId(), enemyCount);
+            DrawCards(currentGame.playerDeck, playerHand, /*ownerClientId*/ NetworkManager.Singleton.LocalClientId, playerCount);
+            DrawCards(currentGame.enemyDeck, enemyHand, /*ownerClientId*/ GetOpponentClientId(), enemyCount);
         }
 
         return playerStarts;
     }
 
-    private void SpawnAndRegisterCardNetworked(Card card, Transform hand, ulong ownerClientId, int cardDataIndex = -1)
+    private void SpawnAndRegisterCard(Card card, Transform hand, ulong ownerClientId, int cardDataIndex = -1)
     {
         if (networkCardPrefab == null)
         {
@@ -372,50 +391,27 @@ public class DeckManager : MonoBehaviour
         }
     }
 
-    private void DrawCardsNetworked(List<Card> deck, Transform hand, ulong ownerClientId, int count = 1)
+    private void ClearList(List<CardController> list)
     {
-        if (deck == null || hand == null || count <= 0)
+        if (list == null || list.Count == 0) return;
+        for (int i = list.Count - 1; i >= 0; i--)
+        {
+            var c = list[i];
+            if (c != null)
+                Destroy(c.gameObject);
+        }
+        list.Clear();
+    }
+
+    public void ClearAll()
+    {
+        var gm = GameManager.Instance;
+        if (gm == null)
             return;
 
-        for (int i = 0; i < count; i++)
-        {
-            if (deck.Count == 0) break;
-            var card = deck[0];
-            SpawnAndRegisterCardNetworked(card, hand, ownerClientId, /*index*/ GetCardDataIndex(card));
-            deck.RemoveAt(0);
-        }
-    }
-
-    private int GetCardDataIndex(Card card)
-    {
-        if (card == null || CardDatabase.AllCards == null)
-            return -1;
-
-        for (int i = 0; i < CardDatabase.AllCards.Count; i++)
-        {
-            var entry = CardDatabase.AllCards[i];
-            if (entry == null)
-                continue;
-
-            if (!string.IsNullOrEmpty(entry.name) && entry.name == card.name)
-                return i;
-        }
-
-        return -1;
-    }
-
-    private ulong GetOpponentClientId()
-    {
-        if (NetworkManager.Singleton == null)
-            return NetworkManager.ServerClientId;
-
-        foreach (var kvp in NetworkManager.Singleton.ConnectedClients)
-        {
-            ulong clientId = kvp.Key;
-            if (clientId != NetworkManager.Singleton.LocalClientId)
-                return clientId;
-        }
-
-        return NetworkManager.ServerClientId;
+        ClearList(gm.playerHandCards);
+        ClearList(gm.playerFieldCards);
+        ClearList(gm.enemyHandCards);
+        ClearList(gm.enemyFieldCards);
     }
 }

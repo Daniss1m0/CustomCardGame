@@ -54,7 +54,7 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        bool playerStarts = deckManager.GiveInitialHandsNetworked(currentGame, randomStart: true);
+        bool playerStarts = deckManager.GiveInitialHands(currentGame, randomStart: true);
         turn = playerStarts ? 0 : 1;
 
         ulong ownerClientId = playerStarts ? NetworkManager.ServerClientId : GetAnyOtherClientId();

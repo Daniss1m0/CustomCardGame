@@ -47,57 +47,39 @@ public class GameManager : MonoBehaviour
         if (deckManager == null)
             deckManager = FindAnyObjectByType<DeckManager>();
 
-        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
+        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer)
         {
-            bool playerStarts = deckManager.GiveInitialHandsNetworked(currentGame, randomStart: true);
-            turn = playerStarts ? 0 : 1;
+            Debug.LogWarning("StartGame called on non-server. Clients should wait for server initialization.");
+            UIManager.Instance?.StartGame();
+            return;
+        }
 
-            ulong ownerClientId = playerStarts ? NetworkManager.ServerClientId : GetAnyOtherClientId();
-            if (turnManager != null)
-            {
-                turnManager.CurrentTurnOwner.Value = ownerClientId;
-                turnManager.NotifyClientsOwnerClientRpc(ownerClientId);
-                turnManager.StartServerTurnLoop();
-                try 
-                { 
-                    turnManager.SetPlayerOwnerServer(ownerClientId); 
-                } catch { }
-            }
+        bool playerStarts = deckManager.GiveInitialHandsNetworked(currentGame, randomStart: true);
+        turn = playerStarts ? 0 : 1;
 
-            if (playerStarts)
-            {
-                currentGame.player.IncreaseManaPool();
-                currentGame.player.RestoreRoundMana();
-            }
-            else
-            {
-                currentGame.enemy.IncreaseManaPool();
-                currentGame.enemy.RestoreRoundMana();
-            }
+        ulong ownerClientId = playerStarts ? NetworkManager.ServerClientId : GetAnyOtherClientId();
+        if (turnManager != null)
+        {
+            turnManager.CurrentTurnOwner.Value = ownerClientId;
+            turnManager.NotifyClientsOwnerClientRpc(ownerClientId);
+            turnManager.StartServerTurnLoop();
+            try { turnManager.SetPlayerOwnerServer(ownerClientId); } catch { }
+        }
 
-            UpdateManaNetworkIfServer();
-
-            UIManager.Instance?.UpdateHPAndMana();
+        if (playerStarts)
+        {
+            currentGame.player.IncreaseManaPool();
+            currentGame.player.RestoreRoundMana();
         }
         else
         {
-            bool playerStarts = deckManager.GiveInitialHands(currentGame, randomStart: true);
-            turn = playerStarts ? 0 : 1;
-
-            if (playerStarts)
-            {
-                currentGame.player.IncreaseManaPool();
-                currentGame.player.RestoreRoundMana();
-            }
-            else
-            {
-                currentGame.enemy.IncreaseManaPool();
-                currentGame.enemy.RestoreRoundMana();
-            }
-
-            UIManager.Instance?.UpdateHPAndMana();
+            currentGame.enemy.IncreaseManaPool();
+            currentGame.enemy.RestoreRoundMana();
         }
 
+        UpdateManaNetworkIfServer();
+
+        UIManager.Instance?.UpdateHPAndMana();
         UIManager.Instance?.StartGame();
 
         if (turnManager != null)
@@ -106,6 +88,12 @@ public class GameManager : MonoBehaviour
 
     public void RestartGame()
     {
+        if (NetworkManager.Singleton != null && !NetworkManager.Singleton.IsServer)
+        {
+            Debug.LogWarning("RestartGame can only be called on the server.");
+            return;
+        }
+
         if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
             turnManager?.StopServerTurnLoop();
 
@@ -113,6 +101,7 @@ public class GameManager : MonoBehaviour
 
         StartGame();
     }
+
 
     public void ChangeTurn()
     {

@@ -29,95 +29,17 @@ public class DeckManager : MonoBehaviour
         }
     }
 
-    public bool GiveInitialHands(Game currentGame, bool randomStart = true)
-    {
-        if (currentGame == null)
-            return true;
-
-        Shuffle(currentGame.playerDeck);
-        Shuffle(currentGame.enemyDeck);
-
-        bool playerStarts = randomStart ? (Random.value < 0.5f) : true;
-
-        int playerCount = playerStarts ? startPlayerHand : startEnemyHand;
-        int enemyCount = playerStarts ? startEnemyHand : startPlayerHand;
-
-        DrawCards(currentGame.playerDeck, playerHand, true, playerCount);
-        DrawCards(currentGame.enemyDeck, enemyHand, false, enemyCount);
-
-        if (coinCard != null && coinCard.isSpell)
-        {
-            var coin = new SpellCard(coinCard);
-            if (coin.spell == SpellType.GiveTempMana)
-            {
-                if (playerStarts)
-                    SpawnAndRegisterCard(coin, enemyHand, false);
-                else
-                    SpawnAndRegisterCard(coin, playerHand, true);
-            }
-        }
-        else if (coinCard == null)
-            Debug.LogWarning("ÑoinCard not assigned.");
-
-        return playerStarts;
-    }
-
     public void GiveNewCards(Game currentGame)
     {
-        if (currentGame == null)
-            return;
+        if (currentGame == null) return;
 
-        DrawCards(currentGame.playerDeck, playerHand, true, 1);
-        DrawCards(currentGame.enemyDeck, enemyHand, false, 1);
-    }
-
-    private void DrawCards(List<Card> deck, Transform hand, bool isPlayer, int count = 1)
-    {
-        if (deck == null || hand == null || count <= 0) return;
-
-        for (int i = 0; i < count; i++)
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
         {
-            if (deck.Count == 0)
-                break;
-            var card = deck[0];
-            SpawnAndRegisterCard(card, hand, isPlayer);
-            deck.RemoveAt(0);
+            DrawCardsNetworked(currentGame.playerDeck, playerHand, /*owner*/ NetworkManager.Singleton.LocalClientId, 1);
+            DrawCardsNetworked(currentGame.enemyDeck, enemyHand, /*owner*/ GetOpponentClientId(), 1);
         }
-    }
-
-    private void SpawnAndRegisterCard(Card card, Transform hand, bool isPlayer)
-    {
-        if (visualCardPrefab == null || hand == null)
-        {
-            Debug.LogError("visualCardPrefab or hand is not assigned.");
-            return;
-        }
-
-        var gm = GameManager.Instance;
-        if (gm == null)
-            return;
-
-        var handList = isPlayer ? gm.playerHandCards : gm.enemyHandCards;
-        if (handList.Count >= MAX_HAND_SIZE)
-        {
-            Debug.Log($"{(isPlayer ? "Player" : "Enemy")} hand is full. Burning drawn card: {card.name}");
-            return;
-        }
-
-        GameObject instance = Instantiate(visualCardPrefab, hand, false);
-        var controller = instance.GetComponent<CardController>();
-        if (controller == null)
-        {
-            Destroy(instance);
-            return;
-        }
-
-        controller.Init(card, isPlayer);
-
-        if (isPlayer)
-            gm.playerHandCards.Add(controller);
         else
-            gm.enemyHandCards.Add(controller);
+            Debug.Log("GiveNewCards called on client - server handles drawing.");
     }
 
     private void ClearList(List<CardController> list)
@@ -159,11 +81,6 @@ public class DeckManager : MonoBehaviour
             DrawCardsNetworked(currentGame.playerDeck, playerHand, /*ownerClientId*/ NetworkManager.Singleton.LocalClientId, playerCount);
             DrawCardsNetworked(currentGame.enemyDeck, enemyHand, /*ownerClientId*/ GetOpponentClientId(), enemyCount);
         }
-        else
-        {
-            DrawCards(currentGame.playerDeck, playerHand, true, playerCount);
-            DrawCards(currentGame.enemyDeck, enemyHand, false, enemyCount);
-        }
 
         return playerStarts;
     }
@@ -172,19 +89,18 @@ public class DeckManager : MonoBehaviour
     {
         if (networkCardPrefab == null)
         {
-            Debug.LogError("[SpawnAndRegisterCardNetworked] networkCardPrefab is not assigned.");
+            Debug.LogError("NetworkCardPrefab is not assigned.");
             return;
         }
+
         if (visualCardPrefab == null)
         {
-            Debug.LogError("[SpawnAndRegisterCardNetworked] visualCardPrefab is not assigned.");
+            Debug.LogError("VisualCardPrefab is not assigned.");
             return;
         }
+
         if (hand == null)
-        {
-            Debug.LogWarning("[SpawnAndRegisterCardNetworked] hand transform is null for card: " + (card != null ? card.name : "null"));
             return;
-        }
 
         GameObject netInstance = Instantiate(networkCardPrefab);
         var netObj = netInstance.GetComponent<NetworkObject>();
@@ -193,7 +109,6 @@ public class DeckManager : MonoBehaviour
 
         if (netObj == null || cn == null)
         {
-            Debug.LogError("[SpawnAndRegisterCardNetworked] networkCardPrefab must contain NetworkObject and CardNetwork.");
             Destroy(netInstance);
             return;
         }
@@ -211,14 +126,11 @@ public class DeckManager : MonoBehaviour
                 spawned = true;
             }
             else
-            {
-                Debug.Log("[SpawnAndRegisterCardNetworked] NetworkManager not present — running offline/spawn without network.");
                 spawned = true;
-            }
         }
         catch (System.Exception ex)
         {
-            Debug.LogError("[SpawnAndRegisterCardNetworked] Spawn failed: " + ex);
+            Debug.LogError("Spawn failed: " + ex);
             spawned = false;
         }
 
@@ -240,11 +152,11 @@ public class DeckManager : MonoBehaviour
             }
             catch (System.Exception ex)
             {
-                Debug.LogWarning("[SpawnAndRegisterCardNetworked] Failed to set parent after spawn: " + ex);
+                Debug.LogWarning("Failed to set parent after spawn: " + ex);
             }
         }
         else if (spawned)
-            Debug.Log("[SpawnAndRegisterCardNetworked] networkCardRoot not assigned/found - leaving network instance at scene root.");
+            Debug.Log("NetworkCardRoot not assigned/found - leaving network instance at scene root.");
 
         try
         {
@@ -259,7 +171,7 @@ public class DeckManager : MonoBehaviour
         }
         catch (System.Exception ex)
         {
-            Debug.LogWarning("[SpawnAndRegisterCardNetworked] Failed to set NetworkVariables: " + ex);
+            Debug.LogWarning("Failed to set NetworkVariables: " + ex);
         }
 
         if (innerVisualOnNet != null)
@@ -274,7 +186,7 @@ public class DeckManager : MonoBehaviour
         }
         catch (System.Exception ex)
         {
-            Debug.LogError("[SpawnAndRegisterCardNetworked] Failed to create uiClone: " + ex);
+            Debug.LogError("Failed to create uiClone: " + ex);
             if (uiClone != null) Destroy(uiClone);
         }
     }
@@ -282,7 +194,9 @@ public class DeckManager : MonoBehaviour
     private IEnumerator FinishLocalCloneRoutine(GameObject uiClone, Transform hand, Card card, int cardDataIndex, ulong ownerClientId, GameObject netInstance, CardController innerVisualOnNet, CardNetwork cn)
     {
         yield return null;
-        if (uiClone == null) yield break;
+        
+        if (uiClone == null) 
+            yield break;
 
         try
         {
@@ -330,7 +244,7 @@ public class DeckManager : MonoBehaviour
                 }
                 catch (System.Exception ex)
                 {
-                    Debug.LogWarning("[FinishLocalCloneRoutine] Failed copying SpellCard fields: " + ex);
+                    Debug.LogWarning("Failed copying SpellCard fields: " + ex);
                 }
 
                 cloneController.LinkNetwork(cn);
@@ -366,7 +280,10 @@ public class DeckManager : MonoBehaviour
             {
                 Canvas.ForceUpdateCanvases();
                 UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(handRect);
-                try { uiClone.transform.SetSiblingIndex(Mathf.Clamp(hand.childCount - 1, 0, hand.childCount)); } catch { }
+                try 
+                { 
+                    uiClone.transform.SetSiblingIndex(Mathf.Clamp(hand.childCount - 1, 0, hand.childCount)); 
+                } catch { }
             }
 
             var gm = GameManager.Instance;

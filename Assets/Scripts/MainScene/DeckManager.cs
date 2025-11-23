@@ -313,6 +313,26 @@ public class DeckManager : MonoBehaviour
 
                 cloneController.SetNetworkData(card.attack, card.health, card.manaCost, card.isSpell, cardDataIndex, ownerClientId);
 
+                try
+                {
+                    if (card is SpellCard origSpell && cloneController.self is SpellCard visualSpell)
+                    {
+                        bool needCopy = visualSpell.spell == SpellType.None;
+                        if (needCopy)
+                        {
+                            visualSpell.spell = origSpell.spell;
+                            visualSpell.spellTarget = origSpell.spellTarget;
+                            visualSpell.spellPower = origSpell.spellPower;
+
+                            cloneController.Info?.UpdateStats(visualSpell);
+                        }
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogWarning("[FinishLocalCloneRoutine] Failed copying SpellCard fields: " + ex);
+                }
+
                 cloneController.LinkNetwork(cn);
 
                 var cloneMove = uiClone.GetComponentInChildren<CardMovement>(true);
@@ -434,7 +454,6 @@ public class DeckManager : MonoBehaviour
                 Destroy(uiClone);
         }
     }
-
 
     private void DrawCardsNetworked(List<Card> deck, Transform hand, ulong ownerClientId, int count = 1)
     {

@@ -356,7 +356,18 @@ public class DeckManager : MonoBehaviour
                     gm.playerHandCards.Add(cloneController);
                 else
                     gm.enemyHandCards.Add(cloneController);
+
+                try
+                {
+                    gm.CheckCardsForManaAvailability();
+                    UIManager.Instance?.UpdateHPAndMana();
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogWarning("[FinishLocalCloneRoutine] Failed to refresh availability UI: " + ex);
+                }
             }
+
 
             if (innerVisualOnNet != null)
                 innerVisualOnNet.gameObject.SetActive(false);

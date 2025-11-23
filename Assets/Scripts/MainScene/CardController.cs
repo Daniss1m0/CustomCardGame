@@ -13,12 +13,14 @@ public class CardController : MonoBehaviour
     [SerializeField] private CardAbility ability;
 
     private GameManager gameManager;
+    private CardNetwork linkedNetwork;
+
+    [HideInInspector] public int placedOnTurn = -1;
 
     public CardInfo Info => info;
     public CardMovement Movement => movement;
     public CardAbility Ability => ability;
-
-    private CardNetwork linkedNetwork;
+    public CardNetwork Network => linkedNetwork;
 
     public void Init(Card card, bool isPlayerCard)
     {
@@ -39,6 +41,16 @@ public class CardController : MonoBehaviour
     {
         if (self.isSpell && ((SpellCard)self).spellTarget != TargetType.None)
             return;
+
+        if (gameManager == null) 
+            gameManager = GameManager.Instance;
+
+        placedOnTurn = gameManager != null ? gameManager.CurrentTurn : -1;
+
+        self.canAttack = false;
+        info.SetHighlight(false);
+        if (linkedNetwork != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
+            linkedNetwork.CanAttack.Value = false;
 
         if (isPlayerCard)
         {
@@ -78,9 +90,15 @@ public class CardController : MonoBehaviour
         self.canAttack = false;
         info.SetHighlight(false);
 
+        if (linkedNetwork != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
+        {
+            try { linkedNetwork.CanAttack.Value = false; } catch { }
+        }
+
         if (self.HasAbility)
             ability.OnDamageDeal(self, isPlayerCard, info);
     }
+
 
     public void DestroyCard()
     {
@@ -324,6 +342,8 @@ public class CardController : MonoBehaviour
         self.isPlaced = true;
         Info?.ShowCard(self);
 
+        placedOnTurn = GameManager.Instance != null ? GameManager.Instance.CurrentTurn : -1;
+
         var dm = FindAnyObjectByType<DeckManager>();
         Transform targetParent = null;
 
@@ -395,7 +415,9 @@ public class CardController : MonoBehaviour
 
     public void SetMovement(CardMovement m)
     {
-        if (m == null) return;
+        if (m == null) 
+            return;
+
         movement = m;
     }
 }

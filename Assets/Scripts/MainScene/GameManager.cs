@@ -21,11 +21,12 @@ public class GameManager : MonoBehaviour
     private int turn;
     private float lastChangeTime = -10f;
 
-    public IPlayerController PlayerController => playerControllerBehaviour as IPlayerController;
-    public IPlayerController OpponentController => opponentControllerBehaviour as IPlayerController;
+    public int CurrentTurn => turn;
+    public bool IsPlayerTurn => turn % 2 == 0;
     public AttackedHero PlayerHero => playerHero;
     public Transform EnemyField => deckManager != null ? deckManager.EnemyField : null;
-    public bool IsPlayerTurn => turn % 2 == 0;
+    public IPlayerController PlayerController => playerControllerBehaviour as IPlayerController;
+    public IPlayerController OpponentController => opponentControllerBehaviour as IPlayerController;
 
     private void Awake()
     {
@@ -128,7 +129,6 @@ public class GameManager : MonoBehaviour
             if (c == null || c.self == null || c.Info == null)
                 continue;
 
-            c.self.canAttack = false;
             c.Info.SetHighlight(false);
         }
         foreach (var c in enemyFieldCards)
@@ -136,7 +136,6 @@ public class GameManager : MonoBehaviour
             if (c == null || c.self == null || c.Info == null)
                 continue;
 
-            c.self.canAttack = false;
             c.Info.SetHighlight(false);
         }
 
@@ -165,6 +164,37 @@ public class GameManager : MonoBehaviour
         }
 
         UpdateManaNetworkIfServer();
+
+        List<CardController> activeField = IsPlayerTurn ? playerFieldCards : enemyFieldCards;
+        foreach (var card in activeField)
+        {
+            if (card == null || card.self == null || card.Info == null)
+                continue;
+
+            if (!card.self.isPlaced)
+            {
+                card.self.canAttack = false;
+                card.Info.SetHighlight(false);
+                if (card.Network != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
+                    card.Network.CanAttack.Value = false;
+                continue;
+            }
+
+            if (card.placedOnTurn < CurrentTurn)
+            {
+                card.self.canAttack = true;
+                card.Info.SetHighlight(true);
+                if (card.Network != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
+                    card.Network.CanAttack.Value = true;
+            }
+            else
+            {
+                card.self.canAttack = false;
+                card.Info.SetHighlight(false);
+                if (card.Network != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
+                    card.Network.CanAttack.Value = false;
+            }
+        }
 
         if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
         {

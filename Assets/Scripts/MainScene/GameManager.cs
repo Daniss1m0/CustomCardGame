@@ -10,8 +10,7 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance;
 
     public Game currentGame; // public Game CurrentGame { get; private set; }?
-    public List<CardController> playerHandCards = new(), enemyHandCards = new(),
-                                playerFieldCards = new(), enemyFieldCards = new();
+    public List<CardController> playerHandCards = new(), enemyHandCards = new(), playerFieldCards = new(), enemyFieldCards = new();
 
     [SerializeField] private DeckManager deckManager;
     [SerializeField] private TurnManager turnManager;
@@ -59,7 +58,10 @@ public class GameManager : MonoBehaviour
                 turnManager.CurrentTurnOwner.Value = ownerClientId;
                 turnManager.NotifyClientsOwnerClientRpc(ownerClientId);
                 turnManager.StartServerTurnLoop();
-                try { turnManager.SetPlayerOwnerServer(ownerClientId); } catch { }
+                try 
+                { 
+                    turnManager.SetPlayerOwnerServer(ownerClientId); 
+                } catch { }
             }
 
             if (playerStarts)
@@ -115,13 +117,11 @@ public class GameManager : MonoBehaviour
     public void ChangeTurn()
     {
         if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening && !NetworkManager.Singleton.IsServer)
-        {
-            Debug.LogWarning("[GameManager] Client attempted to call ChangeTurn() directly — ignored. Use EndTurnFromController() to request server.");
             return;
-        }
 
         if (Time.realtimeSinceStartup - lastChangeTime < MIN_TIME_BETWEEN_CHANGE)
             return;
+
         lastChangeTime = Time.realtimeSinceStartup;
 
         foreach (var c in playerFieldCards)
@@ -138,8 +138,22 @@ public class GameManager : MonoBehaviour
 
             c.Info.SetHighlight(false);
         }
+        
+        var prevActiveField = IsPlayerTurn ? playerFieldCards : enemyFieldCards;
+        foreach (var c in prevActiveField)
+        {
+            if (c == null || c.self == null || c.Info == null)
+                continue;
+
+            c.self.canAttack = false;
+            c.Info.SetHighlight(false);
+
+            if (c.Network != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
+                c.Network.CanAttack.Value = false;
+        }
 
         turn++;
+
         UIManager.Instance?.DisableTurnBtn();
 
         if (IsPlayerTurn)
@@ -177,6 +191,7 @@ public class GameManager : MonoBehaviour
                 card.Info.SetHighlight(false);
                 if (card.Network != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
                     card.Network.CanAttack.Value = false;
+                
                 continue;
             }
 
@@ -211,19 +226,14 @@ public class GameManager : MonoBehaviour
 
     public void PlayCard(CardController card, bool isPlayerSide)
     {
-        if (card == null) return;
+        if (card == null) 
+            return;
 
         if (isPlayerSide != IsPlayerTurn)
-        {
-            Debug.LogWarning("Not that side's turn.");
             return;
-        }
 
         if (card.self.isPlaced)
-        {
-            Debug.LogWarning("Card already placed.");
             return;
-        }
 
         var fieldCount = isPlayerSide ? playerFieldCards.Count : enemyFieldCards.Count;
         if (!card.self.isSpell && fieldCount >= (deckManager != null ? DeckManager.MAX_FIELD_SIZE : 7))
@@ -233,15 +243,10 @@ public class GameManager : MonoBehaviour
         }
 
         if (isPlayerSide && currentGame.player.mana < card.self.manaCost)
-        {
-            Debug.LogWarning("Player not enough mana.");
             return;
-        }
+
         if (!isPlayerSide && currentGame.enemy.mana < card.self.manaCost)
-        {
-            Debug.LogWarning("Enemy not enough mana.");
             return;
-        }
 
         card.OnCast();
     }
@@ -300,15 +305,11 @@ public class GameManager : MonoBehaviour
             return;
 
         if (attacker.isPlayerCard)
-        {
             if (enemyFieldCards.Exists(x => x.self.IsProvocation) && !defender.self.IsProvocation)
                 return;
-        }
         else
-        {
             if (playerFieldCards.Exists(x => x.self.IsProvocation) && !defender.self.IsProvocation)
                 return;
-        }
 
         CardsFight(attacker, defender);
     }
@@ -317,6 +318,7 @@ public class GameManager : MonoBehaviour
     {
         if (attacker == null)
             return;
+
         if (!attacker.self.canAttack)
             return;
 
@@ -324,12 +326,14 @@ public class GameManager : MonoBehaviour
         {
             if (enemyFieldCards.Exists(x => x.self.IsProvocation))
                 return;
+
             DamageHero(attacker, true);
         }
         else
         {
             if (playerFieldCards.Exists(x => x.self.IsProvocation))
                 return;
+
             DamageHero(attacker, false);
         }
     }
@@ -396,7 +400,8 @@ public class GameManager : MonoBehaviour
 
     public void CheckForResult()
     {
-        if (currentGame == null) return;
+        if (currentGame == null) 
+            return;
 
         if (currentGame.enemy.hp == 0 || currentGame.player.hp == 0)
         {
@@ -549,16 +554,31 @@ public class GameManager : MonoBehaviour
 
     private void UpdateManaNetworkIfServer()
     {
-        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer) return;
-        if (turnManager == null) turnManager = FindFirstObjectByType<TurnManager>();
-        if (turnManager == null) return;
-        try { turnManager.SetPlayerManaServer(currentGame.player.mana); } catch { }
-        try { turnManager.SetEnemyManaServer(currentGame.enemy.mana); } catch { }
+        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer) 
+            return;
+
+        if (turnManager == null) 
+            turnManager = FindFirstObjectByType<TurnManager>();
+
+        if (turnManager == null) 
+            return;
+
+        try 
+        { 
+            turnManager.SetPlayerManaServer(currentGame.player.mana); 
+        } catch { }
+
+        try 
+        { 
+            turnManager.SetEnemyManaServer(currentGame.enemy.mana); 
+        } catch { }
     }
 
     private void ApplyNetworkManaValues()
     {
-        if (turnManager == null || NetworkManager.Singleton == null) return;
+        if (turnManager == null || NetworkManager.Singleton == null) 
+            return;
+
         if (currentGame == null)
             currentGame = new Game();
 

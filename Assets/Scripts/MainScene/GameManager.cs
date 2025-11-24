@@ -19,6 +19,7 @@ public class GameManager : MonoBehaviour
 
     private int turn;
     private float lastChangeTime = -10f;
+    private bool localIsOwnerTurn = false;
 
     public int CurrentTurn => turn;
     public bool IsPlayerTurn => turn % 2 == 0;
@@ -63,7 +64,10 @@ public class GameManager : MonoBehaviour
             turnManager.CurrentTurnOwner.Value = ownerClientId;
             turnManager.NotifyClientsOwnerClientRpc(ownerClientId);
             turnManager.StartServerTurnLoop();
-            try { turnManager.SetPlayerOwnerServer(ownerClientId); } catch { }
+            try 
+            { 
+                turnManager.SetPlayerOwnerServer(ownerClientId); 
+            } catch { }
         }
 
         if (playerStarts)
@@ -102,7 +106,6 @@ public class GameManager : MonoBehaviour
         StartGame();
     }
 
-
     public void ChangeTurn()
     {
         if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening && !NetworkManager.Singleton.IsServer)
@@ -127,7 +130,7 @@ public class GameManager : MonoBehaviour
 
             c.Info.SetHighlight(false);
         }
-        
+
         var prevActiveField = IsPlayerTurn ? playerFieldCards : enemyFieldCards;
         foreach (var c in prevActiveField)
         {
@@ -145,6 +148,17 @@ public class GameManager : MonoBehaviour
 
         UIManager.Instance?.DisableTurnBtn();
 
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
+        {
+            ulong newOwner = IsPlayerTurn ? NetworkManager.ServerClientId : GetAnyOtherClientId();
+            if (turnManager != null)
+            {
+                turnManager.CurrentTurnOwner.Value = newOwner;
+                turnManager.NotifyClientsOwnerClientRpc(newOwner);
+                turnManager.StopServerTurnLoop();
+                turnManager.StartServerTurnLoop();
+            }
+        }
         if (IsPlayerTurn)
         {
             currentGame.player.ClearTempMana();
@@ -180,7 +194,7 @@ public class GameManager : MonoBehaviour
                 card.Info.SetHighlight(false);
                 if (card.Network != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
                     card.Network.CanAttack.Value = false;
-                
+
                 continue;
             }
 
@@ -199,20 +213,7 @@ public class GameManager : MonoBehaviour
                     card.Network.CanAttack.Value = false;
             }
         }
-
-        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
-        {
-            ulong newOwner = IsPlayerTurn ? NetworkManager.ServerClientId : GetAnyOtherClientId();
-            if (turnManager != null)
-            {
-                turnManager.CurrentTurnOwner.Value = newOwner;
-                turnManager.NotifyClientsOwnerClientRpc(newOwner);
-                turnManager.StopServerTurnLoop();
-                turnManager.StartServerTurnLoop();
-            }
-        }
     }
-
     public void PlayCard(CardController card, bool isPlayerSide)
     {
         if (card == null) 
@@ -403,7 +404,11 @@ public class GameManager : MonoBehaviour
 
     public void CheckCardsForManaAvailability()
     {
-        bool playerCanAct = IsPlayerTurn;
+        bool playerCanAct;
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsClient && !NetworkManager.Singleton.IsServer)
+            playerCanAct = localIsOwnerTurn;
+        else
+            playerCanAct = IsPlayerTurn;
 
         foreach (var card in playerHandCards)
         {
@@ -423,6 +428,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
+
     public void HighlightTargets(CardController attacker, bool highlight)
     {
         List<CardController> targets = new();
@@ -432,7 +438,7 @@ public class GameManager : MonoBehaviour
             var spellCard = attacker.self as SpellCard;
             if (spellCard == null)
             {
-                Debug.LogWarning("HighlightTargets: attacker marked as isSpell but not a SpellCard instance.");
+                Debug.LogWarning("Attacker marked as isSpell but not a SpellCard instance.");
                 return;
             }
 
@@ -529,11 +535,14 @@ public class GameManager : MonoBehaviour
     {
         bool amOwner = NetworkManager.Singleton != null && NetworkManager.Singleton.LocalClientId == newOwner;
 
+        localIsOwnerTurn = amOwner;
+
         if (UIManager.Instance != null)
             UIManager.Instance.SetEndTurnInteractable(amOwner);
 
         CheckCardsForManaAvailability();
     }
+
 
     private void OnTurnTimeChanged(int oldTime, int newTime)
     {

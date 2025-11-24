@@ -67,7 +67,8 @@ public class DeckManager : MonoBehaviour
 
         for (int i = 0; i < count; i++)
         {
-            if (deck.Count == 0) break;
+            if (deck.Count == 0) 
+                break;
             var card = deck[0];
             SpawnAndRegisterCard(card, hand, ownerClientId, GetCardDataIndex(card));
             deck.RemoveAt(0);
@@ -76,7 +77,8 @@ public class DeckManager : MonoBehaviour
 
     public void GiveNewCards(Game currentGame)
     {
-        if (currentGame == null) return;
+        if (currentGame == null) 
+            return;
 
         if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
         {
@@ -159,7 +161,8 @@ public class DeckManager : MonoBehaviour
         if (root == null)
         {
             var found = GameObject.Find("Network Card Root");
-            if (found != null) root = found.transform;
+            if (found != null) 
+                root = found.transform;
         }
 
         if (spawned && root != null)
@@ -199,23 +202,47 @@ public class DeckManager : MonoBehaviour
         {
             if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
             {
-                var targetIds = new System.Collections.Generic.List<ulong>();
-                foreach (var kv in NetworkManager.Singleton.ConnectedClients)
+                try
                 {
-                    var clientId = kv.Key;
-                    if (clientId != NetworkManager.ServerClientId)
-                        targetIds.Add(clientId);
-                }
-
-                var clientRpcParams = new ClientRpcParams
-                {
-                    Send = new ClientRpcSendParams
+                    if (ownerClientId != NetworkManager.ServerClientId)
                     {
-                        TargetClientIds = targetIds.ToArray()
-                    }
-                };
+                        var ownerRpcParams = new ClientRpcParams
+                        {
+                            Send = new ClientRpcSendParams
+                            {
+                                TargetClientIds = new ulong[] { ownerClientId }
+                            }
+                        };
 
-                cn.CreateLocalCloneClientRpc(cardDataIndex, ownerClientId, card.attack, card.health, card.manaCost, card.isSpell, clientRpcParams);
+                        cn.CreateLocalCloneClientRpc(cardDataIndex, ownerClientId, card.attack, card.health, card.manaCost, card.isSpell, ownerRpcParams);
+                    }
+
+                    var otherTargetIds = new System.Collections.Generic.List<ulong>();
+                    foreach (var kv in NetworkManager.Singleton.ConnectedClients)
+                    {
+                        var clientId = kv.Key;
+                        if (clientId == NetworkManager.ServerClientId) continue;
+                        if (clientId == ownerClientId) continue;
+                        otherTargetIds.Add(clientId);
+                    }
+
+                    if (otherTargetIds.Count > 0)
+                    {
+                        var othersRpcParams = new ClientRpcParams
+                        {
+                            Send = new ClientRpcSendParams
+                            {
+                                TargetClientIds = otherTargetIds.ToArray()
+                            }
+                        };
+
+                        cn.CreateLocalCloneClientRpc(cardDataIndex, ownerClientId, card.attack, card.health, card.manaCost, card.isSpell, othersRpcParams);
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogWarning("Failed to call CreateLocalCloneClientRpc (split): " + ex);
+                }
             }
         }
         catch (System.Exception ex)
@@ -351,7 +378,7 @@ public class DeckManager : MonoBehaviour
                 }
                 catch (System.Exception ex)
                 {
-                    Debug.LogWarning("[FinishLocalCloneRoutine] Failed to refresh availability UI: " + ex);
+                    Debug.LogWarning("Failed to refresh availability UI: " + ex);
                 }
             }
 
@@ -416,7 +443,7 @@ public class DeckManager : MonoBehaviour
         }
         catch (System.Exception ex)
         {
-            Debug.LogError("[FinishLocalCloneRoutine] Error finishing uiClone setup: " + ex);
+            Debug.LogError("Error finishing uiClone setup: " + ex);
             if (uiClone != null)
                 Destroy(uiClone);
         }

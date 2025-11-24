@@ -1,19 +1,21 @@
 using System.Collections;
 using System.Collections.Generic;
-using Unity.Netcode;
 using UnityEngine;
+using Unity.Netcode;
 
 public class DeckManager : MonoBehaviour
 {
-    public static readonly int MAX_HAND_SIZE = 10;
-    public static readonly int MAX_FIELD_SIZE = 7;
+    public static readonly int MAX_HAND_SIZE = 10, MAX_FIELD_SIZE = 7;
 
     [SerializeField] private int startPlayerHand = 3, startEnemyHand = 4;
     [SerializeField] private Transform playerHand, enemyHand, playerField, enemyField, networkCardRoot;
     [SerializeField] private GameObject networkCardPrefab, visualCardPrefab;
     [SerializeField] private CardData coinCard;
-
+    
     public Transform EnemyField => enemyField;
+    public Transform PlayerHand => playerHand;
+    public Transform EnemyHand => enemyHand;
+    public GameObject VisualCardPrefab => visualCardPrefab;
 
     private void Shuffle<T>(List<T> list)
     {
@@ -67,7 +69,7 @@ public class DeckManager : MonoBehaviour
         {
             if (deck.Count == 0) break;
             var card = deck[0];
-            SpawnAndRegisterCard(card, hand, ownerClientId, /*index*/ GetCardDataIndex(card));
+            SpawnAndRegisterCard(card, hand, ownerClientId, GetCardDataIndex(card));
             deck.RemoveAt(0);
         }
     }
@@ -78,8 +80,8 @@ public class DeckManager : MonoBehaviour
 
         if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
         {
-            DrawCards(currentGame.playerDeck, playerHand, /*owner*/ NetworkManager.Singleton.LocalClientId, 1);
-            DrawCards(currentGame.enemyDeck, enemyHand, /*owner*/ GetOpponentClientId(), 1);
+            DrawCards(currentGame.playerDeck, playerHand, NetworkManager.Singleton.LocalClientId, 1);
+            DrawCards(currentGame.enemyDeck, enemyHand, GetOpponentClientId(), 1);
         }
         else
             Debug.Log("GiveNewCards called on client - server handles drawing.");
@@ -97,8 +99,8 @@ public class DeckManager : MonoBehaviour
 
         if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
         {
-            DrawCards(currentGame.playerDeck, playerHand, /*ownerClientId*/ NetworkManager.Singleton.LocalClientId, playerCount);
-            DrawCards(currentGame.enemyDeck, enemyHand, /*ownerClientId*/ GetOpponentClientId(), enemyCount);
+            DrawCards(currentGame.playerDeck, playerHand, NetworkManager.Singleton.LocalClientId, playerCount);
+            DrawCards(currentGame.enemyDeck, enemyHand, GetOpponentClientId(), enemyCount);
         }
 
         return playerStarts;
@@ -192,6 +194,35 @@ public class DeckManager : MonoBehaviour
         {
             Debug.LogWarning("Failed to set NetworkVariables: " + ex);
         }
+
+        try
+        {
+            if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
+            {
+                var targetIds = new System.Collections.Generic.List<ulong>();
+                foreach (var kv in NetworkManager.Singleton.ConnectedClients)
+                {
+                    var clientId = kv.Key;
+                    if (clientId != NetworkManager.ServerClientId)
+                        targetIds.Add(clientId);
+                }
+
+                var clientRpcParams = new ClientRpcParams
+                {
+                    Send = new ClientRpcSendParams
+                    {
+                        TargetClientIds = targetIds.ToArray()
+                    }
+                };
+
+                cn.CreateLocalCloneClientRpc(cardDataIndex, ownerClientId, card.attack, card.health, card.manaCost, card.isSpell, clientRpcParams);
+            }
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogWarning("Failed to call CreateLocalCloneClientRpc: " + ex);
+        }
+
 
         if (innerVisualOnNet != null)
             innerVisualOnNet.gameObject.SetActive(false);

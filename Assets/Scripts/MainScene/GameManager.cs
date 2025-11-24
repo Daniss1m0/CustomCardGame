@@ -159,28 +159,54 @@ public class GameManager : MonoBehaviour
                 turnManager.StartServerTurnLoop();
             }
         }
-        if (IsPlayerTurn)
+
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
         {
-            currentGame.player.ClearTempMana();
+            if (IsPlayerTurn)
+            {
+                currentGame.player.ClearTempMana();
+                deckManager.GiveNewCards(currentGame);
+                currentGame.player.IncreaseManaPool();
+                currentGame.player.RestoreRoundMana();
+                UIManager.Instance?.UpdateHPAndMana();
+            }
+            else
+            {
+                currentGame.enemy.ClearTempMana();
+                deckManager.GiveNewCards(currentGame);
+                currentGame.enemy.IncreaseManaPool();
+                currentGame.enemy.RestoreRoundMana();
+                UIManager.Instance?.UpdateHPAndMana();
+            }
 
-            deckManager.GiveNewCards(currentGame);
+            UpdateManaNetworkIfServer();
 
-            currentGame.player.IncreaseManaPool();
-            currentGame.player.RestoreRoundMana();
-
-            UIManager.Instance?.UpdateHPAndMana();
+            ulong newOwner = IsPlayerTurn ? NetworkManager.ServerClientId : GetAnyOtherClientId();
+            if (turnManager != null)
+            {
+                turnManager.CurrentTurnOwner.Value = newOwner;
+                turnManager.NotifyClientsOwnerClientRpc(newOwner);
+                turnManager.StopServerTurnLoop();
+                turnManager.StartServerTurnLoop();
+            }
         }
         else
         {
-            currentGame.enemy.ClearTempMana();
-
-            currentGame.enemy.IncreaseManaPool();
-            currentGame.enemy.RestoreRoundMana();
-
-            UIManager.Instance?.UpdateHPAndMana();
+            if (IsPlayerTurn)
+            {
+                currentGame.player.ClearTempMana();
+                currentGame.player.IncreaseManaPool();
+                currentGame.player.RestoreRoundMana();
+                UIManager.Instance?.UpdateHPAndMana();
+            }
+            else
+            {
+                currentGame.enemy.ClearTempMana();
+                currentGame.enemy.IncreaseManaPool();
+                currentGame.enemy.RestoreRoundMana();
+                UIManager.Instance?.UpdateHPAndMana();
+            }
         }
-
-        UpdateManaNetworkIfServer();
 
         List<CardController> activeField = IsPlayerTurn ? playerFieldCards : enemyFieldCards;
         foreach (var card in activeField)
@@ -214,6 +240,7 @@ public class GameManager : MonoBehaviour
             }
         }
     }
+
     public void PlayCard(CardController card, bool isPlayerSide)
     {
         if (card == null) 

@@ -55,22 +55,27 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        bool playerStarts = deckManager.GiveInitialHands(currentGame, randomStart: true);
+        ulong playerSideOwnerClientId = NetworkManager.ServerClientId;
+        ulong otherClientId = GetAnyOtherClientId();
+
+        bool playerStarts = deckManager.GiveInitialHands(currentGame, playerSideOwnerClientId, otherClientId, randomStart: true);
         turn = playerStarts ? 0 : 1;
 
-        ulong ownerClientId = playerStarts ? NetworkManager.ServerClientId : GetAnyOtherClientId();
+        ulong startingTurnOwner = playerStarts ? playerSideOwnerClientId : otherClientId;
+
         if (turnManager != null)
         {
-            turnManager.CurrentTurnOwner.Value = ownerClientId;
-            turnManager.NotifyClientsOwnerClientRpc(ownerClientId);
+            turnManager.CurrentTurnOwner.Value = startingTurnOwner;
+            turnManager.NotifyClientsOwnerClientRpc(startingTurnOwner);
             turnManager.StartServerTurnLoop();
-            try 
-            { 
-                turnManager.SetPlayerOwnerServer(ownerClientId); 
-            } catch { }
+            try
+            {
+                turnManager.SetPlayerOwnerServer(playerSideOwnerClientId);
+            }
+            catch { }
         }
 
-        if (playerStarts)
+        if (startingTurnOwner == playerSideOwnerClientId)
         {
             currentGame.player.IncreaseManaPool();
             currentGame.player.RestoreRoundMana();
@@ -162,26 +167,14 @@ public class GameManager : MonoBehaviour
 
         if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
         {
-            if (IsPlayerTurn)
-            {
-                currentGame.player.ClearTempMana();
-                deckManager.GiveNewCards(currentGame);
-                currentGame.player.IncreaseManaPool();
-                currentGame.player.RestoreRoundMana();
-                UIManager.Instance?.UpdateHPAndMana();
-            }
-            else
-            {
-                currentGame.enemy.ClearTempMana();
-                deckManager.GiveNewCards(currentGame);
-                currentGame.enemy.IncreaseManaPool();
-                currentGame.enemy.RestoreRoundMana();
-                UIManager.Instance?.UpdateHPAndMana();
-            }
+            ulong playerOwnerClientId = NetworkManager.ServerClientId;
+            if (turnManager != null && turnManager.PlayerOwner.Value != 0UL)
+                playerOwnerClientId = turnManager.PlayerOwner.Value;
 
-            UpdateManaNetworkIfServer();
+            ulong otherClientId = GetOtherClientOf(playerOwnerClientId);
 
-            ulong newOwner = IsPlayerTurn ? NetworkManager.ServerClientId : GetAnyOtherClientId();
+            ulong newOwner = IsPlayerTurn ? playerOwnerClientId : otherClientId;
+
             if (turnManager != null)
             {
                 turnManager.CurrentTurnOwner.Value = newOwner;
@@ -189,6 +182,24 @@ public class GameManager : MonoBehaviour
                 turnManager.StopServerTurnLoop();
                 turnManager.StartServerTurnLoop();
             }
+
+            currentGame.player.ClearTempMana();
+            deckManager.GiveNewCards(currentGame, newOwner);
+
+            if (newOwner == playerOwnerClientId)
+            {
+                currentGame.player.IncreaseManaPool();
+                currentGame.player.RestoreRoundMana();
+            }
+            else
+            {
+                currentGame.enemy.IncreaseManaPool();
+                currentGame.enemy.RestoreRoundMana();
+            }
+
+            UIManager.Instance?.UpdateHPAndMana();
+
+            UpdateManaNetworkIfServer();
         }
         else
         {
@@ -240,6 +251,22 @@ public class GameManager : MonoBehaviour
             }
         }
     }
+
+    private ulong GetOtherClientOf(ulong clientId)
+    {
+        if (NetworkManager.Singleton == null)
+            return NetworkManager.ServerClientId;
+
+        foreach (var kv in NetworkManager.Singleton.ConnectedClients)
+        {
+            var id = kv.Key;
+            if (id != clientId)
+                return id;
+        }
+
+        return NetworkManager.ServerClientId;
+    }
+
 
     public void PlayCard(CardController card, bool isPlayerSide)
     {

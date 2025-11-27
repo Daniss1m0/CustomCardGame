@@ -11,7 +11,7 @@ public class DeckManager : MonoBehaviour
     [SerializeField] private Transform playerHand, enemyHand, playerField, enemyField, networkCardRoot;
     [SerializeField] private GameObject networkCardPrefab, visualCardPrefab;
     [SerializeField] private CardData coinCard;
-    
+
     public Transform EnemyField => enemyField;
     public Transform PlayerHand => playerHand;
     public Transform EnemyHand => enemyHand;
@@ -67,7 +67,7 @@ public class DeckManager : MonoBehaviour
 
         for (int i = 0; i < count; i++)
         {
-            if (deck.Count == 0) 
+            if (deck.Count == 0)
                 break;
             var card = deck[0];
             SpawnAndRegisterCard(card, hand, ownerClientId, GetCardDataIndex(card));
@@ -75,21 +75,33 @@ public class DeckManager : MonoBehaviour
         }
     }
 
-    public void GiveNewCards(Game currentGame)
+    public void GiveNewCards(Game currentGame, ulong newTurnOwnerClientId)
     {
-        if (currentGame == null) 
+        if (currentGame == null)
             return;
 
-        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
+        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer)
         {
-            DrawCards(currentGame.playerDeck, playerHand, NetworkManager.Singleton.LocalClientId, 1);
-            DrawCards(currentGame.enemyDeck, enemyHand, GetOpponentClientId(), 1);
+            Debug.Log("GiveNewCards called on client - server handles drawing.");
+            return;
+        }
+
+        ulong playerOwnerClientId = NetworkManager.ServerClientId;
+        var tm = FindFirstObjectByType<TurnManager>();
+        if (tm != null && tm.PlayerOwner.Value != 0UL)
+            playerOwnerClientId = tm.PlayerOwner.Value;
+
+        if (newTurnOwnerClientId == playerOwnerClientId)
+        {
+            DrawCards(currentGame.playerDeck, playerHand, newTurnOwnerClientId, 1);
         }
         else
-            Debug.Log("GiveNewCards called on client - server handles drawing.");
+        {
+            DrawCards(currentGame.enemyDeck, enemyHand, newTurnOwnerClientId, 1);
+        }
     }
 
-    public bool GiveInitialHands(Game currentGame, bool randomStart = true)
+    public bool GiveInitialHands(Game currentGame, ulong playerOwnerClientId, ulong otherClientId, bool randomStart = true)
     {
         Shuffle(currentGame.playerDeck);
         Shuffle(currentGame.enemyDeck);
@@ -101,8 +113,22 @@ public class DeckManager : MonoBehaviour
 
         if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
         {
-            DrawCards(currentGame.playerDeck, playerHand, NetworkManager.Singleton.LocalClientId, playerCount);
-            DrawCards(currentGame.enemyDeck, enemyHand, GetOpponentClientId(), enemyCount);
+            DrawCards(currentGame.playerDeck, playerHand, playerOwnerClientId, playerCount);
+            DrawCards(currentGame.enemyDeck, enemyHand, otherClientId, enemyCount);
+
+            CardData coinData = coinCard;
+            if (coinData == null)
+            {
+                coinData = ScriptableObject.CreateInstance<CardData>();
+                coinData.name = "Coin";
+                coinData.isSpell = true;
+            }
+            Card coinCardInstance = coinData.isSpell ? (Card)new SpellCard(coinData) : new Card(coinData);
+
+            if (playerStarts)
+                SpawnAndRegisterCard(coinCardInstance, enemyHand, otherClientId, -1);
+            else
+                SpawnAndRegisterCard(coinCardInstance, playerHand, playerOwnerClientId, -1);
         }
 
         return playerStarts;
@@ -161,7 +187,7 @@ public class DeckManager : MonoBehaviour
         if (root == null)
         {
             var found = GameObject.Find("Network Card Root");
-            if (found != null) 
+            if (found != null)
                 root = found.transform;
         }
 
@@ -271,8 +297,8 @@ public class DeckManager : MonoBehaviour
     private IEnumerator FinishLocalCloneRoutine(GameObject uiClone, Transform hand, Card card, int cardDataIndex, ulong ownerClientId, GameObject netInstance, CardController innerVisualOnNet, CardNetwork cn)
     {
         yield return null;
-        
-        if (uiClone == null) 
+
+        if (uiClone == null)
             yield break;
 
         try
@@ -357,10 +383,11 @@ public class DeckManager : MonoBehaviour
             {
                 Canvas.ForceUpdateCanvases();
                 UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(handRect);
-                try 
-                { 
-                    uiClone.transform.SetSiblingIndex(Mathf.Clamp(hand.childCount - 1, 0, hand.childCount)); 
-                } catch { }
+                try
+                {
+                    uiClone.transform.SetSiblingIndex(Mathf.Clamp(hand.childCount - 1, 0, hand.childCount));
+                }
+                catch { }
             }
 
             var gm = GameManager.Instance;

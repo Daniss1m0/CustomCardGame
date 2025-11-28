@@ -25,8 +25,6 @@ public class GameManager : MonoBehaviour
     public bool IsPlayerTurn => turn % 2 == 0;
     public AttackedHero PlayerHero => playerHero;
     public Transform EnemyField => deckManager != null ? deckManager.EnemyField : null;
-    public IPlayerController PlayerController => playerControllerBehaviour as IPlayerController;
-    public IPlayerController OpponentController => opponentControllerBehaviour as IPlayerController;
 
     private void Awake()
     {

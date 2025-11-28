@@ -48,7 +48,6 @@ public class GameManager : MonoBehaviour
 
         if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer)
         {
-            Debug.LogWarning("StartGame called on non-server. Clients should wait for server initialization.");
             UIManager.Instance?.StartGame();
             return;
         }
@@ -60,6 +59,9 @@ public class GameManager : MonoBehaviour
         turn = playerStarts ? 0 : 1;
 
         ulong startingTurnOwner = playerStarts ? playerSideOwnerClientId : otherClientId;
+
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer && deckManager != null)
+            deckManager.GiveNewCards(currentGame, startingTurnOwner);
 
         if (turnManager != null)
         {

@@ -69,7 +69,26 @@ public class DeckManager : MonoBehaviour
         {
             if (deck.Count == 0)
                 break;
+
             var card = deck[0];
+
+            int currentHandCount = hand.childCount;
+            var gm = GameManager.Instance;
+            if (gm != null)
+            {
+                if (hand == playerHand)
+                    currentHandCount = gm.playerHandCards != null ? gm.playerHandCards.Count : hand.childCount;
+                else if (hand == enemyHand)
+                    currentHandCount = gm.enemyHandCards != null ? gm.enemyHandCards.Count : hand.childCount;
+            }
+
+            if (currentHandCount >= MAX_HAND_SIZE)
+            {
+                deck.RemoveAt(0);
+                Debug.Log($"Card burned because hand is full. Owner: {ownerClientId}, card: {(card != null ? card.name : "null")}");
+                continue;
+            }
+
             SpawnAndRegisterCard(card, hand, ownerClientId, GetCardDataIndex(card));
             deck.RemoveAt(0);
         }
@@ -247,8 +266,12 @@ public class DeckManager : MonoBehaviour
                     foreach (var kv in NetworkManager.Singleton.ConnectedClients)
                     {
                         var clientId = kv.Key;
-                        if (clientId == NetworkManager.ServerClientId) continue;
-                        if (clientId == ownerClientId) continue;
+                        if (clientId == NetworkManager.ServerClientId) 
+                            continue;
+
+                        if (clientId == ownerClientId) 
+                            continue;
+
                         otherTargetIds.Add(clientId);
                     }
 

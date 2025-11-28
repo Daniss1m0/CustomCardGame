@@ -13,7 +13,7 @@ public class CardNetwork : NetworkBehaviour
     public NetworkVariable<bool> canAttack = new();
     public NetworkVariable<int> cardDataIndex = new();
     public NetworkVariable<ulong> ownerClientIdNet = new();
-    public NetworkVariable<int> spellType = new((int)SpellType.None, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    public NetworkVariable<int> spellType = new((int)SpellType.None, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server); //?
     public NetworkVariable<int> spellTarget = new((int)TargetType.None, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     public NetworkVariable<int> spellPower = new(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
@@ -58,21 +58,29 @@ public class CardNetwork : NetworkBehaviour
 
     private void OnPlacedChanged()
     {
-        if (visual == null) return;
-        if (isPlaced.Value) visual.OnPlacedNetworkSide(ownerClientIdNet.Value);
-        else visual.OnUnplacedNetworkSide(ownerClientIdNet.Value);
+        if (visual == null) 
+            return;
+
+        if (isPlaced.Value) 
+            visual.OnPlacedNetworkSide(ownerClientIdNet.Value);
+        else 
+            visual.OnUnplacedNetworkSide(ownerClientIdNet.Value);
     }
 
     private void UpdateVisual()
     {
-        if (visual == null) return;
+        if (visual == null) 
+            return;
+
         visual.SetNetworkData(attack.Value, health.Value, manaCost.Value, isSpell.Value, cardDataIndex.Value, ownerClientIdNet.Value);
         ApplySpellFields();
     }
 
     private void ApplySpellFields()
     {
-        if (visual == null || visual.self == null) return;
+        if (visual == null || visual.self == null) 
+            return;
+
         if (visual.self is SpellCard s)
         {
             s.spell = (SpellType)spellType.Value;
@@ -84,16 +92,21 @@ public class CardNetwork : NetworkBehaviour
 
     private void UpdateOwnership()
     {
-        if (visual == null) return;
+        if (visual == null) 
+            return;
+
         bool isMine = NetworkManager.Singleton != null && ownerClientIdNet.Value == NetworkManager.Singleton.LocalClientId;
         visual.OnNetworkOwnershipChanged(isMine);
         var cg = visual.GetComponent<CanvasGroup>();
-        if (cg != null) cg.blocksRaycasts = isMine;
+        if (cg != null) 
+            cg.blocksRaycasts = isMine;
     }
 
     private void UpdateHighlight()
     {
-        if (visual == null) return;
+        if (visual == null) 
+            return;
+
         visual.SetCanAttackVisual(canAttack.Value);
     }
 
@@ -111,40 +124,53 @@ public class CardNetwork : NetworkBehaviour
         while (Time.realtimeSinceStartup - start < timeout)
         {
             dm = FindFirstObjectByType<DeckManager>();
-            if (dm != null) break;
+            if (dm != null) 
+                break;
+
             yield return null;
         }
-        if (dm == null) yield break;
+        if (dm == null) 
+            yield break;
+
         Transform hand = null;
         float start2 = Time.realtimeSinceStartup;
         while (Time.realtimeSinceStartup - start2 < timeout)
         {
             hand = ownerClientId == (NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0UL) ? dm.PlayerHand : dm.EnemyHand;
-            if (hand != null) break;
+            if (hand != null) 
+                break;
+
             yield return null;
         }
-        if (hand == null) yield break;
+        if (hand == null) 
+            yield break;
+
         GameObject visualPrefab = null;
         float start3 = Time.realtimeSinceStartup;
         while (Time.realtimeSinceStartup - start3 < timeout)
         {
             visualPrefab = dm.VisualCardPrefab;
-            if (visualPrefab != null) break;
+            if (visualPrefab != null) 
+                break;
+
             yield return null;
         }
-        if (visualPrefab == null) yield break;
+        if (visualPrefab == null) 
+            yield break;
+
         GameObject uiClone = null;
         try
         {
             uiClone = Instantiate(visualPrefab, hand, false);
             uiClone.SetActive(true);
             var rtRoot = uiClone.GetComponent<RectTransform>();
-            if (rtRoot != null)
+            if (rtRoot != null) //?
             {
                 rtRoot.pivot = new Vector2(0.5f, 0.5f);
                 rtRoot.anchorMin = new Vector2(0.5f, 0.5f);
                 rtRoot.anchorMax = new Vector2(0.5f, 0.5f);
-                if (rtRoot.sizeDelta == Vector2.zero) rtRoot.sizeDelta = new Vector2(176f, 230f);
+                if (rtRoot.sizeDelta == Vector2.zero) 
+                    rtRoot.sizeDelta = new Vector2(176f, 230f);
                 rtRoot.anchoredPosition = Vector2.zero;
                 rtRoot.localScale = Vector3.one;
             }
@@ -153,11 +179,14 @@ public class CardNetwork : NetworkBehaviour
             if (cloneController != null)
             {
                 cloneController.SetNetworkData(attackValue, healthValue, manaCostValue, isSpellValue, cardDataIndexValue, ownerClientId);
-                if (!string.IsNullOrEmpty(cardNameValue)) cloneController.self.name = cardNameValue;
+                if (!string.IsNullOrEmpty(cardNameValue)) 
+                    cloneController.self.name = cardNameValue;
+
                 if (!string.IsNullOrEmpty(logoNameValue))
                 {
                     var sp = Resources.Load<Sprite>(logoNameValue);
-                    if (sp != null) cloneController.self.logo = sp;
+                    if (sp != null) 
+                        cloneController.self.logo = sp;
                 }
                 if (cloneController.self is SpellCard sc)
                 {
@@ -180,76 +209,127 @@ public class CardNetwork : NetworkBehaviour
             }
             attack.OnValueChanged += (o, n) =>
             {
-                if (uiClone == null) return;
+                if (uiClone == null) 
+                    return;
+
                 var ctrl = uiClone.GetComponentInChildren<CardController>();
-                if (ctrl != null && ctrl.self != null) { ctrl.self.attack = n; ctrl.Info?.UpdateStats(ctrl.self); }
+                if (ctrl != null && ctrl.self != null) 
+                { 
+                    ctrl.self.attack = n; 
+                    ctrl.Info?.UpdateStats(ctrl.self); 
+                }
             };
             health.OnValueChanged += (o, n) =>
             {
-                if (uiClone == null) return;
+                if (uiClone == null) 
+                    return;
+
                 var ctrl = uiClone.GetComponentInChildren<CardController>();
-                if (ctrl != null && ctrl.self != null) { ctrl.self.health = n; ctrl.Info?.UpdateStats(ctrl.self); }
+                if (ctrl != null && ctrl.self != null) 
+                { 
+                    ctrl.self.health = n; 
+                    ctrl.Info?.UpdateStats(ctrl.self); 
+                }
             };
             manaCost.OnValueChanged += (o, n) =>
             {
-                if (uiClone == null) return;
+                if (uiClone == null) 
+                    return;
+
                 var ctrl = uiClone.GetComponentInChildren<CardController>();
-                if (ctrl != null && ctrl.self != null) { ctrl.self.manaCost = n; ctrl.Info?.UpdateStats(ctrl.self); }
+                if (ctrl != null && ctrl.self != null) 
+                { 
+                    ctrl.self.manaCost = n; 
+                    ctrl.Info?.UpdateStats(ctrl.self); 
+                }
             };
             canAttack.OnValueChanged += (o, n) =>
             {
-                if (uiClone == null) return;
+                if (uiClone == null) 
+                    return;
+
                 var ctrl = uiClone.GetComponentInChildren<CardController>();
-                if (ctrl != null) ctrl.SetCanAttackVisual(n);
+                if (ctrl != null) 
+                    ctrl.SetCanAttackVisual(n);
             };
             ownerClientIdNet.OnValueChanged += (o, n) =>
             {
                 var ctrl = uiClone != null ? uiClone.GetComponentInChildren<CardController>() : null;
-                if (ctrl == null) return;
+                if (ctrl == null) 
+                    return;
+
                 bool nowOwner = NetworkManager.Singleton != null && n == NetworkManager.Singleton.LocalClientId;
                 ctrl.isPlayerCard = nowOwner;
                 ctrl.OnNetworkOwnershipChanged(nowOwner);
-                if (!ctrl.self.isPlaced) { if (nowOwner) ctrl.Info?.ShowCard(ctrl.self); else ctrl.Info?.HideCard(); }
+                if (!ctrl.self.isPlaced) 
+                    if (nowOwner) 
+                        ctrl.Info?.ShowCard(ctrl.self); 
+                    else 
+                        ctrl.Info?.HideCard(); 
                 else ctrl.Info?.ShowCard(ctrl.self);
             };
             isPlaced.OnValueChanged += (o, n) =>
             {
                 var ctrl = uiClone != null ? uiClone.GetComponentInChildren<CardController>() : null;
-                if (ctrl == null) return;
+                if (ctrl == null) 
+                    return;
+
                 ctrl.self.isPlaced = n;
                 ctrl.Info?.ShowCard(ctrl.self);
             };
             spellType.OnValueChanged += (o, n) =>
             {
                 var ctrl = uiClone != null ? uiClone.GetComponentInChildren<CardController>() : null;
-                if (ctrl == null || ctrl.self == null) return;
-                if (ctrl.self is SpellCard s) { s.spell = (SpellType)n; ctrl.Info?.UpdateStats(s); }
+                if (ctrl == null || ctrl.self == null) 
+                    return;
+
+                if (ctrl.self is SpellCard s) 
+                { 
+                    s.spell = (SpellType)n; 
+                    ctrl.Info?.UpdateStats(s); 
+                }
             };
             spellTarget.OnValueChanged += (o, n) =>
             {
                 var ctrl = uiClone != null ? uiClone.GetComponentInChildren<CardController>() : null;
-                if (ctrl == null || ctrl.self == null) return;
-                if (ctrl.self is SpellCard s) { s.spellTarget = (TargetType)n; ctrl.Info?.UpdateStats(s); }
+                if (ctrl == null || ctrl.self == null) 
+                    return;
+                
+                if (ctrl.self is SpellCard s) 
+                { 
+                    s.spellTarget = (TargetType)n; 
+                    ctrl.Info?.UpdateStats(s); 
+                }
             };
             spellPower.OnValueChanged += (o, n) =>
             {
                 var ctrl = uiClone != null ? uiClone.GetComponentInChildren<CardController>() : null;
-                if (ctrl == null || ctrl.self == null) return;
-                if (ctrl.self is SpellCard s) { s.spellPower = n; ctrl.Info?.UpdateStats(s); }
+                if (ctrl == null || ctrl.self == null) 
+                    return;
+                
+                if (ctrl.self is SpellCard s) 
+                { 
+                    s.spellPower = n; 
+                    ctrl.Info?.UpdateStats(s); 
+                }
             };
             var gm = GameManager.Instance;
             var controllerToAdd = uiClone != null ? uiClone.GetComponentInChildren<CardController>() : null;
             if (gm != null && controllerToAdd != null)
             {
-                if (ownerClientId == (NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0UL)) gm.playerHandCards.Add(controllerToAdd);
-                else gm.enemyHandCards.Add(controllerToAdd);
+                if (ownerClientId == (NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0UL)) 
+                    gm.playerHandCards.Add(controllerToAdd);
+                else 
+                    gm.enemyHandCards.Add(controllerToAdd);
+
                 gm.CheckCardsForManaAvailability();
                 UIManager.Instance?.UpdateHPAndMana();
             }
         }
         catch
         {
-            if (uiClone != null) Destroy(uiClone);
+            if (uiClone != null) 
+                Destroy(uiClone);
         }
     }
 }

@@ -11,30 +11,52 @@ public class CardInfo : MonoBehaviour
 
     private Image background;
     private CanvasGroup canvasGroup;
+    private Vector2 logoInitialSize;
 
     private void Awake()
     {
         background = GetComponent<Image>();
         canvasGroup = GetComponent<CanvasGroup>();
+        if (logo != null)
+        {
+            var rt = logo.GetComponent<RectTransform>();
+            if (rt != null) 
+                logoInitialSize = rt.sizeDelta;
+            else 
+                logoInitialSize = Vector2.zero;
+        }
     }
 
     public void ShowCard(Card card)
     {
-        hideState.SetActive(false);
-        
+        if (hideState != null) 
+            hideState.SetActive(false);
+
         if (logo != null)
         {
-            logo.sprite = card.logo;
-            logo.preserveAspect = true;
+            if (card != null && card.logo != null)
+            {
+                logo.enabled = true;
+                logo.sprite = card.logo;
+                logo.preserveAspect = true;
+                var rt = logo.GetComponent<RectTransform>();
+                if (rt != null && logoInitialSize != Vector2.zero)
+                    rt.sizeDelta = logoInitialSize;
+            }
+            else
+            {
+                logo.enabled = false;
+                logo.sprite = null;
+            }
         }
 
-        nameTxt.text = card.name;
+        if (nameTxt != null) 
+            nameTxt.text = card != null ? card.name : "";
 
-        if (card.isSpell)
+        if (card != null && card.isSpell)
         {
             if (attackTxt != null && attackTxt.transform.parent != null)
                 attackTxt.transform.parent.gameObject.SetActive(false);
-
             if (healthTxt != null && healthTxt.transform.parent != null)
                 healthTxt.transform.parent.gameObject.SetActive(false);
         }
@@ -44,26 +66,38 @@ public class CardInfo : MonoBehaviour
 
     public void HideCard()
     {
-        hideState.SetActive(true);
-        nameTxt.text = "";
-        attackTxt.text = "";
-        healthTxt.text = "";
-        manaCostTxt.text = "";
+        if (hideState != null) 
+            hideState.SetActive(true);
+
+        if (nameTxt != null) 
+            nameTxt.text = "";
+        if (attackTxt != null) 
+            attackTxt.text = "";
+        if (healthTxt != null) 
+            healthTxt.text = "";
+        if (manaCostTxt != null) 
+            manaCostTxt.text = "";
+
+        if (logo != null) 
+        { 
+            logo.enabled = false; 
+            logo.sprite = null; 
+        }
     }
 
     public void UpdateStats(Card card)
     {
         if (attackTxt != null) 
-            attackTxt.text = card.attack.ToString();
+            attackTxt.text = card != null ? card.attack.ToString() : "";
         if (healthTxt != null) 
-            healthTxt.text = card.health.ToString();
+            healthTxt.text = card != null ? card.health.ToString() : "";
         if (manaCostTxt != null) 
-            manaCostTxt.text = card.manaCost.ToString();
+            manaCostTxt.text = card != null ? card.manaCost.ToString() : "";
     }
 
     public void SetHighlight(bool highlight)
     {
-        if (highlightState != null)
+        if (highlightState != null) 
             highlightState.SetActive(highlight);
     }
 
@@ -86,8 +120,7 @@ public class CardInfo : MonoBehaviour
                 canvasGroup.alpha = 0.5f;
                 canvasGroup.blocksRaycasts = false;
             }
-
-            if (highlightState != null)
+            if (highlightState != null) 
                 highlightState.SetActive(false);
 
             return;
@@ -97,10 +130,9 @@ public class CardInfo : MonoBehaviour
 
         bool playableNow = hasMana && isPlayerTurn;
 
-        if (highlightState != null)
+        if (highlightState != null) 
             highlightState.SetActive(playableNow);
-
-        if (canvasGroup != null)
+        if (canvasGroup != null) 
             canvasGroup.blocksRaycasts = playableNow;
     }
 }

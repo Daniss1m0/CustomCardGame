@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
@@ -92,7 +92,11 @@ public class CardController : MonoBehaviour
 
         if (linkedNetwork != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
         {
-            try { linkedNetwork.CanAttack.Value = false; } catch { }
+            try 
+            { 
+                linkedNetwork.CanAttack.Value = false; 
+            } 
+            catch { }
         }
 
         if (self.HasAbility)
@@ -240,27 +244,36 @@ public class CardController : MonoBehaviour
     public void SetNetworkData(int attack, int health, int manaCost, bool isSpell, int cardDataIndex, ulong ownerClientId)
     {
         CardData dataToUse = null;
+
         try
         {
-            if (cardDataIndex >= 0 && CardDatabase.AllCards != null && cardDataIndex < CardDatabase.AllCards.Count)
+            var all = CardDatabase.AllCards;
+            if (cardDataIndex >= 0 && all != null && cardDataIndex < all.Count)
             {
-                object entry = CardDatabase.AllCards[cardDataIndex];
+                object entryObj = (object)all[cardDataIndex];
 
-                if (entry is CardData cd)
+                CardData cd = entryObj as CardData;
+                if (cd != null)
                 {
                     dataToUse = cd;
                 }
-                else if (entry is Card existingCard)
-                {
-                    var tmp = ScriptableObject.CreateInstance<CardData>();
-                    try { tmp.name = existingCard.name; } catch { tmp.name = "NetCard"; }
-                    try { tmp.isSpell = existingCard.isSpell; } catch { tmp.isSpell = isSpell; }
-                    try { tmp.logo = existingCard.logo; } catch { }
-                    dataToUse = tmp;
-                }
                 else
                 {
-                    dataToUse = null;
+                    Card existing = entryObj as Card;
+                    if (existing != null)
+                    {
+                        var tmp = ScriptableObject.CreateInstance<CardData>();
+                        try { tmp.cardName = existing.name; } catch { tmp.cardName = "NetCard"; }
+                        try { tmp.isSpell = existing.isSpell; } catch { tmp.isSpell = isSpell; }
+                        try { tmp.logo = existing.logo; } catch { }
+                        try { tmp.manaCost = existing.manaCost; } catch { tmp.manaCost = manaCost; }
+                        try { tmp.attack = existing.attack; } catch { tmp.attack = attack; }
+                        try { tmp.health = existing.health; } catch { tmp.health = health; }
+                        try { tmp.abilities = new List<AbilityType>(existing.abilities ?? new List<AbilityType>()); } catch { tmp.abilities = new List<AbilityType>(); }
+                        dataToUse = tmp;
+                    }
+                    else
+                        dataToUse = null;
                 }
             }
         }
@@ -272,21 +285,17 @@ public class CardController : MonoBehaviour
         if (dataToUse == null)
         {
             dataToUse = ScriptableObject.CreateInstance<CardData>();
-            dataToUse.name = "NetCard";
+            dataToUse.cardName = "NetCard";
             dataToUse.isSpell = isSpell;
+            dataToUse.manaCost = manaCost;
+            dataToUse.attack = attack;
+            dataToUse.health = health;
         }
 
         if (dataToUse.isSpell)
             self = new SpellCard(dataToUse);
         else
             self = new Card(dataToUse);
-
-        try
-        {
-            if (!string.IsNullOrEmpty(dataToUse.name))
-                self.name = dataToUse.name;
-        }
-        catch {  }
 
         self.attack = attack;
         self.health = health;

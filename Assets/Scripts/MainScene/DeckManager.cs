@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
@@ -34,12 +34,23 @@ public class DeckManager : MonoBehaviour
 
         for (int i = 0; i < CardDatabase.AllCards.Count; i++)
         {
-            var entry = CardDatabase.AllCards[i];
-            if (entry == null)
+            object entryObj = CardDatabase.AllCards[i];
+            if (entryObj == null) 
                 continue;
 
-            if (!string.IsNullOrEmpty(entry.name) && entry.name == card.name)
-                return i;
+            CardData cd = entryObj as CardData;
+            if (cd != null)
+            {
+                if (!string.IsNullOrEmpty(cd.cardName) && cd.cardName == card.name)
+                    return i;
+
+                continue;
+            }
+
+            Card existingCard = entryObj as Card;
+            if (existingCard != null)
+                if (!string.IsNullOrEmpty(existingCard.name) && existingCard.name == card.name)
+                    return i;
         }
 
         return -1;
@@ -85,7 +96,6 @@ public class DeckManager : MonoBehaviour
             if (currentHandCount >= MAX_HAND_SIZE)
             {
                 deck.RemoveAt(0);
-                Debug.Log($"Card burned because hand is full. Owner: {ownerClientId}, card: {(card != null ? card.name : "null")}");
                 continue;
             }
 
@@ -111,13 +121,9 @@ public class DeckManager : MonoBehaviour
             playerOwnerClientId = tm.PlayerOwner.Value;
 
         if (newTurnOwnerClientId == playerOwnerClientId)
-        {
             DrawCards(currentGame.playerDeck, playerHand, newTurnOwnerClientId, 1);
-        }
         else
-        {
             DrawCards(currentGame.enemyDeck, enemyHand, newTurnOwnerClientId, 1);
-        }
     }
 
     public bool GiveInitialHands(Game currentGame, ulong playerOwnerClientId, ulong otherClientId, bool randomStart = true)
@@ -136,20 +142,68 @@ public class DeckManager : MonoBehaviour
             DrawCards(currentGame.enemyDeck, enemyHand, otherClientId, enemyCount);
 
             CardData coinData = coinCard;
-            if (coinData == null)
+            int coinIndex = -1;
+
+            if (coinData != null && CardDatabase.AllCards != null)
             {
-                coinData = ScriptableObject.CreateInstance<CardData>();
-                coinData.name = "Coin";
-                coinData.isSpell = true;
+                for (int i = 0; i < CardDatabase.AllCards.Count; i++)
+                {
+                    object entryObj = CardDatabase.AllCards[i];
+                    if (entryObj == null) 
+                        continue;
+
+                    CardData cd = entryObj as CardData;
+                    if (cd != null)
+                    {
+                        if (cd == coinData || (!string.IsNullOrEmpty(cd.cardName) && cd.cardName == coinData.cardName))
+                        {
+                            coinIndex = i;
+                            break;
+                        }
+
+                        continue;
+                    }
+
+                    Card existingCard = entryObj as Card;
+                    if (existingCard != null)
+                        if (!string.IsNullOrEmpty(existingCard.name) && existingCard.name == coinData.cardName)
+                        {
+                            coinIndex = i;
+                            break;
+                        }
+                }
+
+                if (coinIndex == -1 && CardDatabase.AllCards != null)
+                {
+                    try
+                    {
+                        Card cardToAdd = coinData.isSpell ? (Card)new SpellCard(coinData) : new Card(coinData);
+                        CardDatabase.AllCards.Add(cardToAdd);
+                        coinIndex = CardDatabase.AllCards.Count - 1;
+                    }
+                    catch
+                    {
+                        Debug.LogWarning("Failed to add coin as Card to CardDatabase.AllCards");
+                    }
+                }
             }
+            else
+                if (coinData == null)
+                {
+                    coinData = ScriptableObject.CreateInstance<CardData>();
+                    coinData.cardName = "Coin";
+                    coinData.isSpell = true;
+                    coinIndex = -1;
+                }
+
             Card coinCardInstance = coinData.isSpell ? (Card)new SpellCard(coinData) : new Card(coinData);
 
             if (playerStarts)
-                SpawnAndRegisterCard(coinCardInstance, enemyHand, otherClientId, -1);
+                SpawnAndRegisterCard(coinCardInstance, enemyHand, otherClientId, coinIndex);
             else
-                SpawnAndRegisterCard(coinCardInstance, playerHand, playerOwnerClientId, -1);
-        }
+                SpawnAndRegisterCard(coinCardInstance, playerHand, playerOwnerClientId, coinIndex);
 
+        }
         return playerStarts;
     }
 
@@ -299,7 +353,6 @@ public class DeckManager : MonoBehaviour
             Debug.LogWarning("Failed to call CreateLocalCloneClientRpc: " + ex);
         }
 
-
         if (innerVisualOnNet != null)
             innerVisualOnNet.gameObject.SetActive(false);
 
@@ -339,7 +392,8 @@ public class DeckManager : MonoBehaviour
                 rtRoot.pivot = new Vector2(0.5f, 0.5f);
                 rtRoot.anchorMin = new Vector2(0.5f, 0.5f);
                 rtRoot.anchorMax = new Vector2(0.5f, 0.5f);
-                if (rtRoot.sizeDelta == Vector2.zero) rtRoot.sizeDelta = new Vector2(176f, 230f);
+                if (rtRoot.sizeDelta == Vector2.zero) 
+                    rtRoot.sizeDelta = new Vector2(176f, 230f);
                 rtRoot.anchoredPosition = Vector2.zero;
                 rtRoot.localScale = Vector3.one;
             }
@@ -440,42 +494,52 @@ public class DeckManager : MonoBehaviour
             {
                 cn.Attack.OnValueChanged += (oldV, newV) =>
                 {
-                    if (cloneController == null) return;
-                    if (cloneController.self != null) cloneController.self.attack = newV;
+                    if (cloneController == null) 
+                        return;
+                    if (cloneController.self != null) 
+                        cloneController.self.attack = newV;
                     cloneController.Info?.UpdateStats(cloneController.self);
                 };
 
                 cn.Health.OnValueChanged += (oldV, newV) =>
                 {
-                    if (cloneController == null) return;
-                    if (cloneController.self != null) cloneController.self.health = newV;
+                    if (cloneController == null) 
+                        return;
+                    if (cloneController.self != null) 
+                        cloneController.self.health = newV;
                     cloneController.Info?.UpdateStats(cloneController.self);
                 };
 
                 cn.ManaCost.OnValueChanged += (oldV, newV) =>
                 {
-                    if (cloneController == null) return;
-                    if (cloneController.self != null) cloneController.self.manaCost = newV;
+                    if (cloneController == null) 
+                        return;
+                    if (cloneController.self != null) 
+                        cloneController.self.manaCost = newV;
                     cloneController.Info?.UpdateStats(cloneController.self);
                 };
 
                 cn.CanAttack.OnValueChanged += (oldV, newV) =>
                 {
-                    if (cloneController == null) return;
+                    if (cloneController == null) 
+                        return;
                     cloneController.SetCanAttackVisual(newV);
                 };
 
                 cn.OwnerClientIdNet.OnValueChanged += (oldV, newV) =>
                 {
-                    if (cloneController == null) return;
+                    if (cloneController == null) 
+                        return;
                     bool nowOwner = NetworkManager.Singleton != null && newV == NetworkManager.Singleton.LocalClientId;
                     cloneController.isPlayerCard = nowOwner;
                     cloneController.OnNetworkOwnershipChanged(nowOwner);
 
                     if (!cloneController.self.isPlaced)
                     {
-                        if (nowOwner) cloneController.Info?.ShowCard(cloneController.self);
-                        else cloneController.Info?.HideCard();
+                        if (nowOwner) 
+                            cloneController.Info?.ShowCard(cloneController.self);
+                        else 
+                            cloneController.Info?.HideCard();
                     }
                     else
                     {
@@ -485,7 +549,8 @@ public class DeckManager : MonoBehaviour
 
                 cn.IsPlaced.OnValueChanged += (oldV, newV) =>
                 {
-                    if (cloneController == null) return;
+                    if (cloneController == null) 
+                        return;
                     cloneController.self.isPlaced = newV;
                     cloneController.Info?.ShowCard(cloneController.self);
                 };
@@ -501,7 +566,8 @@ public class DeckManager : MonoBehaviour
 
     private void ClearList(List<CardController> list)
     {
-        if (list == null || list.Count == 0) return;
+        if (list == null || list.Count == 0) 
+            return;
         for (int i = list.Count - 1; i >= 0; i--)
         {
             var c = list[i];

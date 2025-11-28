@@ -146,7 +146,7 @@ public class GameManager : MonoBehaviour
             c.Info.SetHighlight(false);
 
             if (c.Network != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
-                c.Network.CanAttack.Value = false;
+                c.Network.canAttack.Value = false;
         }
 
         turn++;
@@ -230,7 +230,7 @@ public class GameManager : MonoBehaviour
                 card.self.canAttack = false;
                 card.Info.SetHighlight(false);
                 if (card.Network != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
-                    card.Network.CanAttack.Value = false;
+                    card.Network.canAttack.Value = false;
 
                 continue;
             }
@@ -240,14 +240,14 @@ public class GameManager : MonoBehaviour
                 card.self.canAttack = true;
                 card.Info.SetHighlight(true);
                 if (card.Network != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
-                    card.Network.CanAttack.Value = true;
+                    card.Network.canAttack.Value = true;
             }
             else
             {
                 card.self.canAttack = false;
                 card.Info.SetHighlight(false);
                 if (card.Network != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
-                    card.Network.CanAttack.Value = false;
+                    card.Network.canAttack.Value = false;
             }
         }
     }

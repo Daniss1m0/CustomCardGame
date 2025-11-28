@@ -283,14 +283,14 @@ public class DeckManager : MonoBehaviour
 
         try
         {
-            cn.OwnerClientIdNet.Value = ownerClientId;
-            cn.CardDataIndex.Value = cardDataIndex;
-            cn.Attack.Value = card.attack;
-            cn.Health.Value = card.health;
-            cn.ManaCost.Value = card.manaCost;
-            cn.IsSpell.Value = card.isSpell;
-            cn.IsPlaced.Value = false;
-            cn.CanAttack.Value = false;
+            cn.ownerClientIdNet.Value = ownerClientId;
+            cn.cardDataIndex.Value = cardDataIndex;
+            cn.attack.Value = card.attack;
+            cn.health.Value = card.health;
+            cn.manaCost.Value = card.manaCost;
+            cn.isSpell.Value = card.isSpell;
+            cn.isPlaced.Value = false;
+            cn.canAttack.Value = false;
         }
         catch (System.Exception ex)
         {
@@ -492,7 +492,7 @@ public class DeckManager : MonoBehaviour
 
             if (cn != null && cloneController != null)
             {
-                cn.Attack.OnValueChanged += (oldV, newV) =>
+                cn.attack.OnValueChanged += (oldV, newV) =>
                 {
                     if (cloneController == null) 
                         return;
@@ -501,7 +501,7 @@ public class DeckManager : MonoBehaviour
                     cloneController.Info?.UpdateStats(cloneController.self);
                 };
 
-                cn.Health.OnValueChanged += (oldV, newV) =>
+                cn.health.OnValueChanged += (oldV, newV) =>
                 {
                     if (cloneController == null) 
                         return;
@@ -510,7 +510,7 @@ public class DeckManager : MonoBehaviour
                     cloneController.Info?.UpdateStats(cloneController.self);
                 };
 
-                cn.ManaCost.OnValueChanged += (oldV, newV) =>
+                cn.manaCost.OnValueChanged += (oldV, newV) =>
                 {
                     if (cloneController == null) 
                         return;
@@ -519,14 +519,14 @@ public class DeckManager : MonoBehaviour
                     cloneController.Info?.UpdateStats(cloneController.self);
                 };
 
-                cn.CanAttack.OnValueChanged += (oldV, newV) =>
+                cn.canAttack.OnValueChanged += (oldV, newV) =>
                 {
                     if (cloneController == null) 
                         return;
                     cloneController.SetCanAttackVisual(newV);
                 };
 
-                cn.OwnerClientIdNet.OnValueChanged += (oldV, newV) =>
+                cn.ownerClientIdNet.OnValueChanged += (oldV, newV) =>
                 {
                     if (cloneController == null) 
                         return;
@@ -547,7 +547,7 @@ public class DeckManager : MonoBehaviour
                     }
                 };
 
-                cn.IsPlaced.OnValueChanged += (oldV, newV) =>
+                cn.isPlaced.OnValueChanged += (oldV, newV) =>
                 {
                     if (cloneController == null) 
                         return;

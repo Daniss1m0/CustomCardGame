@@ -4,14 +4,14 @@ using Unity.Netcode;
 [RequireComponent(typeof(NetworkObject))]
 public class CardNetwork : NetworkBehaviour
 {
-    public NetworkVariable<int> Attack = new(0, NetworkVariableReadPermission.Everyone);
-    public NetworkVariable<int> Health = new(1, NetworkVariableReadPermission.Everyone);
-    public NetworkVariable<int> ManaCost = new(0, NetworkVariableReadPermission.Everyone);
-    public NetworkVariable<bool> IsSpell = new(false, NetworkVariableReadPermission.Everyone);
-    public NetworkVariable<bool> IsPlaced = new(false, NetworkVariableReadPermission.Everyone);
-    public NetworkVariable<bool> CanAttack = new(false, NetworkVariableReadPermission.Everyone);
-    public NetworkVariable<ulong> OwnerClientIdNet = new(0UL, NetworkVariableReadPermission.Everyone);
-    public NetworkVariable<int> CardDataIndex = new(-1, NetworkVariableReadPermission.Everyone);
+    public NetworkVariable<int> attack = new();
+    public NetworkVariable<int> health = new();
+    public NetworkVariable<int> manaCost = new();
+    public NetworkVariable<bool> isSpell = new();
+    public NetworkVariable<bool> isPlaced = new();
+    public NetworkVariable<bool> canAttack = new();
+    public NetworkVariable<int> cardDataIndex = new();
+    public NetworkVariable<ulong> ownerClientIdNet = new();
 
     private CardController visual;
 
@@ -22,13 +22,13 @@ public class CardNetwork : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        Attack.OnValueChanged += OnAttackChanged;
-        Health.OnValueChanged += OnHealthChanged;
-        ManaCost.OnValueChanged += OnManaChanged;
-        IsPlaced.OnValueChanged += OnPlacedChangedHandler;
-        CanAttack.OnValueChanged += OnCanAttackChanged;
-        OwnerClientIdNet.OnValueChanged += OnOwnerChanged;
-        CardDataIndex.OnValueChanged += OnCardDataIndexChanged;
+        attack.OnValueChanged += OnAttackChanged;
+        health.OnValueChanged += OnHealthChanged;
+        manaCost.OnValueChanged += OnManaChanged;
+        isPlaced.OnValueChanged += OnPlacedChangedHandler;
+        canAttack.OnValueChanged += OnCanAttackChanged;
+        ownerClientIdNet.OnValueChanged += OnOwnerChanged;
+        cardDataIndex.OnValueChanged += OnCardDataIndexChanged;
 
         UpdateVisual();
         UpdateOwnership();
@@ -38,13 +38,13 @@ public class CardNetwork : NetworkBehaviour
 
     public override void OnNetworkDespawn()
     {
-        Attack.OnValueChanged -= OnAttackChanged;
-        Health.OnValueChanged -= OnHealthChanged;
-        ManaCost.OnValueChanged -= OnManaChanged;
-        IsPlaced.OnValueChanged -= OnPlacedChangedHandler;
-        CanAttack.OnValueChanged -= OnCanAttackChanged;
-        OwnerClientIdNet.OnValueChanged -= OnOwnerChanged;
-        CardDataIndex.OnValueChanged -= OnCardDataIndexChanged;
+        attack.OnValueChanged -= OnAttackChanged;
+        health.OnValueChanged -= OnHealthChanged;
+        manaCost.OnValueChanged -= OnManaChanged;
+        isPlaced.OnValueChanged -= OnPlacedChangedHandler;
+        canAttack.OnValueChanged -= OnCanAttackChanged;
+        ownerClientIdNet.OnValueChanged -= OnOwnerChanged;
+        cardDataIndex.OnValueChanged -= OnCardDataIndexChanged;
     }
 
     private void OnAttackChanged(int oldV, int newV) => UpdateVisual();
@@ -60,17 +60,17 @@ public class CardNetwork : NetworkBehaviour
         if (visual == null)
             return;
 
-        if (IsPlaced.Value)
-            visual.OnPlacedNetworkSide(OwnerClientIdNet.Value);
+        if (isPlaced.Value)
+            visual.OnPlacedNetworkSide(ownerClientIdNet.Value);
         else
-            visual.OnUnplacedNetworkSide(OwnerClientIdNet.Value);
+            visual.OnUnplacedNetworkSide(ownerClientIdNet.Value);
     }
     private void UpdateVisual()
     {
         if (visual == null)
             return;
 
-        visual.SetNetworkData(Attack.Value, Health.Value, ManaCost.Value, IsSpell.Value, CardDataIndex.Value, OwnerClientIdNet.Value);
+        visual.SetNetworkData(attack.Value, health.Value, manaCost.Value, isSpell.Value, cardDataIndex.Value, ownerClientIdNet.Value);
     }
 
     private void UpdateOwnership()
@@ -78,7 +78,7 @@ public class CardNetwork : NetworkBehaviour
         if (visual == null)
             return;
 
-        bool isMine = OwnerClientIdNet.Value == NetworkManager.Singleton.LocalClientId;
+        bool isMine = ownerClientIdNet.Value == NetworkManager.Singleton.LocalClientId;
         visual.OnNetworkOwnershipChanged(isMine);
     }
 
@@ -87,33 +87,31 @@ public class CardNetwork : NetworkBehaviour
         if (visual == null)
             return;
 
-        visual.SetCanAttackVisual(CanAttack.Value);
+        visual.SetCanAttackVisual(canAttack.Value);
     }
 
     [ClientRpc]
-    public void CreateLocalCloneClientRpc(int cardDataIndex, ulong ownerClientId, int attack, int health, int manaCost, bool isSpell, ClientRpcParams clientRpcParams = default)
+    public void CreateLocalCloneClientRpc(int cardDataIndexValue, ulong ownerClientId, int attackValue, int healthValue, int manaCostValue, bool isSpellValue, ClientRpcParams clientRpcParams = default)
     {
         var dm = FindFirstObjectByType<DeckManager>();
         if (dm == null)
         {
-            Debug.LogWarning("DeckManager not found on client when creating local clone.");
+            Debug.LogWarning("DeckManager not found.");
             return;
         }
 
-        Transform hand = ownerClientId == (NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0UL)
-                          ? dm.PlayerHand
-                          : dm.EnemyHand;
+        Transform hand = ownerClientId == (NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0UL) ? dm.PlayerHand : dm.EnemyHand;
 
         if (hand == null)
         {
-            Debug.LogWarning("Hand transform is null for local clone. owner=" + ownerClientId + " local=" + (NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0UL));
+            Debug.LogWarning("Hand transform is null.");
             return;
         }
 
         var visualPrefab = dm.VisualCardPrefab;
         if (visualPrefab == null)
         {
-            Debug.LogWarning("visualCardPrefab not assigned in DeckManager on client.");
+            Debug.LogWarning("visualCardPrefab not assigned in DeckManager.");
             return;
         }
 
@@ -123,13 +121,14 @@ public class CardNetwork : NetworkBehaviour
             uiClone = Instantiate(visualPrefab, hand, false);
             uiClone.SetActive(true);
 
-            var rtRoot = uiClone.GetComponent<RectTransform>();
+            var rtRoot = uiClone.GetComponent<RectTransform>(); //?
             if (rtRoot != null)
             {
                 rtRoot.pivot = new Vector2(0.5f, 0.5f);
                 rtRoot.anchorMin = new Vector2(0.5f, 0.5f);
                 rtRoot.anchorMax = new Vector2(0.5f, 0.5f);
-                if (rtRoot.sizeDelta == Vector2.zero) rtRoot.sizeDelta = new Vector2(176f, 230f);
+                if (rtRoot.sizeDelta == Vector2.zero) 
+                    rtRoot.sizeDelta = new Vector2(176f, 230f);
                 rtRoot.anchoredPosition = Vector2.zero;
                 rtRoot.localScale = Vector3.one;
             }
@@ -139,7 +138,7 @@ public class CardNetwork : NetworkBehaviour
 
             if (cloneController != null)
             {
-                cloneController.SetNetworkData(attack, health, manaCost, isSpell, cardDataIndex, ownerClientId);
+                cloneController.SetNetworkData(attackValue, healthValue, manaCostValue, isSpellValue, cardDataIndexValue, ownerClientId);
 
                 cloneController.Init(cloneController.self, isOwner);
 
@@ -158,54 +157,81 @@ public class CardNetwork : NetworkBehaviour
                 canvasGroup.interactable = isOwner;
             }
 
-            Attack.OnValueChanged += (oldV, newV) =>
+            attack.OnValueChanged += (oldV, newV) =>
             {
-                if (uiClone == null) return;
+                if (uiClone == null) 
+                    return;
+
                 var ctrl = uiClone.GetComponentInChildren<CardController>();
-                if (ctrl != null && ctrl.self != null) { ctrl.self.attack = newV; ctrl.Info?.UpdateStats(ctrl.self); }
+                if (ctrl != null && ctrl.self != null) 
+                { 
+                    ctrl.self.attack = newV; 
+                    ctrl.Info?.UpdateStats(ctrl.self); 
+                }
             };
 
-            Health.OnValueChanged += (oldV, newV) =>
+            health.OnValueChanged += (oldV, newV) =>
             {
-                if (uiClone == null) return;
+                if (uiClone == null) 
+                    return;
+
                 var ctrl = uiClone.GetComponentInChildren<CardController>();
-                if (ctrl != null && ctrl.self != null) { ctrl.self.health = newV; ctrl.Info?.UpdateStats(ctrl.self); }
+                if (ctrl != null && ctrl.self != null) 
+                { 
+                    ctrl.self.health = newV; 
+                    ctrl.Info?.UpdateStats(ctrl.self); 
+                }
             };
 
-            ManaCost.OnValueChanged += (oldV, newV) =>
+            manaCost.OnValueChanged += (oldV, newV) =>
             {
-                if (uiClone == null) return;
+                if (uiClone == null) 
+                    return;
+
                 var ctrl = uiClone.GetComponentInChildren<CardController>();
-                if (ctrl != null && ctrl.self != null) { ctrl.self.manaCost = newV; ctrl.Info?.UpdateStats(ctrl.self); }
+                if (ctrl != null && ctrl.self != null) 
+                { 
+                    ctrl.self.manaCost = newV; 
+                    ctrl.Info?.UpdateStats(ctrl.self); 
+                }
             };
 
-            CanAttack.OnValueChanged += (oldV, newV) =>
+            canAttack.OnValueChanged += (oldV, newV) =>
             {
-                if (uiClone == null) return;
+                if (uiClone == null) 
+                    return;
+
                 var ctrl = uiClone.GetComponentInChildren<CardController>();
-                if (ctrl != null) ctrl.SetCanAttackVisual(newV);
+                if (ctrl != null) 
+                    ctrl.SetCanAttackVisual(newV);
             };
 
-            OwnerClientIdNet.OnValueChanged += (oldV, newV) =>
+            ownerClientIdNet.OnValueChanged += (oldV, newV) =>
             {
                 var ctrl = uiClone != null ? uiClone.GetComponentInChildren<CardController>() : null;
-                if (ctrl == null) return;
+                if (ctrl == null) 
+                    return;
+
                 bool nowOwner = NetworkManager.Singleton != null && newV == NetworkManager.Singleton.LocalClientId;
                 ctrl.isPlayerCard = nowOwner;
                 ctrl.OnNetworkOwnershipChanged(nowOwner);
                 if (!ctrl.self.isPlaced)
                 {
-                    if (nowOwner) ctrl.Info?.ShowCard(ctrl.self);
-                    else ctrl.Info?.HideCard();
+                    if (nowOwner) 
+                        ctrl.Info?.ShowCard(ctrl.self);
+                    else 
+                        ctrl.Info?.HideCard();
                 }
                 else
                     ctrl.Info?.ShowCard(ctrl.self);
             };
 
-            IsPlaced.OnValueChanged += (oldV, newV) =>
+            isPlaced.OnValueChanged += (oldV, newV) =>
             {
                 var ctrl = uiClone != null ? uiClone.GetComponentInChildren<CardController>() : null;
-                if (ctrl == null) return;
+                if (ctrl == null) 
+                    return;
+
                 ctrl.self.isPlaced = newV;
                 ctrl.Info?.ShowCard(ctrl.self);
             };
@@ -226,7 +252,9 @@ public class CardNetwork : NetworkBehaviour
         catch (System.Exception ex)
         {
             Debug.LogError("Failed: " + ex);
-            if (uiClone != null) Destroy(uiClone);
+            if (uiClone != null) 
+                Destroy(uiClone);
         }
     }
+
 }

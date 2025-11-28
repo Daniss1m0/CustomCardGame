@@ -50,7 +50,7 @@ public class CardController : MonoBehaviour
         self.canAttack = false;
         info.SetHighlight(false);
         if (linkedNetwork != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
-            linkedNetwork.CanAttack.Value = false;
+            linkedNetwork.canAttack.Value = false;
 
         if (isPlayerCard)
         {
@@ -94,7 +94,7 @@ public class CardController : MonoBehaviour
         {
             try 
             { 
-                linkedNetwork.CanAttack.Value = false; 
+                linkedNetwork.canAttack.Value = false; 
             } 
             catch { }
         }

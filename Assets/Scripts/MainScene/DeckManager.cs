@@ -10,7 +10,6 @@ public class DeckManager : MonoBehaviour
     [SerializeField] private int startPlayerHand = 3, startEnemyHand = 4;
     [SerializeField] private Transform playerHand, enemyHand, playerField, enemyField, networkCardRoot;
     [SerializeField] private GameObject networkCardPrefab, visualCardPrefab;
-    [SerializeField] private CardData coinCard;
 
     [System.Serializable]
     public class SpecialCardEntry
@@ -135,7 +134,8 @@ public class DeckManager : MonoBehaviour
         {
             DrawCards(currentGame.playerDeck, playerHand, playerOwnerClientId, playerCount);
             DrawCards(currentGame.enemyDeck, enemyHand, otherClientId, enemyCount);
-            CardData coinData = coinCard;
+
+            CardData coinData = GetSpecialCardData("coin");
             int coinIndex = -1;
             if (coinData != null && CardDatabase.AllCards != null)
             {
@@ -174,15 +174,19 @@ public class DeckManager : MonoBehaviour
                     catch { }
                 }
             }
-            Card coinCardInstance = coinData.isSpell ? (Card)new SpellCard(coinData) : new Card(coinData);
+            if (coinData != null)
+            {
+                Card coinCardInstance = coinData.isSpell ? (Card)new SpellCard(coinData) : new Card(coinData);
 
-            if (playerStarts)
-                SpawnAndRegisterCard(coinCardInstance, enemyHand, otherClientId, coinIndex);
-            else
-                SpawnAndRegisterCard(coinCardInstance, playerHand, playerOwnerClientId, coinIndex);
+                if (playerStarts)
+                    SpawnAndRegisterCard(coinCardInstance, enemyHand, otherClientId, coinIndex);
+                else
+                    SpawnAndRegisterCard(coinCardInstance, playerHand, playerOwnerClientId, coinIndex);
+            }
         }
         return playerStarts;
     }
+
     private void SpawnAndRegisterCard(Card card, Transform hand, ulong ownerClientId, int cardDataIndex = -1)
     {
         if (networkCardPrefab == null)
@@ -494,6 +498,12 @@ public class DeckManager : MonoBehaviour
                 return e;
 
         return null;
+    }
+
+    public CardData GetSpecialCardData(string id)
+    {
+        var e = GetSpecialCardEntry(id);
+        return e != null ? e.cardData : null;
     }
 
     private void ClearList(List<CardController> list)

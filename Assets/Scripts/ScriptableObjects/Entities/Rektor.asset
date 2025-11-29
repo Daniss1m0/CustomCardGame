@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 395b7b7ae31a2704b99c2de0177f0838, type: 3}
   m_Name: Rektor
   m_EditorClassIdentifier: Assembly-CSharp::CardData
+  cardId: 7
   cardName: Rektor
   manaCost: 5
   logo: {fileID: 2094156908344922566, guid: 050f87cf10c4a3c4192be01fb7865bf1, type: 3}

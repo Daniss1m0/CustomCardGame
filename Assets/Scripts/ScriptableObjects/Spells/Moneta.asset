@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 395b7b7ae31a2704b99c2de0177f0838, type: 3}
   m_Name: Moneta
   m_EditorClassIdentifier: Assembly-CSharp::CardData
+  cardId: 0
   cardName: Moneta
   manaCost: 0
   logo: {fileID: 4316632390762738984, guid: 62889e97c432f5e44bae4c5d2714c292, type: 3}

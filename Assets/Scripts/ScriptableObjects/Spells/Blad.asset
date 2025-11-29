@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 395b7b7ae31a2704b99c2de0177f0838, type: 3}
   m_Name: Blad
   m_EditorClassIdentifier: Assembly-CSharp::CardData
+  cardId: 11
   cardName: Blad
   manaCost: 1
   logo: {fileID: -4600785504250711460, guid: c4871e43a253c51408e5aeeb41bb4dfd, type: 3}

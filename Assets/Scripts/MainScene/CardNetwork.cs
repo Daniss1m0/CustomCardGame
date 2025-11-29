@@ -130,6 +130,7 @@ public class CardNetwork : NetworkBehaviour
 
             yield return null;
         }
+
         if (dm == null)
             yield break;
 

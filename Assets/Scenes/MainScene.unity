@@ -316,7 +316,6 @@ MonoBehaviour:
   networkCardRoot: {fileID: 1153048709}
   networkCardPrefab: {fileID: 3200919704871707934, guid: 941f6405a9f4c074eb161d54445056ff, type: 3}
   visualCardPrefab: {fileID: 979882027150900141, guid: a26a0db67b713d549a10ed908a8a3b8f, type: 3}
-  coinCard: {fileID: 11400000, guid: e3263aba297af994d99e0cf093e7c13e, type: 2}
   specialCards:
   - id: coin
     cardData: {fileID: 11400000, guid: e3263aba297af994d99e0cf093e7c13e, type: 2}
@@ -8441,7 +8440,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NetworkUIManager
   defaultHostIP: 127.0.0.1
-  defaultPort: 6666
+  defaultPort: 7777
   networkUIPanel: {fileID: 1549188227}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

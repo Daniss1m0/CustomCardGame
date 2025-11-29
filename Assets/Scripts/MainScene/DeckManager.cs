@@ -417,6 +417,7 @@ public class DeckManager : MonoBehaviour
             }
             if (innerVisualOnNet != null)
                 innerVisualOnNet.gameObject.SetActive(false);
+
             if (cn != null && cloneController != null)
             {
                 cn.attack.OnValueChanged += (o, n) =>
@@ -471,6 +472,7 @@ public class DeckManager : MonoBehaviour
                     else
                         cloneController.Info?.ShowCard(cloneController.self);
                 };
+
                 cn.isPlaced.OnValueChanged += (o, n) =>
                 {
                     if (cloneController == null)
@@ -478,7 +480,54 @@ public class DeckManager : MonoBehaviour
 
                     cloneController.self.isPlaced = n;
                     cloneController.Info?.ShowCard(cloneController.self);
+
+                    if (n)
+                    {
+                        var dm = FindFirstObjectByType<DeckManager>();
+                        if (dm != null)
+                        {
+                            Transform targetField = (ownerClientId == (NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0UL)) ? dm.playerField : dm.enemyField;
+                            try
+                            {
+                                uiClone.transform.SetParent(targetField, false);
+                            }
+                            catch { }
+                        }
+
+                        var gm2 = GameManager.Instance;
+                        if (gm2 != null)
+                        {
+                            if (ownerClientId == (NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0UL))
+                            {
+                                if (gm2.playerHandCards.Contains(cloneController))
+                                    gm2.playerHandCards.Remove(cloneController);
+                                if (!gm2.playerFieldCards.Contains(cloneController))
+                                    gm2.playerFieldCards.Add(cloneController);
+                            }
+                            else
+                            {
+                                if (gm2.enemyHandCards.Contains(cloneController))
+                                    gm2.enemyHandCards.Remove(cloneController);
+                                if (!gm2.enemyFieldCards.Contains(cloneController))
+                                    gm2.enemyFieldCards.Add(cloneController);
+                            }
+                        }
+                    }
                 };
+
+                cn.placedOnTurn.OnValueChanged += (o, n) =>
+                {
+                    if (cloneController == null)
+                        return;
+
+                    cloneController.placedOnTurn = n;
+                };
+
+                try
+                {
+                    cloneController.placedOnTurn = cn.placedOnTurn.Value;
+                }
+                catch { }
             }
         }
         catch
@@ -487,6 +536,7 @@ public class DeckManager : MonoBehaviour
                 Destroy(uiClone);
         }
     }
+
 
     public SpecialCardEntry GetSpecialCardEntry(string id)
     {

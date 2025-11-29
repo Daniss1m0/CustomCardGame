@@ -13,9 +13,11 @@ public class CardNetwork : NetworkBehaviour
     public NetworkVariable<bool> canAttack = new();
     public NetworkVariable<int> cardDataIndex = new();
     public NetworkVariable<ulong> ownerClientIdNet = new();
-    public NetworkVariable<int> spellType = new((int)SpellType.None, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server); //?
+    public NetworkVariable<int> spellType = new((int)SpellType.None, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     public NetworkVariable<int> spellTarget = new((int)TargetType.None, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     public NetworkVariable<int> spellPower = new(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+
+    public NetworkVariable<int> placedOnTurn = new(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
     private CardController visual;
 
@@ -36,6 +38,7 @@ public class CardNetwork : NetworkBehaviour
         spellType.OnValueChanged += (o, n) => ApplySpellFields();
         spellTarget.OnValueChanged += (o, n) => ApplySpellFields();
         spellPower.OnValueChanged += (o, n) => ApplySpellFields();
+        placedOnTurn.OnValueChanged += (o, n) => OnPlacedTurnChanged(n);
 
         UpdateVisual();
         UpdateOwnership();
@@ -55,6 +58,7 @@ public class CardNetwork : NetworkBehaviour
         spellType.OnValueChanged -= (o, n) => ApplySpellFields();
         spellTarget.OnValueChanged -= (o, n) => ApplySpellFields();
         spellPower.OnValueChanged -= (o, n) => ApplySpellFields();
+        placedOnTurn.OnValueChanged -= (o, n) => OnPlacedTurnChanged(n);
     }
 
     private void OnPlacedChanged()
@@ -109,6 +113,14 @@ public class CardNetwork : NetworkBehaviour
             return;
 
         visual.SetCanAttackVisual(canAttack.Value);
+    }
+
+    private void OnPlacedTurnChanged(int newPlacedOnTurn)
+    {
+        if (visual == null)
+            return;
+
+        visual.placedOnTurn = newPlacedOnTurn;
     }
 
     [ClientRpc]
@@ -355,6 +367,40 @@ public class CardNetwork : NetworkBehaviour
         {
             if (uiClone != null)
                 Destroy(uiClone);
+        }
+    }
+
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
+    public void RequestPlaceCardServerRpc(bool isPlayerSide, RpcParams rpcParams = default)
+    {
+        if (!IsServer) 
+            return;
+
+        ulong sender = rpcParams.Receive.SenderClientId;
+        if (ownerClientIdNet.Value != sender)
+            return;
+
+        isPlaced.Value = true;
+        canAttack.Value = false;
+        placedOnTurn.Value = GameManager.Instance != null ? GameManager.Instance.CurrentTurn : 0;
+
+        var gm = GameManager.Instance;
+        if (gm != null && visual != null)
+        {
+            if (ownerClientIdNet.Value == NetworkManager.ServerClientId)
+            {
+                if (gm.playerHandCards.Contains(visual))
+                    gm.playerHandCards.Remove(visual);
+                if (!gm.playerFieldCards.Contains(visual))
+                    gm.playerFieldCards.Add(visual);
+            }
+            else
+            {
+                if (gm.enemyHandCards.Contains(visual))
+                    gm.enemyHandCards.Remove(visual);
+                if (!gm.enemyFieldCards.Contains(visual))
+                    gm.enemyFieldCards.Add(visual);
+            }
         }
     }
 }

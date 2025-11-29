@@ -43,6 +43,93 @@ public class CardController : MonoBehaviour
 
         if (gameManager == null)
             gameManager = GameManager.Instance;
+
+        if (linkedNetwork != null && NetworkManager.Singleton != null)
+        {
+            if (NetworkManager.Singleton.IsServer)
+            {
+                if (gameManager != null)
+                {
+                    bool sideIsPlayerTurn = gameManager.IsPlayerTurn == isPlayerCard;
+                    if (!sideIsPlayerTurn)
+                        return;
+                }
+
+                if (isPlayerCard)
+                {
+                    if (gameManager != null && gameManager.currentGame != null && gameManager.currentGame.player.mana < self.manaCost)
+                        return;
+                }
+                else
+                {
+                    if (gameManager != null && gameManager.currentGame != null && gameManager.currentGame.enemy.mana < self.manaCost)
+                        return;
+                }
+                var dm = FindAnyObjectByType<DeckManager>();
+                int fieldCount = isPlayerCard ? (gameManager != null ? gameManager.playerFieldCards.Count : 0) : (gameManager != null ? gameManager.enemyFieldCards.Count : 0);
+                if (!self.isSpell && fieldCount >= (dm != null ? DeckManager.MAX_FIELD_SIZE : 7))
+                    return;
+
+                try
+                {
+                    linkedNetwork.isPlaced.Value = true;
+                    linkedNetwork.canAttack.Value = false;
+                    linkedNetwork.placedOnTurn.Value = (gameManager != null ? gameManager.CurrentTurn : 0);
+                }
+                catch { }
+
+                if (gameManager != null)
+                {
+                    if (isPlayerCard)
+                    {
+                        if (gameManager.playerHandCards.Contains(this))
+                            gameManager.playerHandCards.Remove(this);
+                        if (!gameManager.playerFieldCards.Contains(this))
+                            gameManager.playerFieldCards.Add(this);
+
+                        gameManager.ReduceMana(true, self.manaCost);
+                        gameManager.CheckCardsForManaAvailability();
+                    }
+                    else
+                    {
+                        if (gameManager.enemyHandCards.Contains(this))
+                            gameManager.enemyHandCards.Remove(this);
+                        if (!gameManager.enemyFieldCards.Contains(this))
+                            gameManager.enemyFieldCards.Add(this);
+
+                        gameManager.ReduceMana(false, self.manaCost);
+                        info.ShowCard(self);
+                    }
+                }
+
+                placedOnTurn = gameManager != null ? gameManager.CurrentTurn : -1;
+                self.canAttack = false;
+                info.SetHighlight(false);
+                self.isPlaced = true;
+
+                if (self.HasAbility)
+                    ability.OnCast(self, isPlayerCard, info);
+
+                if (self.isSpell)
+                    UseSpell(null);
+
+                UIManager.Instance?.UpdateHPAndMana();
+            }
+            else
+            {
+                try
+                {
+                    linkedNetwork.RequestPlaceCardServerRpc(isPlayerCard);
+                }
+                catch
+                {
+                    Debug.LogWarning("[CardController] Failed to send RequestPlaceCardServerRpc.");
+                }
+            }
+            
+            return;
+        }
+
         placedOnTurn = gameManager != null ? gameManager.CurrentTurn : -1;
         self.canAttack = false;
         info.SetHighlight(false);
@@ -285,28 +372,10 @@ public class CardController : MonoBehaviour
         Transform targetParent = null;
         if (dm != null)
         {
-            var t = dm.GetType().GetProperty("PlayerField");
-            var e = dm.GetType().GetProperty("EnemyField");
             if (ownerClientId == (NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0UL))
-            {
-                if (t != null)
-                    targetParent = t.GetValue(dm) as Transform;
-                else
-                {
-                    var ph = dm.GetType().GetProperty("PlayerHand");
-                    targetParent = ph != null ? ph.GetValue(dm) as Transform : null;
-                }
-            }
+                targetParent = dm != null ? dm.PlayerHand.transform.parent : null;
             else
-            {
-                if (e != null)
-                    targetParent = e.GetValue(dm) as Transform;
-                else
-                {
-                    var eh = dm.GetType().GetProperty("EnemyHand");
-                    targetParent = eh != null ? eh.GetValue(dm) as Transform : null;
-                }
-            }
+                targetParent = dm != null ? dm.EnemyHand.transform.parent : null;
         }
         if (targetParent != null)
             transform.SetParent(targetParent, false);
@@ -319,14 +388,10 @@ public class CardController : MonoBehaviour
         Transform handParent = null;
         if (dm != null)
         {
-            var ph = dm.GetType().GetProperty("PlayerHand");
-            var eh = dm.GetType().GetProperty("EnemyHand");
             if (ownerClientId == (NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0UL))
-                if (ph != null)
-                    handParent = ph.GetValue(dm) as Transform;
+                handParent = dm.PlayerHand;
             else
-                if (eh != null)
-                    handParent = eh.GetValue(dm) as Transform;
+                handParent = dm.EnemyHand;
         }
         if (handParent != null)
             transform.SetParent(handParent, false);

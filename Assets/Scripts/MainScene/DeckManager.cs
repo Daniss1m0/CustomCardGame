@@ -17,7 +17,6 @@ public class DeckManager : MonoBehaviour
     {
         public string id;
         public CardData cardData;
-        public Sprite sprite;
     }
 
     [SerializeField] private List<SpecialCardEntry> specialCards = new();
@@ -176,6 +175,7 @@ public class DeckManager : MonoBehaviour
                 }
             }
             Card coinCardInstance = coinData.isSpell ? (Card)new SpellCard(coinData) : new Card(coinData);
+
             if (playerStarts)
                 SpawnAndRegisterCard(coinCardInstance, enemyHand, otherClientId, coinIndex);
             else
@@ -183,7 +183,6 @@ public class DeckManager : MonoBehaviour
         }
         return playerStarts;
     }
-
     private void SpawnAndRegisterCard(Card card, Transform hand, ulong ownerClientId, int cardDataIndex = -1)
     {
         if (networkCardPrefab == null)

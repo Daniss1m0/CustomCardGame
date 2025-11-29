@@ -1,6 +1,6 @@
+﻿using System.Collections;
 using UnityEngine;
 using Unity.Netcode;
-using System.Collections;
 
 [RequireComponent(typeof(NetworkObject))]
 public class CardNetwork : NetworkBehaviour
@@ -181,6 +181,7 @@ public class CardNetwork : NetworkBehaviour
             if (cloneController != null)
             {
                 cloneController.SetNetworkData(attackValue, healthValue, manaCostValue, isSpellValue, cardDataIndexValue, ownerClientId);
+
                 if (!string.IsNullOrEmpty(cardIdValue))
                 {
                     CardData foundData = null;
@@ -192,10 +193,8 @@ public class CardNetwork : NetworkBehaviour
                         var special = dm.GetSpecialCardEntry(cardIdValue);
                         if (special != null && special.cardData != null)
                             foundData = special.cardData;
-
-                        if (foundData == null && special != null && special.sprite != null)
-                            cloneController.self.logo = special.sprite;
                     }
+
                     if (foundData != null)
                     {
                         if (!string.IsNullOrEmpty(foundData.cardName))
@@ -204,6 +203,7 @@ public class CardNetwork : NetworkBehaviour
                             cloneController.self.logo = foundData.logo;
                     }
                 }
+
                 if (!string.IsNullOrEmpty(logoNameValue))
                 {
                     var sp = Resources.Load<Sprite>(logoNameValue);

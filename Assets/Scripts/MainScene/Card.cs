@@ -14,11 +14,11 @@ public enum AbilityType
 
 public class Card
 {
+    public string id;
     public string name;
     public int attack, health, manaCost, timesDealedDamage;
     public bool canAttack, isPlaced, isSpell;
     public Sprite logo;
-
     public List<AbilityType> abilities;
 
     public bool IsAlive => health > 0;
@@ -27,6 +27,7 @@ public class Card
 
     public Card(CardData data)
     {
+        id = data.cardId;
         name = data.cardName;
         manaCost = data.manaCost;
         logo = data.logo;
@@ -36,13 +37,13 @@ public class Card
 
         canAttack = false;
         isPlaced = false;
-
         abilities = new List<AbilityType>(data.abilities ?? new List<AbilityType>()); //??
         timesDealedDamage = 0;
     }
 
     public Card(Card card)
     {
+        id = card.id;
         name = card.name;
         manaCost = card.manaCost;
         logo = card.logo;
@@ -51,7 +52,6 @@ public class Card
 
         canAttack = false;
         isPlaced = false;
-
         abilities = new List<AbilityType>(card.abilities ?? new List<AbilityType>());
         timesDealedDamage = 0;
     }
@@ -96,7 +96,6 @@ public enum TargetType
 public class SpellCard : Card
 {
     public int spellPower;
-
     public SpellType spell;
     public TargetType spellTarget;
 

@@ -4,6 +4,9 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Cards/CardData")]
 public class CardData : ScriptableObject
 {
+    [Header("Identifiers")]
+    public string cardId;
+
     [Header("Basic")]
     public string cardName;
     public int manaCost;

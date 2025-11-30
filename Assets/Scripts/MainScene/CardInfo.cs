@@ -20,16 +20,16 @@ public class CardInfo : MonoBehaviour
         if (logo != null)
         {
             var rt = logo.GetComponent<RectTransform>();
-            if (rt != null) 
+            if (rt != null)
                 logoInitialSize = rt.sizeDelta;
-            else 
+            else
                 logoInitialSize = Vector2.zero;
         }
     }
 
     public void ShowCard(Card card)
     {
-        if (hideState != null) 
+        if (hideState != null)
             hideState.SetActive(false);
 
         if (logo != null)
@@ -66,38 +66,37 @@ public class CardInfo : MonoBehaviour
 
     public void HideCard()
     {
-        if (hideState != null) 
+        if (hideState != null)
             hideState.SetActive(true);
-
-        if (nameTxt != null) 
+        if (nameTxt != null)
             nameTxt.text = "";
-        if (attackTxt != null) 
+        if (attackTxt != null)
             attackTxt.text = "";
-        if (healthTxt != null) 
+        if (healthTxt != null)
             healthTxt.text = "";
-        if (manaCostTxt != null) 
+        if (manaCostTxt != null)
             manaCostTxt.text = "";
 
-        if (logo != null) 
-        { 
-            logo.enabled = false; 
-            logo.sprite = null; 
+        if (logo != null)
+        {
+            logo.enabled = false;
+            logo.sprite = null;
         }
     }
 
     public void UpdateStats(Card card)
     {
-        if (attackTxt != null) 
+        if (attackTxt != null)
             attackTxt.text = card != null ? card.attack.ToString() : "";
-        if (healthTxt != null) 
+        if (healthTxt != null)
             healthTxt.text = card != null ? card.health.ToString() : "";
-        if (manaCostTxt != null) 
+        if (manaCostTxt != null)
             manaCostTxt.text = card != null ? card.manaCost.ToString() : "";
     }
 
     public void SetHighlight(bool highlight)
     {
-        if (highlightState != null) 
+        if (highlightState != null)
             highlightState.SetActive(highlight);
     }
 
@@ -120,7 +119,7 @@ public class CardInfo : MonoBehaviour
                 canvasGroup.alpha = 0.5f;
                 canvasGroup.blocksRaycasts = false;
             }
-            if (highlightState != null) 
+            if (highlightState != null)
                 highlightState.SetActive(false);
 
             return;
@@ -129,10 +128,10 @@ public class CardInfo : MonoBehaviour
         HighlightHelper.SetManaAvailability(canvasGroup, hasMana);
 
         bool playableNow = hasMana && isPlayerTurn;
-
-        if (highlightState != null) 
+        if (highlightState != null)
             highlightState.SetActive(playableNow);
-        if (canvasGroup != null) 
+
+        if (canvasGroup != null)
             canvasGroup.blocksRaycasts = playableNow;
     }
 }

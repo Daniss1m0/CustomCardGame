@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
 
@@ -373,9 +372,9 @@ public class CardController : MonoBehaviour
         if (dm != null)
         {
             if (ownerClientId == (NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0UL))
-                targetParent = dm != null ? dm.PlayerHand.transform.parent : null;
+                targetParent = dm.PlayerField;
             else
-                targetParent = dm != null ? dm.EnemyHand.transform.parent : null;
+                targetParent = dm.EnemyField;
         }
         if (targetParent != null)
             transform.SetParent(targetParent, false);

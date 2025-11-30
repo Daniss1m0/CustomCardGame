@@ -51,6 +51,7 @@ public class TurnManager : NetworkBehaviour
         PlayerMana.OnValueChanged -= OnPlayerManaChanged;
         EnemyMana.OnValueChanged -= OnEnemyManaChanged;
         PlayerOwner.OnValueChanged -= OnPlayerOwnerChanged;
+        base.OnNetworkDespawn();
     }
 
     private void OnTurnTimeRemainingChanged(int oldV, int newV) { }

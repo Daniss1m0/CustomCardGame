@@ -20,6 +20,7 @@ public class DeckManager : MonoBehaviour
 
     [SerializeField] private List<SpecialCardEntry> specialCards = new();
 
+    public Transform PlayerField => playerField;
     public Transform EnemyField => enemyField;
     public Transform PlayerHand => playerHand;
     public Transform EnemyHand => enemyHand;
@@ -486,7 +487,7 @@ public class DeckManager : MonoBehaviour
                         var dm = FindFirstObjectByType<DeckManager>();
                         if (dm != null)
                         {
-                            Transform targetField = (ownerClientId == (NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0UL)) ? dm.playerField : dm.enemyField;
+                            Transform targetField = (ownerClientId == (NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0UL)) ? dm.PlayerField : dm.EnemyField;
                             try
                             {
                                 uiClone.transform.SetParent(targetField, false);
@@ -528,6 +529,36 @@ public class DeckManager : MonoBehaviour
                     cloneController.placedOnTurn = cn.placedOnTurn.Value;
                 }
                 catch { }
+
+                if (cn.isPlaced.Value)
+                {
+                    cloneController.self.isPlaced = true;
+                    cloneController.Info?.ShowCard(cloneController.self);
+                    var dm2 = FindFirstObjectByType<DeckManager>();
+                    Transform targetField = (ownerClientId == (NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0UL)) ? dm2.PlayerField : dm2.EnemyField;
+                    if (targetField != null)
+                    {
+                        uiClone.transform.SetParent(targetField, false);
+                    }
+                    var gm2 = GameManager.Instance;
+                    if (gm2 != null)
+                    {
+                        if (ownerClientId == (NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0UL))
+                        {
+                            if (gm2.playerHandCards.Contains(cloneController))
+                                gm2.playerHandCards.Remove(cloneController);
+                            if (!gm2.playerFieldCards.Contains(cloneController))
+                                gm2.playerFieldCards.Add(cloneController);
+                        }
+                        else
+                        {
+                            if (gm2.enemyHandCards.Contains(cloneController))
+                                gm2.enemyHandCards.Remove(cloneController);
+                            if (!gm2.enemyFieldCards.Contains(cloneController))
+                                gm2.enemyFieldCards.Add(cloneController);
+                        }
+                    }
+                }
             }
         }
         catch

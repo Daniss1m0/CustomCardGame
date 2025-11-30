@@ -16,10 +16,21 @@ public class CardNetwork : NetworkBehaviour
     public NetworkVariable<int> spellType = new((int)SpellType.None, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     public NetworkVariable<int> spellTarget = new((int)TargetType.None, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     public NetworkVariable<int> spellPower = new(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
-
     public NetworkVariable<int> placedOnTurn = new(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
     private CardController visual;
+
+    private NetworkVariable<int>.OnValueChangedDelegate attackChangedHandler;
+    private NetworkVariable<int>.OnValueChangedDelegate healthChangedHandler;
+    private NetworkVariable<int>.OnValueChangedDelegate manaChangedHandler;
+    private NetworkVariable<bool>.OnValueChangedDelegate isPlacedChangedHandler;
+    private NetworkVariable<bool>.OnValueChangedDelegate canAttackChangedHandler;
+    private NetworkVariable<int>.OnValueChangedDelegate cardDataIndexChangedHandler;
+    private NetworkVariable<ulong>.OnValueChangedDelegate ownerChangedHandler;
+    private NetworkVariable<int>.OnValueChangedDelegate spellTypeChangedHandler;
+    private NetworkVariable<int>.OnValueChangedDelegate spellTargetChangedHandler;
+    private NetworkVariable<int>.OnValueChangedDelegate spellPowerChangedHandler;
+    private NetworkVariable<int>.OnValueChangedDelegate placedOnTurnChangedHandler;
 
     private void Awake()
     {
@@ -28,17 +39,31 @@ public class CardNetwork : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        attack.OnValueChanged += (o, n) => UpdateVisual();
-        health.OnValueChanged += (o, n) => UpdateVisual();
-        manaCost.OnValueChanged += (o, n) => UpdateVisual();
-        isPlaced.OnValueChanged += (o, n) => OnPlacedChanged();
-        canAttack.OnValueChanged += (o, n) => UpdateHighlight();
-        ownerClientIdNet.OnValueChanged += (o, n) => UpdateOwnership();
-        cardDataIndex.OnValueChanged += (o, n) => UpdateVisual();
-        spellType.OnValueChanged += (o, n) => ApplySpellFields();
-        spellTarget.OnValueChanged += (o, n) => ApplySpellFields();
-        spellPower.OnValueChanged += (o, n) => ApplySpellFields();
-        placedOnTurn.OnValueChanged += (o, n) => OnPlacedTurnChanged(n);
+        base.OnNetworkSpawn();
+
+        attackChangedHandler = (oldV, newV) => UpdateVisual();
+        healthChangedHandler = (oldV, newV) => UpdateVisual();
+        manaChangedHandler = (oldV, newV) => UpdateVisual();
+        isPlacedChangedHandler = (oldV, newV) => OnPlacedChanged();
+        canAttackChangedHandler = (oldV, newV) => UpdateHighlight();
+        ownerChangedHandler = (oldV, newV) => UpdateOwnership();
+        cardDataIndexChangedHandler = (oldV, newV) => UpdateVisual();
+        spellTypeChangedHandler = (oldV, newV) => ApplySpellFields();
+        spellTargetChangedHandler = (oldV, newV) => ApplySpellFields();
+        spellPowerChangedHandler = (oldV, newV) => ApplySpellFields();
+        placedOnTurnChangedHandler = (oldV, newV) => OnPlacedTurnChanged(newV);
+
+        attack.OnValueChanged += attackChangedHandler;
+        health.OnValueChanged += healthChangedHandler;
+        manaCost.OnValueChanged += manaChangedHandler;
+        isPlaced.OnValueChanged += isPlacedChangedHandler;
+        canAttack.OnValueChanged += canAttackChangedHandler;
+        ownerClientIdNet.OnValueChanged += ownerChangedHandler;
+        cardDataIndex.OnValueChanged += cardDataIndexChangedHandler;
+        spellType.OnValueChanged += spellTypeChangedHandler;
+        spellTarget.OnValueChanged += spellTargetChangedHandler;
+        spellPower.OnValueChanged += spellPowerChangedHandler;
+        placedOnTurn.OnValueChanged += placedOnTurnChangedHandler;
 
         UpdateVisual();
         UpdateOwnership();
@@ -48,17 +73,30 @@ public class CardNetwork : NetworkBehaviour
 
     public override void OnNetworkDespawn()
     {
-        attack.OnValueChanged -= (o, n) => UpdateVisual();
-        health.OnValueChanged -= (o, n) => UpdateVisual();
-        manaCost.OnValueChanged -= (o, n) => UpdateVisual();
-        isPlaced.OnValueChanged -= (o, n) => OnPlacedChanged();
-        canAttack.OnValueChanged -= (o, n) => UpdateHighlight();
-        ownerClientIdNet.OnValueChanged -= (o, n) => UpdateOwnership();
-        cardDataIndex.OnValueChanged -= (o, n) => UpdateVisual();
-        spellType.OnValueChanged -= (o, n) => ApplySpellFields();
-        spellTarget.OnValueChanged -= (o, n) => ApplySpellFields();
-        spellPower.OnValueChanged -= (o, n) => ApplySpellFields();
-        placedOnTurn.OnValueChanged -= (o, n) => OnPlacedTurnChanged(n);
+        base.OnNetworkDespawn();
+
+        if (attackChangedHandler != null) 
+            attack.OnValueChanged -= attackChangedHandler;
+        if (healthChangedHandler != null) 
+            health.OnValueChanged -= healthChangedHandler;
+        if (manaChangedHandler != null) 
+            manaCost.OnValueChanged -= manaChangedHandler;
+        if (isPlacedChangedHandler != null) 
+            isPlaced.OnValueChanged -= isPlacedChangedHandler;
+        if (canAttackChangedHandler != null) 
+            canAttack.OnValueChanged -= canAttackChangedHandler;
+        if (ownerChangedHandler != null) 
+            ownerClientIdNet.OnValueChanged -= ownerChangedHandler;
+        if (cardDataIndexChangedHandler != null) 
+            cardDataIndex.OnValueChanged -= cardDataIndexChangedHandler;
+        if (spellTypeChangedHandler != null) 
+            spellType.OnValueChanged -= spellTypeChangedHandler;
+        if (spellTargetChangedHandler != null) 
+            spellTarget.OnValueChanged -= spellTargetChangedHandler;
+        if (spellPowerChangedHandler != null) 
+            spellPower.OnValueChanged -= spellPowerChangedHandler;
+        if (placedOnTurnChangedHandler != null) 
+            placedOnTurn.OnValueChanged -= placedOnTurnChangedHandler;
     }
 
     private void OnPlacedChanged()
@@ -313,6 +351,38 @@ public class CardNetwork : NetworkBehaviour
 
                 ctrl.self.isPlaced = n;
                 ctrl.Info?.ShowCard(ctrl.self);
+                if (n)
+                {
+                    var dm = FindFirstObjectByType<DeckManager>();
+                    if (dm != null)
+                    {
+                        Transform targetField = (ownerClientId == (NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0UL)) ? dm.PlayerField : dm.EnemyField;
+                        try
+                        {
+                            uiClone.transform.SetParent(targetField, false);
+                        }
+                        catch { }
+                    }
+                    var gm2 = GameManager.Instance;
+                    if (gm2 != null)
+                    {
+                        var cctrl = uiClone.GetComponentInChildren<CardController>();
+                        if (ownerClientId == (NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0UL))
+                        {
+                            if (gm2.playerHandCards.Contains(cctrl))
+                                gm2.playerHandCards.Remove(cctrl);
+                            if (!gm2.playerFieldCards.Contains(cctrl))
+                                gm2.playerFieldCards.Add(cctrl);
+                        }
+                        else
+                        {
+                            if (gm2.enemyHandCards.Contains(cctrl))
+                                gm2.enemyHandCards.Remove(cctrl);
+                            if (!gm2.enemyFieldCards.Contains(cctrl))
+                                gm2.enemyFieldCards.Add(cctrl);
+                        }
+                    }
+                }
             };
             spellType.OnValueChanged += (o, n) =>
             {
@@ -362,6 +432,39 @@ public class CardNetwork : NetworkBehaviour
                 gm.CheckCardsForManaAvailability();
                 UIManager.Instance?.UpdateHPAndMana();
             }
+            if (isPlaced.Value)
+            {
+                var ctrl = uiClone != null ? uiClone.GetComponentInChildren<CardController>() : null;
+                if (ctrl != null)
+                {
+                    ctrl.self.isPlaced = true;
+                    ctrl.Info?.ShowCard(ctrl.self);
+                    var dm2 = FindFirstObjectByType<DeckManager>();
+                    Transform targetField = (ownerClientId == (NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0UL)) ? dm2.PlayerField : dm2.EnemyField;
+                    if (targetField != null)
+                    {
+                        uiClone.transform.SetParent(targetField, false);
+                    }
+                    var gm2 = GameManager.Instance;
+                    if (gm2 != null)
+                    {
+                        if (ownerClientId == (NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0UL))
+                        {
+                            if (gm2.playerHandCards.Contains(ctrl))
+                                gm2.playerHandCards.Remove(ctrl);
+                            if (!gm2.playerFieldCards.Contains(ctrl))
+                                gm2.playerFieldCards.Add(ctrl);
+                        }
+                        else
+                        {
+                            if (gm2.enemyHandCards.Contains(ctrl))
+                                gm2.enemyHandCards.Remove(ctrl);
+                            if (!gm2.enemyFieldCards.Contains(ctrl))
+                                gm2.enemyFieldCards.Add(ctrl);
+                        }
+                    }
+                }
+            }
         }
         catch
         {
@@ -373,7 +476,7 @@ public class CardNetwork : NetworkBehaviour
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
     public void RequestPlaceCardServerRpc(bool isPlayerSide, RpcParams rpcParams = default)
     {
-        if (!IsServer) 
+        if (!IsServer)
             return;
 
         ulong sender = rpcParams.Receive.SenderClientId;

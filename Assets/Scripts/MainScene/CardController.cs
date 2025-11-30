@@ -170,11 +170,8 @@ public class CardController : MonoBehaviour
         self.timesDealedDamage++;
         self.canAttack = false;
         info.SetHighlight(false);
-        if (linkedNetwork != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
-            try { linkedNetwork.canAttack.Value = false; } catch { }
-
-        if (self.HasAbility)
-            ability.OnDamageDeal(self, isPlayerCard, info);
+        if (linkedNetwork != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer) linkedNetwork.canAttack.Value = false;
+        if (self.HasAbility) ability.OnDamageDeal(self, isPlayerCard, info);
     }
 
     public void DestroyCard()

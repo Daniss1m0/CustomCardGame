@@ -245,9 +245,11 @@ public class DeckManager : MonoBehaviour
             }
             catch { }
         }
+        ulong actualOwner = ownerClientId;
+        try { if (netObj != null) actualOwner = netObj.OwnerClientId; } catch { }
         try
         {
-            cn.ownerClientIdNet.Value = ownerClientId;
+            cn.ownerClientIdNet.Value = actualOwner;
             cn.cardDataIndex.Value = cardDataIndex;
             cn.attack.Value = card.attack;
             cn.health.Value = card.health;
@@ -283,10 +285,10 @@ public class DeckManager : MonoBehaviour
                             cardIdToSend = entry.id;
                     }
                     string logoToSend = card?.logo != null ? card.logo.name : "";
-                    if (ownerClientId != NetworkManager.ServerClientId)
+                    if (actualOwner != NetworkManager.ServerClientId)
                     {
-                        var ownerRpcParams = new ClientRpcParams { Send = new ClientRpcSendParams { TargetClientIds = new ulong[] { ownerClientId } } };
-                        cn.CreateLocalCloneClientRpc(cardDataIndex, ownerClientId, card.attack, card.health, card.manaCost, card.isSpell, cardIdToSend, logoToSend, (card is SpellCard s1) ? (int)s1.spell : (int)SpellType.None, (card is SpellCard s2) ? (int)s2.spellTarget : (int)TargetType.None, (card is SpellCard s3) ? s3.spellPower : 0, ownerRpcParams);
+                        var ownerRpcParams = new ClientRpcParams { Send = new ClientRpcSendParams { TargetClientIds = new ulong[] { actualOwner } } };
+                        cn.CreateLocalCloneClientRpc(cardDataIndex, actualOwner, card.attack, card.health, card.manaCost, card.isSpell, cardIdToSend, logoToSend, (card is SpellCard s1) ? (int)s1.spell : (int)SpellType.None, (card is SpellCard s2) ? (int)s2.spellTarget : (int)TargetType.None, (card is SpellCard s3) ? s3.spellPower : 0, ownerRpcParams);
                     }
                     var otherTargetIds = new List<ulong>();
                     foreach (var kv in NetworkManager.Singleton.ConnectedClients)
@@ -303,7 +305,7 @@ public class DeckManager : MonoBehaviour
                     if (otherTargetIds.Count > 0)
                     {
                         var othersRpcParams = new ClientRpcParams { Send = new ClientRpcSendParams { TargetClientIds = otherTargetIds.ToArray() } };
-                        cn.CreateLocalCloneClientRpc(cardDataIndex, ownerClientId, card.attack, card.health, card.manaCost, card.isSpell, cardIdToSend, logoToSend, (card is SpellCard s4) ? (int)s4.spell : (int)SpellType.None, (card is SpellCard s5) ? (int)s5.spellTarget : (int)TargetType.None, (card is SpellCard s6) ? s6.spellPower : 0, othersRpcParams);
+                        cn.CreateLocalCloneClientRpc(cardDataIndex, actualOwner, card.attack, card.health, card.manaCost, card.isSpell, cardIdToSend, logoToSend, (card is SpellCard s4) ? (int)s4.spell : (int)SpellType.None, (card is SpellCard s5) ? (int)s5.spellTarget : (int)TargetType.None, (card is SpellCard s6) ? s6.spellPower : 0, othersRpcParams);
                     }
                 }
                 catch { }
@@ -317,9 +319,9 @@ public class DeckManager : MonoBehaviour
         {
             uiClone = Instantiate(visualCardPrefab, hand, false);
             uiClone.SetActive(false);
-            StartCoroutine(FinishLocalCloneRoutine(uiClone, hand, card, cardDataIndex, ownerClientId, netInstance, innerVisualOnNet, cn));
+            StartCoroutine(FinishLocalCloneRoutine(uiClone, hand, card, cardDataIndex, actualOwner, netInstance, innerVisualOnNet, cn));
         }
-        catch (System.Exception)
+        catch
         {
             if (uiClone != null)
                 Destroy(uiClone);
@@ -344,8 +346,7 @@ public class DeckManager : MonoBehaviour
                 rtRoot.pivot = new Vector2(0.5f, 0.5f);
                 rtRoot.anchorMin = new Vector2(0.5f, 0.5f);
                 rtRoot.anchorMax = new Vector2(0.5f, 0.5f);
-                if (rtRoot.sizeDelta == Vector2.zero)
-                    rtRoot.sizeDelta = new Vector2(176f, 230f);
+                if (rtRoot.sizeDelta == Vector2.zero) rtRoot.sizeDelta = new Vector2(176f, 230f);
                 rtRoot.anchoredPosition = Vector2.zero;
                 rtRoot.localScale = Vector3.one;
             }
@@ -377,6 +378,7 @@ public class DeckManager : MonoBehaviour
                     cloneController.SetMovement(cloneMove);
                     cloneMove.defaultParent = hand;
                     cloneMove.tempParent = hand;
+                    cloneMove.enabled = isOwner;
                 }
                 var rootGraphic = uiClone.GetComponent<UnityEngine.UI.Graphic>();
                 if (rootGraphic == null)
@@ -385,11 +387,22 @@ public class DeckManager : MonoBehaviour
                     img.color = new Color(0f, 0f, 0f, 0f);
                     img.raycastTarget = true;
                 }
-                else
-                    rootGraphic.raycastTarget = true;
+                else rootGraphic.raycastTarget = true;
                 var canvasGroup = uiClone.GetComponent<CanvasGroup>() ?? uiClone.AddComponent<CanvasGroup>();
                 canvasGroup.blocksRaycasts = isOwner;
                 canvasGroup.interactable = isOwner;
+                if (!isOwner)
+                {
+                    canvasGroup.blocksRaycasts = false;
+                    if (cloneMove != null) cloneMove.enabled = false;
+                    cn.ownerClientIdNet.OnValueChanged += (oldV, newV) =>
+                    {
+                        bool nowOwner = NetworkManager.Singleton != null && newV == NetworkManager.Singleton.LocalClientId;
+                        canvasGroup.blocksRaycasts = nowOwner;
+                        if (cloneMove != null) cloneMove.enabled = nowOwner;
+                        cloneController.OnNetworkOwnershipChanged(nowOwner);
+                    };
+                }
             }
             var handRect = hand.GetComponent<RectTransform>();
             if (handRect != null)

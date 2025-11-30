@@ -34,7 +34,7 @@ public class CardNetwork : NetworkBehaviour
 
     private void Awake()
     {
-        visual = GetComponentInChildren<CardController>();
+        visual = GetComponentInChildren<CardController>(true);
     }
 
     public override void OnNetworkSpawn()
@@ -274,11 +274,27 @@ public class CardNetwork : NetworkBehaviour
                     cloneController.SetMovement(cloneMove);
                     cloneMove.defaultParent = hand;
                     cloneMove.tempParent = hand;
+                    cloneMove.enabled = isOwner;
                 }
                 var canvasGroup = uiClone.GetComponent<CanvasGroup>() ?? uiClone.AddComponent<CanvasGroup>();
                 canvasGroup.blocksRaycasts = isOwner;
                 canvasGroup.interactable = isOwner;
+                cloneController.self.canAttack = canAttack.Value;
+                cloneController.SetCanAttackVisual(canAttack.Value);
+                if (!isOwner)
+                {
+                    canvasGroup.blocksRaycasts = false;
+                    if (cloneMove != null) cloneMove.enabled = false;
+                    ownerClientIdNet.OnValueChanged += (oldV, newV) =>
+                    {
+                        bool nowOwner = NetworkManager.Singleton != null && newV == NetworkManager.Singleton.LocalClientId;
+                        canvasGroup.blocksRaycasts = nowOwner;
+                        if (cloneMove != null) cloneMove.enabled = nowOwner;
+                        cloneController.OnNetworkOwnershipChanged(nowOwner);
+                    };
+                }
             }
+
             attack.OnValueChanged += (o, n) =>
             {
                 if (uiClone == null)
@@ -301,6 +317,24 @@ public class CardNetwork : NetworkBehaviour
                 {
                     ctrl.self.health = n;
                     ctrl.Info?.UpdateStats(ctrl.self);
+                    if (n <= 0)
+                    {
+                        var gm = GameManager.Instance;
+                        if (gm != null)
+                        {
+                            if (ownerClientId == (NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0UL))
+                            {
+                                if (gm.playerHandCards.Contains(ctrl)) gm.playerHandCards.Remove(ctrl);
+                                if (gm.playerFieldCards.Contains(ctrl)) gm.playerFieldCards.Remove(ctrl);
+                            }
+                            else
+                            {
+                                if (gm.enemyHandCards.Contains(ctrl)) gm.enemyHandCards.Remove(ctrl);
+                                if (gm.enemyFieldCards.Contains(ctrl)) gm.enemyFieldCards.Remove(ctrl);
+                            }
+                        }
+                        if (uiClone != null) Destroy(uiClone);
+                    }
                 }
             };
             manaCost.OnValueChanged += (o, n) =>
@@ -322,7 +356,10 @@ public class CardNetwork : NetworkBehaviour
 
                 var ctrl = uiClone.GetComponentInChildren<CardController>();
                 if (ctrl != null)
+                {
+                    if (ctrl.self != null) ctrl.self.canAttack = n;
                     ctrl.SetCanAttackVisual(n);
+                }
             };
             ownerClientIdNet.OnValueChanged += (o, n) =>
             {
@@ -366,21 +403,20 @@ public class CardNetwork : NetworkBehaviour
                     var gm2 = GameManager.Instance;
                     if (gm2 != null)
                     {
-                        var cctrl = uiClone.GetComponentInChildren<CardController>();
                         if (ownerClientId == (NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0UL))
                         {
-                            if (gm2.playerHandCards.Contains(cctrl))
-                                gm2.playerHandCards.Remove(cctrl);
-                            if (!gm2.playerFieldCards.Contains(cctrl))
-                                gm2.playerFieldCards.Add(cctrl);
-                        }
+                            if (gm2.playerHandCards.Contains(ctrl))
+                                gm2.playerHandCards.Remove(ctrl);
+                            if (!gm2.playerFieldCards.Contains(ctrl))
+                                gm2.playerFieldCards.Add(ctrl);
+                        }
                         else
                         {
-                            if (gm2.enemyHandCards.Contains(cctrl))
-                                gm2.enemyHandCards.Remove(cctrl);
-                            if (!gm2.enemyFieldCards.Contains(cctrl))
-                                gm2.enemyFieldCards.Add(cctrl);
-                        }
+                            if (gm2.enemyHandCards.Contains(ctrl))
+                                gm2.enemyHandCards.Remove(ctrl);
+                            if (!gm2.enemyFieldCards.Contains(ctrl))
+                                gm2.enemyFieldCards.Add(ctrl);
+                        }
                     }
                 }
             };
@@ -420,6 +456,7 @@ public class CardNetwork : NetworkBehaviour
                     ctrl.Info?.UpdateStats(s);
                 }
             };
+
             var gm = GameManager.Instance;
             var controllerToAdd = uiClone != null ? uiClone.GetComponentInChildren<CardController>() : null;
             if (gm != null && controllerToAdd != null)
@@ -432,6 +469,7 @@ public class CardNetwork : NetworkBehaviour
                 gm.CheckCardsForManaAvailability();
                 UIManager.Instance?.UpdateHPAndMana();
             }
+
             if (isPlaced.Value)
             {
                 var ctrl = uiClone != null ? uiClone.GetComponentInChildren<CardController>() : null;
@@ -499,10 +537,54 @@ public class CardNetwork : NetworkBehaviour
             }
             else
             {
-                if (gm.enemyHandCards.Contains(visual))
-                    gm.enemyHandCards.Remove(visual);
-                if (!gm.enemyFieldCards.Contains(visual))
-                    gm.enemyFieldCards.Add(visual);
+                if (gm.enemyHandCards.Contains(visual)) gm.enemyHandCards.Remove(visual);
+                if (!gm.enemyFieldCards.Contains(visual)) gm.enemyFieldCards.Add(visual);
+            }
+        }
+    }
+
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
+    public void RequestAttackServerRpc(ulong targetNetObjId, RpcParams rpcParams = default)
+    {
+        if (!IsServer) return;
+        ulong sender = rpcParams.Receive.SenderClientId;
+        if (ownerClientIdNet.Value != sender) return;
+        if (!isPlaced.Value || !canAttack.Value) return;
+        if (!NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(targetNetObjId, out var targetNetObj)) return;
+        var targetCardNetwork = targetNetObj.GetComponent<CardNetwork>();
+        if (targetCardNetwork == null) return;
+        int atk = attack.Value;
+        targetCardNetwork.health.Value = Mathf.Max(0, targetCardNetwork.health.Value - atk);
+        canAttack.Value = false;
+        if (targetCardNetwork.health.Value <= 0) try { targetNetObj.Despawn(true); } catch { }
+        if (health.Value <= 0)
+        {
+            var selfNO = this.GetComponent<NetworkObject>();
+            if (selfNO != null) try { selfNO.Despawn(true); } catch { }
+        }
+    }
+
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
+    public void RequestCastSpellServerRpc(int spellTypeValue, int spellTargetType, int spellPowerValue, ulong targetNetObjId, RpcParams rpcParams = default)
+    {
+        if (!IsServer) return;
+        ulong sender = rpcParams.Receive.SenderClientId;
+        if (ownerClientIdNet.Value != sender) return;
+        spellType.Value = spellTypeValue;
+        spellTarget.Value = spellTargetType;
+        spellPower.Value = spellPowerValue;
+        SpellType st = (SpellType)spellTypeValue;
+        TargetType tt = (TargetType)spellTargetType;
+        if (st == SpellType.DamageCard && tt == TargetType.EnemyCard && targetNetObjId != 0)
+        {
+            if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(targetNetObjId, out var targetNetObj))
+            {
+                var targetCardNetwork = targetNetObj.GetComponent<CardNetwork>();
+                if (targetCardNetwork != null)
+                {
+                    targetCardNetwork.health.Value = Mathf.Max(0, targetCardNetwork.health.Value - spellPowerValue);
+                    if (targetCardNetwork.health.Value <= 0) try { targetNetObj.Despawn(true); } catch { }
+                }
             }
         }
     }

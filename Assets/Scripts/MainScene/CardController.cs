@@ -15,6 +15,7 @@ public class CardController : MonoBehaviour
     private CardNetwork linkedNetwork;
 
     [HideInInspector] public int placedOnTurn = -1;
+    private bool pendingServerAction = false;
 
     public CardInfo Info => info;
     public CardMovement Movement => movement;
@@ -64,6 +65,7 @@ public class CardController : MonoBehaviour
                     if (gameManager != null && gameManager.currentGame != null && gameManager.currentGame.enemy.mana < self.manaCost)
                         return;
                 }
+
                 var dm = FindAnyObjectByType<DeckManager>();
                 int fieldCount = isPlayerCard ? (gameManager != null ? gameManager.playerFieldCards.Count : 0) : (gameManager != null ? gameManager.enemyFieldCards.Count : 0);
                 if (!self.isSpell && fieldCount >= (dm != null ? DeckManager.MAX_FIELD_SIZE : 7))
@@ -111,21 +113,46 @@ public class CardController : MonoBehaviour
 
                 if (self.isSpell)
                     UseSpell(null);
-
-                UIManager.Instance?.UpdateHPAndMana();
             }
             else
             {
                 try
                 {
-                    linkedNetwork.RequestPlaceCardServerRpc(isPlayerCard);
+                    if (self.isSpell)
+                    {
+                        var sc = (SpellCard)self;
+                        ulong targetId = 0;
+                        linkedNetwork.RequestCastSpellServerRpc((int)sc.spell, (int)sc.spellTarget, sc.spellPower, targetId);
+                        pendingServerAction = true;
+
+                        if (movement != null) movement.OnEndDrag(null);
+                        if (movement != null) movement.enabled = false;
+
+                        var cg = GetComponent<CanvasGroup>();
+                        if (cg != null) { cg.interactable = false; cg.blocksRaycasts = false; }
+
+                        var gm = GameManager.Instance;
+                        if (gm != null)
+                        {
+                            if (isPlayerCard)
+                            {
+                                if (!gm.playerHandCards.Contains(this)) gm.playerHandCards.Add(this);
+                            }
+                            else
+                            {
+                                if (!gm.enemyHandCards.Contains(this)) gm.enemyHandCards.Add(this);
+                            }
+                            gm.CheckCardsForManaAvailability();
+                        }
+                    }
+                    else
+                    {
+                        linkedNetwork.RequestPlaceCardServerRpc(isPlayerCard);
+                    }
                 }
-                catch
-                {
-                    Debug.LogWarning("[CardController] Failed to send RequestPlaceCardServerRpc.");
-                }
+                catch { }
             }
-            
+
             return;
         }
 
@@ -149,7 +176,9 @@ public class CardController : MonoBehaviour
             gameManager.ReduceMana(false, self.manaCost);
             info.ShowCard(self);
         }
+
         self.isPlaced = true;
+
         if (self.HasAbility)
             ability.OnCast(self, isPlayerCard, info);
 
@@ -170,8 +199,11 @@ public class CardController : MonoBehaviour
         self.timesDealedDamage++;
         self.canAttack = false;
         info.SetHighlight(false);
-        if (linkedNetwork != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer) linkedNetwork.canAttack.Value = false;
-        if (self.HasAbility) ability.OnDamageDeal(self, isPlayerCard, info);
+        if (linkedNetwork != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
+            try { linkedNetwork.canAttack.Value = false; } catch { }
+
+        if (self.HasAbility)
+            ability.OnDamageDeal(self, isPlayerCard, info);
     }
 
     public void DestroyCard()
@@ -202,22 +234,58 @@ public class CardController : MonoBehaviour
     public void UseSpell(CardController target)
     {
         var spellCard = (SpellCard)self;
+
+        if (linkedNetwork != null && NetworkManager.Singleton != null && !NetworkManager.Singleton.IsServer)
+        {
+            ulong targetNetObjId = 0;
+            if (target != null && target.Network != null && target.Network.NetworkObject != null)
+                targetNetObjId = target.Network.NetworkObject.NetworkObjectId;
+
+            linkedNetwork.RequestCastSpellServerRpc((int)spellCard.spell, (int)spellCard.spellTarget, spellCard.spellPower, targetNetObjId);
+            pendingServerAction = true;
+
+            if (movement != null) movement.OnEndDrag(null);
+            if (movement != null) movement.enabled = false;
+
+            var cg = GetComponent<CanvasGroup>();
+            if (cg != null) { cg.interactable = false; cg.blocksRaycasts = false; }
+
+            var gm = GameManager.Instance;
+            if (gm != null)
+            {
+                if (isPlayerCard)
+                {
+                    if (!gm.playerHandCards.Contains(this)) gm.playerHandCards.Add(this);
+                }
+                else
+                {
+                    if (!gm.enemyHandCards.Contains(this)) gm.enemyHandCards.Add(this);
+                }
+                gm.CheckCardsForManaAvailability();
+            }
+
+            return;
+        }
+
         switch (spellCard.spell)
         {
             case SpellType.GiveTempMana:
-                Player targetPlayer = isPlayerCard ? gameManager.currentGame.player : gameManager.currentGame.enemy;
-                targetPlayer.AddTempMana(spellCard.spellPower);
+                if (isPlayerCard) gameManager.currentGame.player.AddTempMana(spellCard.spellPower);
+                else gameManager.currentGame.enemy.AddTempMana(spellCard.spellPower);
                 UIManager.Instance.UpdateHPAndMana();
                 GameManager.Instance.CheckCardsForManaAvailability();
                 break;
+
             case SpellType.HealAlliesField:
                 var allyCards = isPlayerCard ? gameManager.playerFieldCards : gameManager.enemyFieldCards;
                 foreach (var card in allyCards) { card.self.health += spellCard.spellPower; card.info.UpdateStats(card.self); }
                 break;
+
             case SpellType.DamageEnemiesField:
                 var enemyCards = isPlayerCard ? new List<CardController>(gameManager.enemyFieldCards) : new List<CardController>(gameManager.playerFieldCards);
                 foreach (var card in enemyCards) GiveDamageTo(card, spellCard.spellPower);
                 break;
+
             case SpellType.HealHero:
                 if (isPlayerCard)
                     gameManager.currentGame.player.hp += spellCard.spellPower;
@@ -225,6 +293,7 @@ public class CardController : MonoBehaviour
                     gameManager.currentGame.enemy.hp += spellCard.spellPower;
                 UIManager.Instance.UpdateHPAndMana();
                 break;
+
             case SpellType.DamageHero:
                 if (isPlayerCard)
                     gameManager.currentGame.enemy.hp -= spellCard.spellPower;
@@ -233,32 +302,40 @@ public class CardController : MonoBehaviour
                 UIManager.Instance.UpdateHPAndMana();
                 gameManager.CheckForResult();
                 break;
+
             case SpellType.HealCard:
-                target.self.health += spellCard.spellPower;
+                if (target != null) target.self.health += spellCard.spellPower;
                 break;
+
             case SpellType.DamageCard:
-                GiveDamageTo(target, spellCard.spellPower);
+                if (target != null) GiveDamageTo(target, spellCard.spellPower);
                 break;
+
             case SpellType.AddShield:
                 if (!target.self.abilities.Exists(x => x == AbilityType.Shield))
                     target.self.abilities.Add(AbilityType.Shield);
                 break;
+
             case SpellType.AddTaunt:
                 if (!target.self.abilities.Exists(x => x == AbilityType.Taunt))
                     target.self.abilities.Add(AbilityType.Taunt);
                 break;
+
             case SpellType.BuffAttack:
-                target.self.attack += spellCard.spellPower;
+                if (target != null) target.self.attack += spellCard.spellPower;
                 break;
+
             case SpellType.DebuffAttack:
-                target.self.attack = Mathf.Max(0, target.self.attack - spellCard.spellPower);
+                if (target != null) target.self.attack = Mathf.Max(0, target.self.attack - spellCard.spellPower);
                 break;
         }
+
         if (target != null)
         {
             target.ability.OnApplyEffect(target.self, target.isPlayerCard, info);
             target.CheckForAlive();
         }
+
         DestroyCard();
     }
 
@@ -295,6 +372,7 @@ public class CardController : MonoBehaviour
             }
         }
         catch { dataToUse = null; }
+
         if (dataToUse == null)
         {
             dataToUse = ScriptableObject.CreateInstance<CardData>();
@@ -312,8 +390,11 @@ public class CardController : MonoBehaviour
         self.health = health;
         self.manaCost = manaCost;
         self.isSpell = isSpell;
+
         Info?.UpdateStats(self);
+
         bool isMine = NetworkManager.Singleton != null && ownerClientId == NetworkManager.Singleton.LocalClientId;
+
         if (!self.isPlaced)
         {
             bool showForNonOwnerCoin = false;
@@ -330,6 +411,7 @@ public class CardController : MonoBehaviour
         }
         else
             Info?.ShowCard(self);
+
         isPlayerCard = isMine;
     }
 
@@ -341,8 +423,8 @@ public class CardController : MonoBehaviour
         if (cg != null)
             cg.blocksRaycasts = isOwner;
         var attacked = GetComponent<AttackedCard>();
-        if (attacked != null)
-            attacked.enabled = isOwner;
+        if (attacked != null) attacked.enabled = isOwner;
+
         if (!self.isPlaced)
         {
             if (isOwner)
@@ -352,6 +434,13 @@ public class CardController : MonoBehaviour
         }
         else
             Info?.ShowCard(self);
+
+        if (isOwner && pendingServerAction)
+        {
+            pendingServerAction = false;
+            if (movement != null) movement.enabled = true;
+            if (cg != null) { cg.interactable = true; cg.blocksRaycasts = true; }
+        }
     }
 
     public void SetCanAttackVisual(bool canAttack)
@@ -364,6 +453,7 @@ public class CardController : MonoBehaviour
         self.isPlaced = true;
         Info?.ShowCard(self);
         placedOnTurn = GameManager.Instance != null ? GameManager.Instance.CurrentTurn : -1;
+
         var dm = FindAnyObjectByType<DeckManager>();
         Transform targetParent = null;
         if (dm != null)
@@ -373,6 +463,7 @@ public class CardController : MonoBehaviour
             else
                 targetParent = dm.EnemyField;
         }
+
         if (targetParent != null)
             transform.SetParent(targetParent, false);
     }
@@ -389,6 +480,7 @@ public class CardController : MonoBehaviour
             else
                 handParent = dm.EnemyHand;
         }
+
         if (handParent != null)
             transform.SetParent(handParent, false);
 

@@ -178,7 +178,6 @@ public class GameManager : MonoBehaviour
             if (turnManager != null)
             {
                 turnManager.CurrentTurnOwner.Value = newOwner;
-            turnmanagerSafety:
                 turnManager.NotifyClientsOwnerClientRpc(newOwner);
                 turnManager.StopServerTurnLoop();
                 turnManager.StartServerTurnLoop();
@@ -605,38 +604,26 @@ public class GameManager : MonoBehaviour
             UIManager.Instance.UpdateTurnTime(newTime);
     }
 
-    private void UpdateManaNetworkIfServer()
+    public void UpdateManaNetworkIfServer()
     {
-        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer)
-            return;
-        if (turnManager == null)
-            turnManager = FindFirstObjectByType<TurnManager>();
-        if (turnManager == null)
-            return;
-        try
-        {
-            turnManager.SetPlayerManaServer(currentGame.player.mana);
-        }
-        catch { }
-        try
-        {
-            turnManager.SetEnemyManaServer(currentGame.enemy.mana);
-        }
-        catch { }
+        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer) return;
+        if (turnManager == null) turnManager = FindFirstObjectByType<TurnManager>();
+        if (turnManager == null) return;
+        try { turnManager.SetPlayerManaServer(currentGame.player.mana); } catch { }
+        try { turnManager.SetEnemyManaServer(currentGame.enemy.mana); } catch { }
+    }
+
+    public void UpdateManaNetworkIfServerPublic()
+    {
+        UpdateManaNetworkIfServer();
     }
 
     private void ApplyNetworkManaValues()
     {
-        if (turnManager == null || NetworkManager.Singleton == null)
-            return;
-
-        if (currentGame == null)
-            currentGame = new Game();
-
+        if (turnManager == null || NetworkManager.Singleton == null) return;
+        if (currentGame == null) currentGame = new Game();
         ulong playerOwnerClientId = turnManager.PlayerOwner.Value;
-        if (playerOwnerClientId == 0 && NetworkManager.Singleton != null)
-            playerOwnerClientId = NetworkManager.ServerClientId;
-
+        if (playerOwnerClientId == 0 && NetworkManager.Singleton != null) playerOwnerClientId = NetworkManager.ServerClientId;
         bool localIsPlayerOwner = NetworkManager.Singleton.LocalClientId == playerOwnerClientId;
 
         int playerManaNet = turnManager.PlayerMana.Value;

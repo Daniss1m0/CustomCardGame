@@ -21,15 +21,18 @@ public class DropPlace : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoi
 
     public void OnDrop(PointerEventData eventData)
     {
-        if (type != FieldType.PlayerField && type != FieldType.EnemyField)
+        if (type == FieldType.EnemyField || type == FieldType.EnemyHand)
+            return;
+
+        if (type != FieldType.PlayerField)
             return;
 
         var dragObj = eventData.pointerDrag;
-        if (dragObj == null)
+        if (dragObj == null) 
             return;
 
         var card = dragObj.GetComponent<CardController>();
-        if (card == null)
+        if (card == null) 
             return;
 
         if (card.self.isSpell)
@@ -37,14 +40,13 @@ public class DropPlace : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoi
             var spell = card.self as SpellCard;
             if (spell != null && spell.spellTarget == TargetType.None)
             {
-                if (!GameManager.Instance.IsPlayerTurn || !card.isPlayerCard)
+                if (!GameManager.Instance.IsPlayerTurn || !card.isPlayerCard) 
                     return;
 
-                if (GameManager.Instance.currentGame.player.mana < card.self.manaCost)
+                if (GameManager.Instance.currentGame.player.mana < card.self.manaCost) 
                     return;
 
                 card.Movement.MoveToField(transform);
-
                 GameManager.Instance.PlayCard(card, true);
                 return;
             }
@@ -53,18 +55,11 @@ public class DropPlace : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoi
         if (!card.self.isSpell)
         {
             var gm = GameManager.Instance;
-            if (type == FieldType.PlayerField)
-                if (gm.playerFieldCards.Count >= DeckManager.MAX_FIELD_SIZE)
-                {
-                    Debug.Log("Player field is full.");
-                    return;
-                }
-            else
-                if (gm.enemyFieldCards.Count >= DeckManager.MAX_FIELD_SIZE)
-                {
-                    Debug.Log("Enemy field is full.");
-                    return;
-                }
+            if (type == FieldType.PlayerField && gm.playerFieldCards.Count >= DeckManager.MAX_FIELD_SIZE)
+            {
+                Debug.Log("Player field is full.");
+                return;
+            }
         }
 
         if (card && GameManager.Instance.IsPlayerTurn && GameManager.Instance.currentGame.player.mana >= card.self.manaCost && !card.self.isPlaced)
@@ -84,14 +79,14 @@ public class DropPlace : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoi
         CardMovement cardMovement = eventData.pointerDrag.GetComponent<CardMovement>();
         CardController cardController = eventData.pointerDrag.GetComponent<CardController>();
 
-        if (cardMovement == null)
+        if (cardMovement == null) 
             return;
 
         if (type == FieldType.PlayerField && cardController != null && !cardController.self.isSpell)
             if (GameManager.Instance.playerFieldCards.Count >= DeckManager.MAX_FIELD_SIZE)
                 return;
 
-        if (cardMovement.tempParent == transform)
+        if (cardMovement.tempParent == transform) 
             return;
 
         if (setTempCoroutine != null)
@@ -107,8 +102,7 @@ public class DropPlace : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoi
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        if (eventData.pointerDrag == null)
-            return;
+        if (eventData.pointerDrag == null) return;
 
         CardMovement card = eventData.pointerDrag.GetComponent<CardMovement>();
 
@@ -127,14 +121,7 @@ public class DropPlace : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoi
     {
         yield return new WaitForSecondsRealtime(TEMP_PARENT_DELAY);
 
-        if (dragObj == null)
-        {
-            setTempCoroutine = null;
-            pendingDragObj = null;
-            yield break;
-        }
-
-        if (cardMovement == null)
+        if (dragObj == null || cardMovement == null)
         {
             setTempCoroutine = null;
             pendingDragObj = null;
@@ -149,7 +136,6 @@ public class DropPlace : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoi
         }
 
         cardMovement.tempParent = transform;
-
         setTempCoroutine = null;
         pendingDragObj = null;
     }

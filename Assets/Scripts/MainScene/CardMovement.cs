@@ -151,12 +151,21 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
 
         if (!controller.self.isSpell)
         {
-            if (cardTemp != null && cardTemp.transform.parent != tempParent && tempParent != null)
+            if (cardTemp != null && tempParent != null && cardTemp.transform.parent != tempParent)
+            {
                 cardTemp.transform.SetParent(tempParent, false);
+                cardTemp.transform.localScale = Vector3.one;
+            }
 
-            var dp = defaultParent != null ? defaultParent.GetComponent<DropPlace>() : null;
-            if (dp != null && dp.type != FieldType.PlayerField)
-                CheckPosition();
+            if (tempParent != null)
+            {
+                var dropPlace = tempParent.GetComponent<DropPlace>();
+
+                if (dropPlace != null && dropPlace.type != FieldType.EnemyField && dropPlace.type != FieldType.EnemyHand)
+                    CheckPosition();
+                else if (dropPlace != null && dropPlace.type == FieldType.PlayerHand)
+                    CheckPosition();
+            }
         }
     }
 

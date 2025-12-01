@@ -125,8 +125,10 @@ public class CardController : MonoBehaviour
                         linkedNetwork.RequestCastSpellServerRpc((int)sc.spell, (int)sc.spellTarget, sc.spellPower, targetId);
                         pendingServerAction = true;
 
-                        if (movement != null) movement.OnEndDrag(null);
-                        if (movement != null) movement.enabled = false;
+                        if (movement != null) 
+                            movement.OnEndDrag(null);
+                        if (movement != null) 
+                            movement.enabled = false;
 
                         var cg = GetComponent<CanvasGroup>();
                         if (cg != null) { cg.interactable = false; cg.blocksRaycasts = false; }
@@ -147,6 +149,8 @@ public class CardController : MonoBehaviour
                     }
                     else
                     {
+                        info.SetHighlight(false);
+
                         linkedNetwork.RequestPlaceCardServerRpc(isPlayerCard);
                     }
                 }
@@ -200,7 +204,10 @@ public class CardController : MonoBehaviour
         self.canAttack = false;
         info.SetHighlight(false);
         if (linkedNetwork != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
-            try { linkedNetwork.canAttack.Value = false; } catch { }
+            try 
+            { 
+                linkedNetwork.canAttack.Value = false; 
+            } catch { }
 
         if (self.HasAbility)
             ability.OnDamageDeal(self, isPlayerCard, info);
@@ -254,13 +261,12 @@ public class CardController : MonoBehaviour
             if (gm != null)
             {
                 if (isPlayerCard)
-                {
-                    if (!gm.playerHandCards.Contains(this)) gm.playerHandCards.Add(this);
-                }
+                    if (!gm.playerHandCards.Contains(this)) 
+                        gm.playerHandCards.Add(this);
                 else
-                {
-                    if (!gm.enemyHandCards.Contains(this)) gm.enemyHandCards.Add(this);
-                }
+                    if (!gm.enemyHandCards.Contains(this)) 
+                        gm.enemyHandCards.Add(this);
+
                 gm.CheckCardsForManaAvailability();
             }
 

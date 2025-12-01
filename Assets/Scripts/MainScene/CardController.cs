@@ -56,15 +56,11 @@ public class CardController : MonoBehaviour
                 }
 
                 if (isPlayerCard)
-                {
                     if (gameManager != null && gameManager.currentGame != null && gameManager.currentGame.player.mana < self.manaCost)
                         return;
-                }
                 else
-                {
                     if (gameManager != null && gameManager.currentGame != null && gameManager.currentGame.enemy.mana < self.manaCost)
                         return;
-                }
 
                 var dm = FindAnyObjectByType<DeckManager>();
                 int fieldCount = isPlayerCard ? (gameManager != null ? gameManager.playerFieldCards.Count : 0) : (gameManager != null ? gameManager.enemyFieldCards.Count : 0);
@@ -73,9 +69,12 @@ public class CardController : MonoBehaviour
 
                 try
                 {
-                    linkedNetwork.isPlaced.Value = true;
-                    linkedNetwork.canAttack.Value = false;
-                    linkedNetwork.placedOnTurn.Value = (gameManager != null ? gameManager.CurrentTurn : 0);
+                    if (!self.isSpell)
+                    {
+                        linkedNetwork.isPlaced.Value = true;
+                        linkedNetwork.canAttack.Value = false;
+                        linkedNetwork.placedOnTurn.Value = (gameManager != null ? gameManager.CurrentTurn : 0);
+                    }
                 }
                 catch { }
 
@@ -335,6 +334,9 @@ public class CardController : MonoBehaviour
                 if (target != null) target.self.attack = Mathf.Max(0, target.self.attack - spellCard.spellPower);
                 break;
         }
+
+        if (linkedNetwork != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
+            linkedNetwork.RemoveLocalCloneClientRpc();
 
         if (target != null)
         {

@@ -51,21 +51,35 @@ public class CardController : MonoBehaviour
                 if (gameManager != null)
                 {
                     bool sideIsPlayerTurn = gameManager.IsPlayerTurn == isPlayerCard;
-                    if (!sideIsPlayerTurn)
+                    if (!sideIsPlayerTurn) 
                         return;
                 }
 
                 if (isPlayerCard)
-                    if (gameManager != null && gameManager.currentGame != null && gameManager.currentGame.player.mana < self.manaCost)
+                    if (gameManager != null && gameManager.currentGame != null && gameManager.currentGame.player.mana < self.manaCost) 
                         return;
                 else
-                    if (gameManager != null && gameManager.currentGame != null && gameManager.currentGame.enemy.mana < self.manaCost)
+                    if (gameManager != null && gameManager.currentGame != null && gameManager.currentGame.enemy.mana < self.manaCost) 
                         return;
 
                 var dm = FindAnyObjectByType<DeckManager>();
                 int fieldCount = isPlayerCard ? (gameManager != null ? gameManager.playerFieldCards.Count : 0) : (gameManager != null ? gameManager.enemyFieldCards.Count : 0);
+
                 if (!self.isSpell && fieldCount >= (dm != null ? DeckManager.MAX_FIELD_SIZE : 7))
                     return;
+
+                if (movement != null)
+                {
+                    movement.OnEndDrag(null);
+                    movement.enabled = false;
+                }
+
+                var cg = GetComponent<CanvasGroup>();
+                if (cg != null)
+                {
+                    cg.blocksRaycasts = false;
+                    cg.interactable = false;
+                }
 
                 try
                 {
@@ -84,8 +98,19 @@ public class CardController : MonoBehaviour
                     {
                         if (gameManager.playerHandCards.Contains(this))
                             gameManager.playerHandCards.Remove(this);
-                        if (!gameManager.playerFieldCards.Contains(this))
-                            gameManager.playerFieldCards.Add(this);
+
+                        if (!self.isSpell)
+                        {
+                            if (!gameManager.playerFieldCards.Contains(this))
+                                gameManager.playerFieldCards.Add(this);
+
+                            if (dm != null)
+                            {
+                                transform.SetParent(dm.PlayerField, false);
+                                if (movement != null) 
+                                    movement.defaultParent = dm.PlayerField;
+                            }
+                        }
 
                         gameManager.ReduceMana(true, self.manaCost);
                         gameManager.CheckCardsForManaAvailability();
@@ -94,8 +119,19 @@ public class CardController : MonoBehaviour
                     {
                         if (gameManager.enemyHandCards.Contains(this))
                             gameManager.enemyHandCards.Remove(this);
-                        if (!gameManager.enemyFieldCards.Contains(this))
-                            gameManager.enemyFieldCards.Add(this);
+
+                        if (!self.isSpell)
+                        {
+                            if (!gameManager.enemyFieldCards.Contains(this))
+                                gameManager.enemyFieldCards.Add(this);
+
+                            if (dm != null)
+                            {
+                                transform.SetParent(dm.EnemyField, false);
+                                if (movement != null) 
+                                    movement.defaultParent = dm.EnemyField;
+                            }
+                        }
 
                         gameManager.ReduceMana(false, self.manaCost);
                         info.ShowCard(self);
@@ -105,10 +141,26 @@ public class CardController : MonoBehaviour
                 placedOnTurn = gameManager != null ? gameManager.CurrentTurn : -1;
                 self.canAttack = false;
                 info.SetHighlight(false);
-                self.isPlaced = true;
+
+                if (!self.isSpell)
+                    self.isPlaced = true;
 
                 if (self.HasAbility)
                     ability.OnCast(self, isPlayerCard, info);
+
+                if (!self.isSpell)
+                {
+                    if (cg != null)
+                    {
+                        cg.blocksRaycasts = true;
+                        cg.interactable = true;
+                    }
+                    if (movement != null)
+                    {
+                        movement.enabled = true;
+                        movement.OnEndDrag(null);
+                    }
+                }
 
                 if (self.isSpell)
                     UseSpell(null);
@@ -136,13 +188,11 @@ public class CardController : MonoBehaviour
                         if (gm != null)
                         {
                             if (isPlayerCard)
-                            {
-                                if (!gm.playerHandCards.Contains(this)) gm.playerHandCards.Add(this);
-                            }
+                                if (!gm.playerHandCards.Contains(this)) 
+                                    gm.playerHandCards.Add(this);
                             else
-                            {
-                                if (!gm.enemyHandCards.Contains(this)) gm.enemyHandCards.Add(this);
-                            }
+                                if (!gm.enemyHandCards.Contains(this)) 
+                                    gm.enemyHandCards.Add(this);
                             gm.CheckCardsForManaAvailability();
                         }
                     }

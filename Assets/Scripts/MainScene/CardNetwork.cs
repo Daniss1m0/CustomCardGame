@@ -556,6 +556,7 @@ public class CardNetwork : NetworkBehaviour
             return;
 
         ulong sender = rpcParams.Receive.SenderClientId;
+        
         if (ownerClientIdNet.Value != sender)
             return;
 
@@ -564,19 +565,28 @@ public class CardNetwork : NetworkBehaviour
         placedOnTurn.Value = GameManager.Instance != null ? GameManager.Instance.CurrentTurn : 0;
 
         var gm = GameManager.Instance;
-        if (gm != null && visual != null)
+        if (gm != null)
         {
-            if (ownerClientIdNet.Value == NetworkManager.ServerClientId)
+            bool isHostCard = ownerClientIdNet.Value == NetworkManager.ServerClientId;
+
+            gm.ReduceMana(isHostCard, manaCost.Value);
+
+            if (visual != null)
             {
-                if (gm.playerHandCards.Contains(visual))
-                    gm.playerHandCards.Remove(visual);
-                if (!gm.playerFieldCards.Contains(visual))
-                    gm.playerFieldCards.Add(visual);
-            }
-            else
-            {
-                if (gm.enemyHandCards.Contains(visual)) gm.enemyHandCards.Remove(visual);
-                if (!gm.enemyFieldCards.Contains(visual)) gm.enemyFieldCards.Add(visual);
+                if (ownerClientIdNet.Value == NetworkManager.ServerClientId)
+                {
+                    if (gm.playerHandCards.Contains(visual))
+                        gm.playerHandCards.Remove(visual);
+                    if (!gm.playerFieldCards.Contains(visual))
+                        gm.playerFieldCards.Add(visual);
+                }
+                else
+                {
+                    if (gm.enemyHandCards.Contains(visual)) 
+                        gm.enemyHandCards.Remove(visual);
+                    if (!gm.enemyFieldCards.Contains(visual)) 
+                        gm.enemyFieldCards.Add(visual);
+                }
             }
         }
     }
@@ -584,46 +594,76 @@ public class CardNetwork : NetworkBehaviour
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
     public void RequestAttackServerRpc(ulong targetNetObjId, RpcParams rpcParams = default)
     {
-        if (!IsServer) return;
+        if (!IsServer) 
+            return;
+
         ulong sender = rpcParams.Receive.SenderClientId;
-        if (ownerClientIdNet.Value != sender) return;
-        if (!isPlaced.Value || !canAttack.Value) return;
-        if (!NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(targetNetObjId, out var targetNetObj)) return;
+        if (ownerClientIdNet.Value != sender) 
+            return;
+
+        if (!isPlaced.Value || !canAttack.Value) 
+            return;
+
+        if (!NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(targetNetObjId, out var targetNetObj)) 
+            return;
+
         var targetCardNetwork = targetNetObj.GetComponent<CardNetwork>();
-        if (targetCardNetwork == null) return;
+        if (targetCardNetwork == null) 
+            return;
+
         int atk = attack.Value;
         targetCardNetwork.health.Value = Mathf.Max(0, targetCardNetwork.health.Value - atk);
         canAttack.Value = false;
-        if (targetCardNetwork.health.Value <= 0) try { targetNetObj.Despawn(true); } catch { }
+        if (targetCardNetwork.health.Value <= 0) 
+            try { targetNetObj.Despawn(true); } catch { }
+
         if (health.Value <= 0)
         {
             var selfNO = this.GetComponent<NetworkObject>();
-            if (selfNO != null) try { selfNO.Despawn(true); } catch { }
+            if (selfNO != null) 
+                try { selfNO.Despawn(true); } catch { }
         }
     }
 
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
     public void RequestCastSpellServerRpc(int spellTypeValue, int spellTargetType, int spellPowerValue, ulong targetNetObjId, RpcParams rpcParams = default)
     {
-        if (!IsServer) return;
+        if (!IsServer) 
+            return;
+
         ulong sender = rpcParams.Receive.SenderClientId;
-        if (ownerClientIdNet.Value != sender) return;
+        
+        if (ownerClientIdNet.Value != sender) 
+            return;
+
         SpellType st = (SpellType)spellTypeValue;
         TargetType tt = (TargetType)spellTargetType;
         var gm = GameManager.Instance;
+
+        if (gm != null)
+        {
+            bool isHostCard = ownerClientIdNet.Value == NetworkManager.ServerClientId;
+            gm.ReduceMana(isHostCard, manaCost.Value);
+        }
+
         ulong playerOwnerClientId = NetworkManager.ServerClientId;
         var tm = FindFirstObjectByType<TurnManager>();
-        if (tm != null && tm.PlayerOwner.Value != 0UL) playerOwnerClientId = tm.PlayerOwner.Value;
+        if (tm != null && tm.PlayerOwner.Value != 0UL) 
+            playerOwnerClientId = tm.PlayerOwner.Value;
+
         bool isPlayerSide = ownerClientIdNet.Value == playerOwnerClientId;
         switch (st)
         {
             case SpellType.GiveTempMana:
                 if (gm != null && gm.currentGame != null)
                 {
-                    if (isPlayerSide) gm.currentGame.player.AddTempMana(spellPowerValue);
-                    else gm.currentGame.enemy.AddTempMana(spellPowerValue);
+                    if (isPlayerSide) 
+                        gm.currentGame.player.AddTempMana(spellPowerValue);
+                    else 
+                        gm.currentGame.enemy.AddTempMana(spellPowerValue);
                 }
-                if (gm != null) gm.UpdateManaNetworkIfServerPublic();
+                if (gm != null) 
+                    gm.UpdateManaNetworkIfServerPublic();
                 break;
             case SpellType.HealAlliesField:
                 if (gm != null)
@@ -631,9 +671,16 @@ public class CardNetwork : NetworkBehaviour
                     var list = isPlayerSide ? gm.playerFieldCards : gm.enemyFieldCards;
                     foreach (var c in list)
                     {
-                        if (c == null) continue;
-                        if (c.Network != null) c.Network.health.Value += spellPowerValue;
-                        else { c.self.health += spellPowerValue; c.Info?.UpdateStats(c.self); }
+                        if (c == null) 
+                            continue;
+
+                        if (c.Network != null) 
+                            c.Network.health.Value += spellPowerValue;
+                        else 
+                        { 
+                            c.self.health += spellPowerValue; 
+                            c.Info?.UpdateStats(c.self); 
+                        }
                     }
                 }
                 break;
@@ -643,14 +690,17 @@ public class CardNetwork : NetworkBehaviour
                     var list = isPlayerSide ? new System.Collections.Generic.List<CardController>(gm.enemyFieldCards) : new System.Collections.Generic.List<CardController>(gm.playerFieldCards);
                     foreach (var c in list)
                     {
-                        if (c == null) continue;
+                        if (c == null) 
+                            continue;
+
                         if (c.Network != null)
                         {
                             c.Network.health.Value = Mathf.Max(0, c.Network.health.Value - spellPowerValue);
                             if (c.Network.health.Value <= 0)
                             {
                                 var no = c.Network.GetComponent<NetworkObject>();
-                                if (no != null) try { no.Despawn(true); } catch { }
+                                if (no != null) 
+                                    try { no.Despawn(true); } catch { }
                             }
                         }
                         else
@@ -743,7 +793,7 @@ public class CardNetwork : NetworkBehaviour
         }
 
         RemoveLocalCloneClientRpc();
-        var casterNO = this.GetComponent<NetworkObject>();
+        var casterNO = GetComponent<NetworkObject>();
         if (casterNO != null)
         {
             CardController found = null;
@@ -755,13 +805,17 @@ public class CardNetwork : NetworkBehaviour
                 {
                     try
                     {
-                        if (g.playerHandCards.Contains(found)) g.playerHandCards.Remove(found);
-                        if (g.enemyHandCards.Contains(found)) g.enemyHandCards.Remove(found);
-                        if (g.playerFieldCards.Contains(found)) g.playerFieldCards.Remove(found);
-                        if (g.enemyFieldCards.Contains(found)) g.enemyFieldCards.Remove(found);
+                        if (g.playerHandCards.Contains(found)) 
+                            g.playerHandCards.Remove(found);
+                        if (g.enemyHandCards.Contains(found)) 
+                            g.enemyHandCards.Remove(found);
+                        if (g.playerFieldCards.Contains(found)) 
+                            g.playerFieldCards.Remove(found);
+                        if (g.enemyFieldCards.Contains(found)) 
+                            g.enemyFieldCards.Remove(found);
                     }
                     catch { }
-                    try { Object.Destroy(found.gameObject); } catch { }
+                    try { Destroy(found.gameObject); } catch { }
                 }
             }
             try { casterNO.Despawn(true); } catch { }

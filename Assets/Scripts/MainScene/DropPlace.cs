@@ -13,7 +13,7 @@ public enum FieldType
 public class DropPlace : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPointerExitHandler
 {
     private const float TEMP_PARENT_DELAY = 0.06f;
-    
+
     public FieldType type;
 
     private Coroutine setTempCoroutine;
@@ -28,23 +28,30 @@ public class DropPlace : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoi
             return;
 
         var dragObj = eventData.pointerDrag;
-        if (dragObj == null) 
+        if (dragObj == null)
             return;
 
         var card = dragObj.GetComponent<CardController>();
-        if (card == null) 
+        if (card == null)
             return;
+
+        GameManager.Instance.SanitizeLists();
 
         if (card.self.isSpell)
         {
             var spell = card.self as SpellCard;
             if (spell != null && spell.spellTarget == TargetType.None)
             {
-                if (!GameManager.Instance.IsPlayerTurn || !card.isPlayerCard) 
+                if (!GameManager.Instance.IsPlayerTurn || !card.isPlayerCard)
+                {
+                    Debug.Log("Spell Drop Failed: Not Player Turn or Not Player Card");
                     return;
-
-                if (GameManager.Instance.currentGame.player.mana < card.self.manaCost) 
+                }
+                if (GameManager.Instance.currentGame.player.mana < card.self.manaCost)
+                {
+                    Debug.Log("Spell Drop Failed: Not enough mana");
                     return;
+                }
 
                 card.Movement.MoveToField(transform);
                 GameManager.Instance.PlayCard(card, true);
@@ -57,13 +64,16 @@ public class DropPlace : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoi
             var gm = GameManager.Instance;
             if (type == FieldType.PlayerField && gm.playerFieldCards.Count >= DeckManager.MAX_FIELD_SIZE)
             {
-                Debug.Log("Player field is full.");
+                Debug.Log("Player field is full. Count: " + gm.playerFieldCards.Count);
                 return;
             }
         }
 
         if (card && GameManager.Instance.IsPlayerTurn && GameManager.Instance.currentGame.player.mana >= card.self.manaCost && !card.self.isPlaced)
         {
+            Transform originalParent = null;
+            if (card.Movement != null) originalParent = card.Movement.defaultParent;
+
             if (!card.self.isSpell)
                 card.Movement.defaultParent = transform;
 
@@ -79,14 +89,14 @@ public class DropPlace : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoi
         CardMovement cardMovement = eventData.pointerDrag.GetComponent<CardMovement>();
         CardController cardController = eventData.pointerDrag.GetComponent<CardController>();
 
-        if (cardMovement == null) 
+        if (cardMovement == null)
             return;
 
         if (type == FieldType.PlayerField && cardController != null && !cardController.self.isSpell)
             if (GameManager.Instance.playerFieldCards.Count >= DeckManager.MAX_FIELD_SIZE)
                 return;
 
-        if (cardMovement.tempParent == transform) 
+        if (cardMovement.tempParent == transform)
             return;
 
         if (setTempCoroutine != null)

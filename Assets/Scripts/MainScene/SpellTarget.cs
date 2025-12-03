@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -16,6 +14,17 @@ public class SpellTarget : MonoBehaviour, IDropHandler
 
         var spell = dragObj.GetComponent<CardController>();
         var target = GetComponent<CardController>();
+
+        if (spell != null && !spell.self.isSpell && !spell.self.isPlaced)
+        {
+            var dropPlace = GetComponentInParent<DropPlace>();
+            if (dropPlace != null)
+            {
+                dropPlace.OnDrop(eventData);
+            }
+            return;
+        }
+
         if (spell == null || !spell.self.isSpell || !spell.isPlayerCard)
             return;
 

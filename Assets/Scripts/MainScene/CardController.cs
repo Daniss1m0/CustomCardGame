@@ -41,11 +41,13 @@ public class CardController : MonoBehaviour
         if (self.isSpell)
         {
             if (self is SpellCard spellCard)
+            {
                 if (spellCard.spellTarget != TargetType.None)
                 {
                     Debug.Log($"Spell requires target: {spellCard.spellTarget}");
                     return;
                 }
+            }
             else
             {
                 Debug.LogError($"Card {self.name} has isSpell=true but is not SpellCard!");
@@ -53,7 +55,7 @@ public class CardController : MonoBehaviour
             }
         }
 
-        if (gameManager == null) 
+        if (gameManager == null)
             gameManager = GameManager.Instance;
 
         if (linkedNetwork != null && NetworkManager.Singleton != null)
@@ -87,10 +89,10 @@ public class CardController : MonoBehaviour
                 }
 
                 var cg = GetComponent<CanvasGroup>();
-                if (cg != null) 
-                { 
-                    cg.blocksRaycasts = true; 
-                    cg.interactable = true; 
+                if (cg != null)
+                {
+                    cg.blocksRaycasts = true;
+                    cg.interactable = true;
                 }
 
                 try
@@ -102,9 +104,9 @@ public class CardController : MonoBehaviour
                         linkedNetwork.placedOnTurn.Value = (gameManager != null ? gameManager.CurrentTurn : 0);
                     }
                 }
-                catch (System.Exception e) 
-                { 
-                    Debug.LogError($"Network Variable Error: {e.Message}"); 
+                catch (System.Exception e)
+                {
+                    Debug.LogError($"Network Variable Error: {e.Message}");
                 }
 
                 if (gameManager != null)
@@ -133,7 +135,7 @@ public class CardController : MonoBehaviour
                             if (!gameManager.enemyFieldCards.Contains(this))
                                 gameManager.enemyFieldCards.Add(this);
 
-                            if (dm != null) 
+                            if (dm != null)
                                 transform.SetParent(dm.EnemyField, false);
                         }
 
@@ -164,16 +166,16 @@ public class CardController : MonoBehaviour
                         var sc = (SpellCard)self;
                         linkedNetwork.RequestCastSpellServerRpc((int)sc.spell, (int)sc.spellTarget, sc.spellPower, 0);
                         pendingServerAction = true;
-                        if (movement != null) 
-                        { 
-                            movement.OnEndDrag(null); 
-                            movement.enabled = false; 
+                        if (movement != null)
+                        {
+                            movement.OnEndDrag(null);
+                            movement.enabled = false;
                         }
                         var cg = GetComponent<CanvasGroup>();
-                        if (cg != null) 
-                        { 
-                            cg.interactable = false; 
-                            cg.blocksRaycasts = false; 
+                        if (cg != null)
+                        {
+                            cg.interactable = false;
+                            cg.blocksRaycasts = false;
                         }
                     }
                     else
@@ -196,6 +198,7 @@ public class CardController : MonoBehaviour
             gameManager.playerHandCards.Remove(this);
             if (!gameManager.playerFieldCards.Contains(this))
                 gameManager.playerFieldCards.Add(this);
+
             gameManager.ReduceMana(true, self.manaCost);
             gameManager.CheckCardsForManaAvailability();
         }
@@ -209,9 +212,10 @@ public class CardController : MonoBehaviour
         }
 
         self.isPlaced = true;
-        if (self.HasAbility) 
+        if (self.HasAbility)
             ability.OnCast(self, isPlayerCard, info);
-        if (self.isSpell) 
+
+        if (self.isSpell)
             UseSpell(null);
 
         UIManager.Instance.UpdateHPAndMana();
@@ -229,12 +233,13 @@ public class CardController : MonoBehaviour
         self.canAttack = false;
         info.SetHighlight(false);
         if (linkedNetwork != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
-            try 
-            { 
-                linkedNetwork.canAttack.Value = false; 
-            } catch { }
+            try
+            {
+                linkedNetwork.canAttack.Value = false;
+            }
+            catch { }
 
-        if (self.HasAbility) 
+        if (self.HasAbility)
             ability.OnDamageDeal(self, isPlayerCard, info);
     }
 
@@ -253,9 +258,9 @@ public class CardController : MonoBehaviour
 
     public void CheckForAlive()
     {
-        if (self.IsAlive) 
+        if (self.IsAlive)
             info.UpdateStats(self);
-        else 
+        else
             DestroyCard();
     }
 
@@ -269,30 +274,30 @@ public class CardController : MonoBehaviour
     public void UseSpell(CardController target)
     {
         var spellCard = self as SpellCard;
-        if (spellCard == null) 
+        if (spellCard == null)
         {
-            Debug.LogError("UseSpell fail: not a spell card"); 
-            DestroyCard(); 
-            return; 
+            Debug.LogError("UseSpell fail: not a spell card");
+            DestroyCard();
+            return;
         }
 
         if (linkedNetwork != null && NetworkManager.Singleton != null && !NetworkManager.Singleton.IsServer)
         {
             ulong targetNetObjId = 0;
-            if (target != null && target.Network != null) 
+            if (target != null && target.Network != null)
                 targetNetObjId = target.Network.NetworkObject.NetworkObjectId;
             linkedNetwork.RequestCastSpellServerRpc((int)spellCard.spell, (int)spellCard.spellTarget, spellCard.spellPower, targetNetObjId);
             pendingServerAction = true;
-            if (movement != null) 
-            { 
-                movement.OnEndDrag(null); 
-                movement.enabled = false; 
+            if (movement != null)
+            {
+                movement.OnEndDrag(null);
+                movement.enabled = false;
             }
             var cg = GetComponent<CanvasGroup>();
-            if (cg != null) 
-            { 
-                cg.interactable = false; 
-                cg.blocksRaycasts = false; 
+            if (cg != null)
+            {
+                cg.interactable = false;
+                cg.blocksRaycasts = false;
             }
             return;
         }
@@ -300,63 +305,64 @@ public class CardController : MonoBehaviour
         switch (spellCard.spell)
         {
             case SpellType.GiveTempMana:
-                if (isPlayerCard) 
+                if (isPlayerCard)
                     gameManager.currentGame.player.AddTempMana(spellCard.spellPower);
-                else 
+                else
                     gameManager.currentGame.enemy.AddTempMana(spellCard.spellPower);
+
                 UIManager.Instance.UpdateHPAndMana();
                 GameManager.Instance.CheckCardsForManaAvailability();
                 break;
             case SpellType.HealAlliesField:
                 var allyCards = isPlayerCard ? gameManager.playerFieldCards : gameManager.enemyFieldCards;
-                foreach (var card in allyCards) 
-                { 
-                    card.self.health += spellCard.spellPower; 
-                    card.info.UpdateStats(card.self); 
+                foreach (var card in allyCards)
+                {
+                    card.self.health += spellCard.spellPower;
+                    card.info.UpdateStats(card.self);
                 }
                 break;
             case SpellType.DamageEnemiesField:
                 var enemyCards = isPlayerCard ? new List<CardController>(gameManager.enemyFieldCards) : new List<CardController>(gameManager.playerFieldCards);
-                foreach (var card in enemyCards) 
+                foreach (var card in enemyCards)
                     GiveDamageTo(card, spellCard.spellPower);
                 break;
             case SpellType.HealHero:
-                if (isPlayerCard) 
+                if (isPlayerCard)
                     gameManager.currentGame.player.hp += spellCard.spellPower;
-                else 
+                else
                     gameManager.currentGame.enemy.hp += spellCard.spellPower;
                 UIManager.Instance.UpdateHPAndMana();
                 break;
             case SpellType.DamageHero:
-                if (isPlayerCard) 
+                if (isPlayerCard)
                     gameManager.currentGame.enemy.hp -= spellCard.spellPower;
-                else 
+                else
                     gameManager.currentGame.player.hp -= spellCard.spellPower;
                 UIManager.Instance.UpdateHPAndMana();
                 gameManager.CheckForResult();
                 break;
             case SpellType.HealCard:
-                if (target != null) 
+                if (target != null)
                     target.self.health += spellCard.spellPower;
                 break;
             case SpellType.DamageCard:
-                if (target != null) 
+                if (target != null)
                     GiveDamageTo(target, spellCard.spellPower);
                 break;
             case SpellType.AddShield:
-                if (!target.self.abilities.Exists(x => x == AbilityType.Shield)) 
+                if (!target.self.abilities.Exists(x => x == AbilityType.Shield))
                     target.self.abilities.Add(AbilityType.Shield);
                 break;
             case SpellType.AddTaunt:
-                if (!target.self.abilities.Exists(x => x == AbilityType.Taunt)) 
+                if (!target.self.abilities.Exists(x => x == AbilityType.Taunt))
                     target.self.abilities.Add(AbilityType.Taunt);
                 break;
             case SpellType.BuffAttack:
-                if (target != null) 
+                if (target != null)
                     target.self.attack += spellCard.spellPower;
                 break;
             case SpellType.DebuffAttack:
-                if (target != null) 
+                if (target != null)
                     target.self.attack = Mathf.Max(0, target.self.attack - spellCard.spellPower);
                 break;
         }
@@ -370,7 +376,7 @@ public class CardController : MonoBehaviour
         if (linkedNetwork != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
         {
             linkedNetwork.RemoveLocalCloneClientRpc();
-            if (linkedNetwork.TryGetComponent<NetworkObject>(out var no)) 
+            if (linkedNetwork.TryGetComponent<NetworkObject>(out var no))
                 no.Despawn(true);
         }
         DestroyCard();
@@ -458,53 +464,54 @@ public class CardController : MonoBehaviour
 
     public void OnNetworkOwnershipChanged(bool isOwner)
     {
-        if (Movement != null) 
+        if (Movement != null)
             Movement.enabled = isOwner;
         var cg = GetComponent<CanvasGroup>();
-        if (cg != null) 
+        if (cg != null)
             cg.blocksRaycasts = isOwner;
         var attacked = GetComponent<AttackedCard>();
-        if (attacked != null) 
+        if (attacked != null)
             attacked.enabled = isOwner;
 
         if (!self.isPlaced)
         {
-            if (isOwner) 
+            if (isOwner)
                 Info?.ShowCard(self);
-            else 
+            else
                 Info?.HideCard();
         }
-        else 
+        else
             Info?.ShowCard(self);
 
         if (isOwner && pendingServerAction)
         {
             pendingServerAction = false;
-            if (movement != null) 
+            if (movement != null)
                 movement.enabled = true;
-            if (cg != null) 
-            { 
-                cg.interactable = true; 
-                cg.blocksRaycasts = true; 
+            if (cg != null)
+            {
+                cg.interactable = true;
+                cg.blocksRaycasts = true;
             }
         }
     }
 
-    public void SetCanAttackVisual(bool canAttack) 
-    { 
-        Info?.SetHighlight(canAttack); 
+    public void SetCanAttackVisual(bool canAttack)
+    {
+        Info?.SetHighlight(canAttack);
     }
 
     public void OnPlacedNetworkSide(ulong ownerClientId)
     {
-        self.isPlaced = true; 
+        self.isPlaced = true;
         Info?.ShowCard(self);
         placedOnTurn = GameManager.Instance != null ? GameManager.Instance.CurrentTurn : -1;
         var dm = FindAnyObjectByType<DeckManager>();
         Transform targetParent = null;
-        if (dm != null) 
+        if (dm != null)
             targetParent = (ownerClientId == (NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0UL)) ? dm.PlayerField : dm.EnemyField;
-        if (targetParent != null) 
+
+        if (targetParent != null)
             transform.SetParent(targetParent, false);
     }
 
@@ -513,23 +520,25 @@ public class CardController : MonoBehaviour
         self.isPlaced = false;
         var dm = FindAnyObjectByType<DeckManager>();
         Transform handParent = null;
-        if (dm != null) 
+        if (dm != null)
             handParent = (ownerClientId == (NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0UL)) ? dm.PlayerHand : dm.EnemyHand;
-        if (handParent != null) 
+        if (handParent != null)
             transform.SetParent(handParent, false);
         bool isMine = NetworkManager.Singleton != null && ownerClientId == NetworkManager.Singleton.LocalClientId;
-        if (isMine) 
-            Info?.ShowCard(self); else Info?.HideCard();
+        if (isMine)
+            Info?.ShowCard(self);
+        else 
+            Info?.HideCard();
     }
 
-    public void LinkNetwork(CardNetwork cn) 
-    { 
-        linkedNetwork = cn; 
+    public void LinkNetwork(CardNetwork cn)
+    {
+        linkedNetwork = cn;
     }
 
-    public void SetMovement(CardMovement m) 
-    { 
-        if (m != null) 
-            movement = m; 
+    public void SetMovement(CardMovement m)
+    {
+        if (m != null)
+            movement = m;
     }
 }

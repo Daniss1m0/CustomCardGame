@@ -45,32 +45,9 @@ public class GameManager : MonoBehaviour
         playerFieldCards.RemoveAll(x => x == null || x.gameObject == null);
         enemyHandCards.RemoveAll(x => x == null || x.gameObject == null);
         enemyFieldCards.RemoveAll(x => x == null || x.gameObject == null);
-
-        playerHandCards = RemoveDuplicates(playerHandCards);
-        playerFieldCards = RemoveDuplicates(playerFieldCards);
-        enemyHandCards = RemoveDuplicates(enemyHandCards);
-        enemyFieldCards = RemoveDuplicates(enemyFieldCards);
     }
 
-    private List<CardController> RemoveDuplicates(List<CardController> inputList)
-    {
-        List<CardController> unique = new List<CardController>();
-        HashSet<int> seenIds = new HashSet<int>();
-
-        foreach (var card in inputList)
-        {
-            if (card == null) continue;
-            int id = card.gameObject.GetInstanceID();
-            if (!seenIds.Contains(id))
-            {
-                seenIds.Add(id);
-                unique.Add(card);
-            }
-        }
-        return unique;
-    }
-
-    public void PlayCard(CardController card, bool isPlayerSide)
+    public void PlayCard(CardController card, bool isPlayerSide, int slotIndex = -1)
     {
         SanitizeLists();
 
@@ -86,7 +63,7 @@ public class GameManager : MonoBehaviour
         var fieldCount = isPlayerSide ? playerFieldCards.Count : enemyFieldCards.Count;
         if (!card.self.isSpell && fieldCount >= (deckManager != null ? DeckManager.MAX_FIELD_SIZE : 7))
         {
-            Debug.LogWarning($"Field is full. Count: {fieldCount}. Max: {DeckManager.MAX_FIELD_SIZE}");
+            Debug.LogWarning($"Field is full. Count: {fieldCount}.");
             return;
         }
 
@@ -96,7 +73,7 @@ public class GameManager : MonoBehaviour
         if (!isPlayerSide && currentGame.enemy.mana < card.self.manaCost)
             return;
 
-        card.OnCast();
+        card.OnCast(slotIndex);
     }
 
     public void ChangeTurn()

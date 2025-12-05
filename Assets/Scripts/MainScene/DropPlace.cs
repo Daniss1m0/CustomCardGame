@@ -42,42 +42,42 @@ public class DropPlace : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoi
             var spell = card.self as SpellCard;
             if (spell != null && spell.spellTarget == TargetType.None)
             {
-                if (!GameManager.Instance.IsPlayerTurn || !card.isPlayerCard)
-                {
-                    Debug.Log("Spell Drop Failed: Not Player Turn or Not Player Card");
+                if (!GameManager.Instance.IsPlayerTurn || !card.isPlayerCard) 
                     return;
-                }
-                if (GameManager.Instance.currentGame.player.mana < card.self.manaCost)
-                {
-                    Debug.Log("Spell Drop Failed: Not enough mana");
+
+                if (GameManager.Instance.currentGame.player.mana < card.self.manaCost) 
                     return;
-                }
 
                 card.Movement.MoveToField(transform);
-                GameManager.Instance.PlayCard(card, true);
+                GameManager.Instance.PlayCard(card, true, -1);
                 return;
             }
+            return;
         }
 
-        if (!card.self.isSpell)
-        {
-            var gm = GameManager.Instance;
-            if (type == FieldType.PlayerField && gm.playerFieldCards.Count >= DeckManager.MAX_FIELD_SIZE)
+        int dropIndex = -1;
+        bool foundTemp = false;
+        foreach (Transform child in transform)
+            if (child.name == "CardTemp")
             {
-                Debug.Log("Player field is full. Count: " + gm.playerFieldCards.Count);
-                return;
+                dropIndex = child.GetSiblingIndex();
+                foundTemp = true;
+                break;
             }
-        }
+
+        if (!foundTemp) 
+            dropIndex = transform.childCount;
 
         if (card && GameManager.Instance.IsPlayerTurn && GameManager.Instance.currentGame.player.mana >= card.self.manaCost && !card.self.isPlaced)
         {
             Transform originalParent = null;
-            if (card.Movement != null) originalParent = card.Movement.defaultParent;
+            if (card.Movement != null) 
+                originalParent = card.Movement.defaultParent;
 
-            if (!card.self.isSpell)
+            if (!card.self.isSpell) 
                 card.Movement.defaultParent = transform;
 
-            GameManager.Instance.PlayCard(card, true);
+            GameManager.Instance.PlayCard(card, true, dropIndex);
         }
     }
 
@@ -112,7 +112,8 @@ public class DropPlace : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoi
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        if (eventData.pointerDrag == null) return;
+        if (eventData.pointerDrag == null) 
+            return;
 
         CardMovement card = eventData.pointerDrag.GetComponent<CardMovement>();
 

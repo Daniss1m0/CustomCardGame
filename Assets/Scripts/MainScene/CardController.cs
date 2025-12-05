@@ -36,7 +36,7 @@ public class CardController : MonoBehaviour
             info.HideCard();
     }
 
-    public void OnCast()
+    public void OnCast(int slotIndex = -1)
     {
         if (self.isSpell)
         {
@@ -75,10 +75,7 @@ public class CardController : MonoBehaviour
 
                 var dm = FindAnyObjectByType<DeckManager>();
 
-                if (isPlayerCard)
-                    gameManager.playerFieldCards.RemoveAll(c => c == null || c.gameObject == null || c.Equals(null));
-                else
-                    gameManager.enemyFieldCards.RemoveAll(c => c == null || c.gameObject == null || c.Equals(null));
+                gameManager.SanitizeLists();
 
                 int fieldCount = isPlayerCard ? gameManager.playerFieldCards.Count : gameManager.enemyFieldCards.Count;
 
@@ -102,6 +99,13 @@ public class CardController : MonoBehaviour
                         linkedNetwork.isPlaced.Value = true;
                         linkedNetwork.canAttack.Value = false;
                         linkedNetwork.placedOnTurn.Value = (gameManager != null ? gameManager.CurrentTurn : 0);
+
+                        int targetIndex = slotIndex;
+                        if (targetIndex == -1)
+                        {
+                            targetIndex = isPlayerCard ? gameManager.playerFieldCards.Count : gameManager.enemyFieldCards.Count;
+                        }
+                        linkedNetwork.fieldIndex.Value = targetIndex;
                     }
                 }
                 catch (System.Exception e)
@@ -113,12 +117,14 @@ public class CardController : MonoBehaviour
                 {
                     if (isPlayerCard)
                     {
-                        if (gameManager.playerHandCards.Contains(this))
+                        if (gameManager.playerHandCards.Contains(this)) 
                             gameManager.playerHandCards.Remove(this);
 
-                        if (!self.isSpell)
+                        if (!self.isSpell && !gameManager.playerFieldCards.Contains(this))
                         {
-                            if (!gameManager.playerFieldCards.Contains(this))
+                            if (slotIndex != -1 && slotIndex <= gameManager.playerFieldCards.Count)
+                                gameManager.playerFieldCards.Insert(slotIndex, this);
+                            else
                                 gameManager.playerFieldCards.Add(this);
                         }
 
@@ -127,12 +133,14 @@ public class CardController : MonoBehaviour
                     }
                     else
                     {
-                        if (gameManager.enemyHandCards.Contains(this))
+                        if (gameManager.enemyHandCards.Contains(this)) 
                             gameManager.enemyHandCards.Remove(this);
 
-                        if (!self.isSpell)
+                        if (!self.isSpell && !gameManager.enemyFieldCards.Contains(this))
                         {
-                            if (!gameManager.enemyFieldCards.Contains(this))
+                            if (slotIndex != -1 && slotIndex <= gameManager.enemyFieldCards.Count)
+                                gameManager.enemyFieldCards.Insert(slotIndex, this);
+                            else
                                 gameManager.enemyFieldCards.Add(this);
 
                             if (dm != null)
@@ -149,12 +157,18 @@ public class CardController : MonoBehaviour
                 info.SetHighlight(false);
 
                 if (!self.isSpell)
+                {
                     self.isPlaced = true;
+                    if (slotIndex != -1)
+                    {
+                        transform.SetSiblingIndex(slotIndex);
+                    }
+                }
 
-                if (self.HasAbility)
+                if (self.HasAbility) 
                     ability.OnCast(self, isPlayerCard, info);
 
-                if (self.isSpell)
+                if (self.isSpell) 
                     UseSpell(null);
             }
             else
@@ -166,22 +180,23 @@ public class CardController : MonoBehaviour
                         var sc = (SpellCard)self;
                         linkedNetwork.RequestCastSpellServerRpc((int)sc.spell, (int)sc.spellTarget, sc.spellPower, 0);
                         pendingServerAction = true;
-                        if (movement != null)
-                        {
-                            movement.OnEndDrag(null);
-                            movement.enabled = false;
+                        if (movement != null) 
+                        { 
+                            movement.OnEndDrag(null); 
+                            movement.enabled = false; 
                         }
                         var cg = GetComponent<CanvasGroup>();
-                        if (cg != null)
-                        {
-                            cg.interactable = false;
-                            cg.blocksRaycasts = false;
+                        if (cg != null) 
+                        { 
+                            cg.interactable = false; 
+                            cg.blocksRaycasts = false; 
                         }
                     }
                     else
                     {
                         info.SetHighlight(false);
-                        linkedNetwork.RequestPlaceCardServerRpc(isPlayerCard);
+                        int targetIdx = slotIndex == -1 ? 999 : slotIndex;
+                        linkedNetwork.RequestPlaceCardServerRpc(isPlayerCard, targetIdx);
                     }
                 }
                 catch { }
@@ -189,6 +204,7 @@ public class CardController : MonoBehaviour
             return;
         }
 
+        // OFFLINE LOGIC
         placedOnTurn = gameManager != null ? gameManager.CurrentTurn : -1;
         self.canAttack = false;
         info.SetHighlight(false);
@@ -197,26 +213,25 @@ public class CardController : MonoBehaviour
         {
             gameManager.playerHandCards.Remove(this);
             if (!gameManager.playerFieldCards.Contains(this))
-                gameManager.playerFieldCards.Add(this);
-
+            {
+                if (slotIndex != -1 && slotIndex <= gameManager.playerFieldCards.Count)
+                    gameManager.playerFieldCards.Insert(slotIndex, this);
+                else
+                    gameManager.playerFieldCards.Add(this);
+            }
             gameManager.ReduceMana(true, self.manaCost);
             gameManager.CheckCardsForManaAvailability();
         }
         else
         {
-            gameManager.enemyHandCards.Remove(this);
-            if (!gameManager.enemyFieldCards.Contains(this))
-                gameManager.enemyFieldCards.Add(this);
-            gameManager.ReduceMana(false, self.manaCost);
-            info.ShowCard(self);
+            // Enemy offline...
         }
 
         self.isPlaced = true;
-        if (self.HasAbility)
-            ability.OnCast(self, isPlayerCard, info);
+        if (slotIndex != -1) transform.SetSiblingIndex(slotIndex);
 
-        if (self.isSpell)
-            UseSpell(null);
+        if (self.HasAbility) ability.OnCast(self, isPlayerCard, info);
+        if (self.isSpell) UseSpell(null);
 
         UIManager.Instance.UpdateHPAndMana();
     }
@@ -527,7 +542,7 @@ public class CardController : MonoBehaviour
         bool isMine = NetworkManager.Singleton != null && ownerClientId == NetworkManager.Singleton.LocalClientId;
         if (isMine)
             Info?.ShowCard(self);
-        else 
+        else
             Info?.HideCard();
     }
 

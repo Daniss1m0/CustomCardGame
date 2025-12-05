@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
+using UnityEngine.UI;
 
 public class DeckManager : MonoBehaviour
 {
@@ -65,14 +66,8 @@ public class DeckManager : MonoBehaviour
 
     private ulong GetOpponentClientId()
     {
-        if (NetworkManager.Singleton == null)
-            return NetworkManager.ServerClientId;
-        foreach (var kvp in NetworkManager.Singleton.ConnectedClients)
-        {
-            ulong clientId = kvp.Key;
-            if (clientId != NetworkManager.Singleton.LocalClientId)
-                return clientId;
-        }
+        if (NetworkManager.Singleton == null) return NetworkManager.ServerClientId;
+        foreach (var kvp in NetworkManager.Singleton.ConnectedClients) { ulong clientId = kvp.Key; if (clientId != NetworkManager.Singleton.LocalClientId) return clientId; }
         return NetworkManager.ServerClientId;
     }
 
@@ -135,7 +130,6 @@ public class DeckManager : MonoBehaviour
         {
             DrawCards(currentGame.playerDeck, playerHand, playerOwnerClientId, playerCount);
             DrawCards(currentGame.enemyDeck, enemyHand, otherClientId, enemyCount);
-
             CardData coinData = GetSpecialCardData("coin");
             int coinIndex = -1;
             if (coinData != null && CardDatabase.AllCards != null)
@@ -314,6 +308,7 @@ public class DeckManager : MonoBehaviour
         catch { }
         if (innerVisualOnNet != null)
             innerVisualOnNet.gameObject.SetActive(false);
+
         GameObject uiClone = null;
         try
         {
@@ -321,18 +316,55 @@ public class DeckManager : MonoBehaviour
             uiClone.SetActive(false);
             StartCoroutine(FinishLocalCloneRoutine(uiClone, hand, card, cardDataIndex, actualOwner, netInstance, innerVisualOnNet, cn));
         }
-        catch
+        catch 
+        { 
+            if (uiClone != null) 
+                Destroy(uiClone); 
+        }
+    }
+
+    private void UpdateCardPosition(Transform cardTransform, int index, bool isPlaced)
+    {
+        if (cardTransform == null || !isPlaced) 
+            return;
+        StartCoroutine(ForcePositionRoutine(cardTransform, index));
+    }
+
+    private IEnumerator ForcePositionRoutine(Transform t, int targetIndex)
+    {
+        for (int i = 0; i < 5; i++)
         {
-            if (uiClone != null)
-                Destroy(uiClone);
+            if (t == null) 
+                yield break;
+
+            if (t.parent != null)
+            {
+                if (i == 0) 
+                    LayoutRebuilder.ForceRebuildLayoutImmediate(t.parent as RectTransform);
+
+                int max = t.parent.childCount - 1;
+                if (max < 0)
+                    max = 0;
+
+                int actualIndex = Mathf.Clamp(targetIndex, 0, max);
+
+                if (t.GetSiblingIndex() != actualIndex)
+                    t.SetSiblingIndex(actualIndex);
+
+                LayoutRebuilder.MarkLayoutForRebuild(t.parent as RectTransform);
+            }
+
+            yield return null;
         }
     }
 
     private IEnumerator FinishLocalCloneRoutine(GameObject uiClone, Transform hand, Card card, int cardDataIndex, ulong ownerClientId, GameObject netInstance, CardController innerVisualOnNet, CardNetwork cn)
     {
         yield return null;
-        if (uiClone == null)
+
+        if (uiClone == null) 
             yield break;
+
         try
         {
             uiClone.SetActive(true);
@@ -434,62 +466,20 @@ public class DeckManager : MonoBehaviour
 
             if (cn != null && cloneController != null)
             {
-                cn.attack.OnValueChanged += (o, n) =>
-                {
-                    if (cloneController == null)
-                        return;
+                cn.attack.OnValueChanged += (o, n) => { if (cloneController != null && cloneController.self != null) { cloneController.self.attack = n; cloneController.Info?.UpdateStats(cloneController.self); } };
+                cn.health.OnValueChanged += (o, n) => { if (cloneController != null && cloneController.self != null) { cloneController.self.health = n; cloneController.Info?.UpdateStats(cloneController.self); if (n <= 0) { var gmInst = GameManager.Instance; if (gmInst != null) { if (isOwner) { if (gmInst.playerHandCards.Contains(cloneController)) gmInst.playerHandCards.Remove(cloneController); if (gmInst.playerFieldCards.Contains(cloneController)) gmInst.playerFieldCards.Remove(cloneController); } else { if (gmInst.enemyHandCards.Contains(cloneController)) gmInst.enemyHandCards.Remove(cloneController); if (gmInst.enemyFieldCards.Contains(cloneController)) gmInst.enemyFieldCards.Remove(cloneController); } } if (uiClone != null) Destroy(uiClone); } } };
+                cn.manaCost.OnValueChanged += (o, n) => { if (cloneController != null && cloneController.self != null) { cloneController.self.manaCost = n; cloneController.Info?.UpdateStats(cloneController.self); } };
+                cn.canAttack.OnValueChanged += (o, n) => { if (cloneController != null) { if (cloneController.self != null) cloneController.self.canAttack = n; cloneController.SetCanAttackVisual(n); } };
+                cn.ownerClientIdNet.OnValueChanged += (o, n) => { if (cloneController != null) { bool nowOwner = NetworkManager.Singleton != null && n == NetworkManager.Singleton.LocalClientId; cloneController.isPlayerCard = nowOwner; cloneController.OnNetworkOwnershipChanged(nowOwner); if (!cloneController.self.isPlaced) { if (nowOwner) cloneController.Info?.ShowCard(cloneController.self); else cloneController.Info?.HideCard(); } else cloneController.Info?.ShowCard(cloneController.self); } };
 
-                    if (cloneController.self != null)
-                        cloneController.self.attack = n;
-                    cloneController.Info?.UpdateStats(cloneController.self);
-                };
-                cn.health.OnValueChanged += (o, n) =>
+                cn.fieldIndex.OnValueChanged += (o, n) =>
                 {
-                    if (cloneController == null)
-                        return;
-
-                    if (cloneController.self != null)
-                        cloneController.self.health = n;
-                    cloneController.Info?.UpdateStats(cloneController.self);
-                };
-                cn.manaCost.OnValueChanged += (o, n) =>
-                {
-                    if (cloneController == null)
-                        return;
-
-                    if (cloneController.self != null)
-                        cloneController.self.manaCost = n;
-                    cloneController.Info?.UpdateStats(cloneController.self);
-                };
-                cn.canAttack.OnValueChanged += (o, n) =>
-                {
-                    if (cloneController == null)
-                        return;
-
-                    cloneController.SetCanAttackVisual(n);
-                };
-                cn.ownerClientIdNet.OnValueChanged += (o, n) =>
-                {
-                    if (cloneController == null)
-                        return;
-
-                    bool nowOwner = NetworkManager.Singleton != null && n == NetworkManager.Singleton.LocalClientId;
-                    cloneController.isPlayerCard = nowOwner;
-                    cloneController.OnNetworkOwnershipChanged(nowOwner);
-                    if (!cloneController.self.isPlaced)
-                    {
-                        if (nowOwner)
-                            cloneController.Info?.ShowCard(cloneController.self);
-                        else
-                            cloneController.Info?.HideCard();
-                    }
-                    else
-                        cloneController.Info?.ShowCard(cloneController.self);
+                    UpdateCardPosition(uiClone != null ? uiClone.transform : null, n, cn.isPlaced.Value);
                 };
 
                 cn.isPlaced.OnValueChanged += (o, n) =>
                 {
-                    if (cloneController == null)
+                    if (cloneController == null) 
                         return;
 
                     cloneController.self.isPlaced = n;
@@ -504,6 +494,8 @@ public class DeckManager : MonoBehaviour
                             try
                             {
                                 uiClone.transform.SetParent(targetField, false);
+
+                                UpdateCardPosition(uiClone.transform, cn.fieldIndex.Value, true);
                             }
                             catch { }
                         }
@@ -552,6 +544,8 @@ public class DeckManager : MonoBehaviour
                     if (targetField != null)
                     {
                         uiClone.transform.SetParent(targetField, false);
+
+                        UpdateCardPosition(uiClone.transform, cn.fieldIndex.Value, true);
                     }
                     var gm2 = GameManager.Instance;
                     if (gm2 != null)
@@ -580,7 +574,6 @@ public class DeckManager : MonoBehaviour
                 Destroy(uiClone);
         }
     }
-
 
     public SpecialCardEntry GetSpecialCardEntry(string id)
     {

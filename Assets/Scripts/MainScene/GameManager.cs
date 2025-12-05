@@ -9,7 +9,7 @@ public class GameManager : MonoBehaviour
 
     public static GameManager Instance;
 
-    public Game currentGame; // public Game CurrentGame { get; private set; }?
+    public Game currentGame;
     public List<CardController> playerHandCards = new(), enemyHandCards = new(), playerFieldCards = new(), enemyFieldCards = new();
 
     [SerializeField] private DeckManager deckManager;
@@ -116,16 +116,16 @@ public class GameManager : MonoBehaviour
 
         lastChangeTime = Time.realtimeSinceStartup;
 
-        foreach (var c in playerFieldCards) if (c != null && c.Info != null) 
+        foreach (var c in playerFieldCards) if (c != null && c.Info != null)
                 c.Info.SetHighlight(false);
 
-        foreach (var c in enemyFieldCards) if (c != null && c.Info != null) 
+        foreach (var c in enemyFieldCards) if (c != null && c.Info != null)
                 c.Info.SetHighlight(false);
 
         var prevActiveField = IsPlayerTurn ? playerFieldCards : enemyFieldCards;
         foreach (var c in prevActiveField)
         {
-            if (c == null || c.self == null || c.Info == null) 
+            if (c == null || c.self == null || c.Info == null)
                 continue;
 
             c.self.canAttack = false;
@@ -189,10 +189,15 @@ public class GameManager : MonoBehaviour
             }
         }
 
+        // --- ВАЖНО: Обновление карт для начала нового хода ---
         List<CardController> activeField = IsPlayerTurn ? playerFieldCards : enemyFieldCards;
         foreach (var card in activeField)
         {
             if (card == null || card.self == null || card.Info == null) continue;
+
+            // Вызываем OnNewTurn: здесь срабатывает Regeneration и сбрасывается счетчик атак
+            card.OnNewTurn();
+
             if (!card.self.isPlaced)
             {
                 card.self.canAttack = false;
@@ -202,6 +207,8 @@ public class GameManager : MonoBehaviour
                 continue;
             }
 
+            // Логика "Сонной болезни": карта может атаковать только если она была поставлена на поле ДО текущего хода
+            // (или если у неё есть Charge/Рывок, но это обрабатывается отдельно при размещении)
             if (card.placedOnTurn < CurrentTurn)
             {
                 card.self.canAttack = true;
@@ -250,26 +257,26 @@ public class GameManager : MonoBehaviour
 
     public void CastSpell(CardController spell, CardController target, bool isPlayerSide)
     {
-        if (spell == null) 
+        if (spell == null)
             return;
 
-        if (isPlayerSide != IsPlayerTurn) 
+        if (isPlayerSide != IsPlayerTurn)
             return;
 
         int currentMana = isPlayerSide ? currentGame.player.mana : currentGame.enemy.mana;
-        if (currentMana < spell.self.manaCost) 
+        if (currentMana < spell.self.manaCost)
             return;
 
         if (isPlayerSide)
         {
-            if (playerHandCards.Contains(spell)) 
+            if (playerHandCards.Contains(spell))
                 playerHandCards.Remove(spell);
 
             playerFieldCards.Add(spell);
         }
         else
         {
-            if (enemyHandCards.Contains(spell)) 
+            if (enemyHandCards.Contains(spell))
                 enemyHandCards.Remove(spell);
 
             enemyFieldCards.Add(spell);
@@ -288,19 +295,19 @@ public class GameManager : MonoBehaviour
 
     public void Attack(CardController attacker, CardController defender)
     {
-        if (attacker == null || defender == null) 
+        if (attacker == null || defender == null)
             return;
 
-        if (!attacker.self.canAttack) 
+        if (!attacker.self.canAttack)
             return;
 
-        if (!defender.self.isPlaced) 
+        if (!defender.self.isPlaced)
             return;
 
         if (attacker.isPlayerCard)
-            if (enemyFieldCards.Exists(x => x.self.IsProvocation) && !defender.self.IsProvocation) 
+            if (enemyFieldCards.Exists(x => x.self.IsProvocation) && !defender.self.IsProvocation)
                 return;
-            else if (playerFieldCards.Exists(x => x.self.IsProvocation) && !defender.self.IsProvocation) 
+            else if (playerFieldCards.Exists(x => x.self.IsProvocation) && !defender.self.IsProvocation)
                 return;
 
         CardsFight(attacker, defender);
@@ -308,22 +315,22 @@ public class GameManager : MonoBehaviour
 
     public void AttackHero(CardController attacker, bool targetIsEnemyHero)
     {
-        if (attacker == null) 
+        if (attacker == null)
             return;
 
-        if (!attacker.self.canAttack) 
+        if (!attacker.self.canAttack)
             return;
 
         if (targetIsEnemyHero)
         {
-            if (enemyFieldCards.Exists(x => x.self.IsProvocation)) 
+            if (enemyFieldCards.Exists(x => x.self.IsProvocation))
                 return;
 
             DamageHero(attacker, true);
         }
         else
         {
-            if (playerFieldCards.Exists(x => x.self.IsProvocation)) 
+            if (playerFieldCards.Exists(x => x.self.IsProvocation))
                 return;
 
             DamageHero(attacker, false);
@@ -334,18 +341,18 @@ public class GameManager : MonoBehaviour
     {
         if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
         {
-            if (NetworkManager.Singleton.IsServer) 
-            { 
-                ChangeTurn(); 
-                return; 
+            if (NetworkManager.Singleton.IsServer)
+            {
+                ChangeTurn();
+                return;
             }
 
-            if (turnManager != null) 
-            { 
-                turnManager.RequestEndTurnServerRpc(); 
-                return; 
+            if (turnManager != null)
+            {
+                turnManager.RequestEndTurnServerRpc();
+                return;
             }
-            else 
+            else
                 return;
         }
         ChangeTurn();
@@ -366,9 +373,9 @@ public class GameManager : MonoBehaviour
 
     public void ReduceMana(bool playerMana, int manacost)
     {
-        if (playerMana) 
+        if (playerMana)
             currentGame.player.mana -= manacost;
-        else 
+        else
             currentGame.enemy.mana -= manacost;
 
         if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
@@ -422,7 +429,7 @@ public class GameManager : MonoBehaviour
 
     public void CheckForResult()
     {
-        if (currentGame == null) 
+        if (currentGame == null)
             return;
 
         if (currentGame.enemy.hp == 0 || currentGame.player.hp == 0)
@@ -440,7 +447,7 @@ public class GameManager : MonoBehaviour
         if (attacker.self.isSpell)
         {
             var spellCard = attacker.self as SpellCard;
-            if (spellCard == null) 
+            if (spellCard == null)
                 return;
 
             switch (spellCard.spellTarget)
@@ -463,9 +470,9 @@ public class GameManager : MonoBehaviour
 
         foreach (var card in targets)
         {
-            if (attacker.self.isSpell) 
+            if (attacker.self.isSpell)
                 card.Info.HighlightAsSpellTarget(highlight);
-            else 
+            else
                 card.Info.HighlightAsTarget(highlight);
         }
     }
@@ -480,12 +487,12 @@ public class GameManager : MonoBehaviour
 
     private ulong GetAnyOtherClientId()
     {
-        if (NetworkManager.Singleton == null) 
+        if (NetworkManager.Singleton == null)
             return NetworkManager.ServerClientId;
 
         var list = NetworkManager.Singleton.ConnectedClientsList;
         foreach (var client in list)
-            if (client.ClientId != NetworkManager.ServerClientId) 
+            if (client.ClientId != NetworkManager.ServerClientId)
                 return client.ClientId;
 
         return NetworkManager.ServerClientId;
@@ -493,7 +500,7 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator SubscribeToTurnNetworkVars()
     {
-        if (turnManager == null) 
+        if (turnManager == null)
             turnManager = FindFirstObjectByType<TurnManager>();
 
         while (turnManager == null)
@@ -503,11 +510,11 @@ public class GameManager : MonoBehaviour
         }
 
         if (turnManager.TryGetComponent<Unity.Netcode.NetworkObject>(out var no))
-            while (!no.IsSpawned) 
+            while (!no.IsSpawned)
                 yield return null;
 
         if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsClient && !NetworkManager.Singleton.IsServer)
-            if (currentGame == null) 
+            if (currentGame == null)
                 currentGame = new Game();
 
         if (turnManager != null)
@@ -547,32 +554,36 @@ public class GameManager : MonoBehaviour
 
     public void UpdateStateNetworkIfServer()
     {
-        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer) 
+        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer)
             return;
 
-        if (turnManager == null) 
+        if (turnManager == null)
             turnManager = FindFirstObjectByType<TurnManager>();
 
         if (turnManager == null)
             return;
 
-        try 
-        { 
-            turnManager.SetPlayerManaServer(currentGame.player.mana); 
-        } catch { }
-        try 
-        { 
-            turnManager.SetEnemyManaServer(currentGame.enemy.mana); 
-        } catch { }
-
-        try 
+        try
         {
-            turnManager.SetPlayerHPServer(currentGame.player.hp); 
-        } catch { }
-        try 
-        { 
-            turnManager.SetEnemyHPServer(currentGame.enemy.hp); 
-        } catch { }
+            turnManager.SetPlayerManaServer(currentGame.player.mana);
+        }
+        catch { }
+        try
+        {
+            turnManager.SetEnemyManaServer(currentGame.enemy.mana);
+        }
+        catch { }
+
+        try
+        {
+            turnManager.SetPlayerHPServer(currentGame.player.hp);
+        }
+        catch { }
+        try
+        {
+            turnManager.SetEnemyHPServer(currentGame.enemy.hp);
+        }
+        catch { }
     }
 
     public void UpdateManaNetworkIfServerPublic()
@@ -582,10 +593,10 @@ public class GameManager : MonoBehaviour
 
     private void ApplyNetworkStateValues()
     {
-        if (turnManager == null || NetworkManager.Singleton == null) 
+        if (turnManager == null || NetworkManager.Singleton == null)
             return;
 
-        if (currentGame == null) 
+        if (currentGame == null)
             currentGame = new Game();
 
         ulong playerOwnerClientId = turnManager.PlayerOwner.Value;

@@ -11,23 +11,25 @@ public class CardAbility : MonoBehaviour
             switch (ability)
             {
                 case AbilityType.Charge:
-                   
+
                     card.canAttack = true;
                     if (isPlayerCard && info != null)
                         info.SetHighlight(true);
-                    
+
                     break;
 
                 case AbilityType.Shield:
-                    
-                    shield.SetActive(true);
-                    
+
+                    if (shield && card.isPlaced) 
+                        shield.SetActive(true);
+
                     break;
 
                 case AbilityType.Taunt:
-                    
-                    taunt.SetActive(true);
-                    
+
+                    if (taunt && card.isPlaced) 
+                        taunt.SetActive(true);
+
                     break;
             }
         }
@@ -35,19 +37,29 @@ public class CardAbility : MonoBehaviour
 
     public void OnApplyEffect(Card card, bool isPlayerCard, CardInfo info = null)
     {
+        if (shield) 
+            shield.SetActive(false);
+        if (taunt) 
+            taunt.SetActive(false);
+
+        if (!card.isPlaced)
+            return;
+
         foreach (var ability in card.abilities)
         {
             switch (ability)
             {
                 case AbilityType.Shield:
 
-                    shield.SetActive(true);
+                    if (shield) 
+                        shield.SetActive(true);
 
                     break;
 
                 case AbilityType.Taunt:
 
-                    taunt.SetActive(true);
+                    if (taunt) 
+                        taunt.SetActive(true);
 
                     break;
             }
@@ -61,14 +73,14 @@ public class CardAbility : MonoBehaviour
             switch (ability)
             {
                 case AbilityType.DoubleAttack:
-                    
+
                     if (card.timesDealedDamage == 1)
                     {
                         card.canAttack = true;
                         if (isPlayerCard && info != null)
                             info.SetHighlight(true);
                     }
-                    
+
                     break;
             }
         }
@@ -76,23 +88,28 @@ public class CardAbility : MonoBehaviour
 
     public void OnTakeDamage(Card card, CardController attacker)
     {
-        shield.SetActive(false);
+        if (shield) 
+            shield.SetActive(false);
+
+        if (!card.isPlaced)
+            return;
 
         foreach (var ability in card.abilities)
         {
             switch (ability)
             {
                 case AbilityType.Shield:
-                    
-                    shield.SetActive(true);
+
+                    if (shield) 
+                        shield.SetActive(true);
 
                     break;
 
                 case AbilityType.CounterAttack:
-                    
+
                     if (attacker != null)
                         attacker.self.GetDamage(card.attack);
-                    
+
                     break;
             }
         }
@@ -107,10 +124,10 @@ public class CardAbility : MonoBehaviour
             switch (ability)
             {
                 case AbilityType.Regeneration:
-                    
+
                     card.health += 2;
                     info.UpdateStats(card);
-                    
+
                     break;
             }
         }

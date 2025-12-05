@@ -34,6 +34,23 @@ public class CardController : MonoBehaviour
             info.ShowCard(self);
         else
             info.HideCard();
+
+        if (ability != null)
+            ability.OnApplyEffect(self, isPlayerCard, info);
+    }
+
+    public void OnNewTurn()
+    {
+        self.timesDealedDamage = 0;
+
+        int healthBefore = self.health;
+
+        if (ability != null)
+            ability.OnNewTurn(self, info);
+
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer && linkedNetwork != null)
+            if (self.health != healthBefore)
+                linkedNetwork.health.Value = self.health;
     }
 
     public void OnCast(int slotIndex = -1)
@@ -62,7 +79,6 @@ public class CardController : MonoBehaviour
         {
             if (NetworkManager.Singleton.IsServer)
             {
-                // HOST LOGIC
                 if (gameManager != null)
                 {
                     bool sideIsPlayerTurn = gameManager.IsPlayerTurn == isPlayerCard;
@@ -100,6 +116,7 @@ public class CardController : MonoBehaviour
                         linkedNetwork.isPlaced.Value = true;
                         linkedNetwork.canAttack.Value = false;
                         linkedNetwork.placedOnTurn.Value = (gameManager != null ? gameManager.CurrentTurn : 0);
+                        linkedNetwork.abilitiesNet.Value = AbilitiesToInt(self.abilities);
 
                         int targetIndex = slotIndex;
                         if (targetIndex == -1)
@@ -169,12 +186,18 @@ public class CardController : MonoBehaviour
                 if (self.HasAbility)
                     ability.OnCast(self, isPlayerCard, info);
 
+                if (self.abilities.Contains(AbilityType.Charge))
+                {
+                    self.canAttack = true;
+                    linkedNetwork.canAttack.Value = true;
+                    info.SetHighlight(true);
+                }
+
                 if (self.isSpell)
                     UseSpell(null);
             }
             else
             {
-                // CLIENT LOGIC
                 try
                 {
                     if (self.isSpell)
@@ -206,7 +229,6 @@ public class CardController : MonoBehaviour
             return;
         }
 
-        // OFFLINE LOGIC
         placedOnTurn = gameManager != null ? gameManager.CurrentTurn : -1;
         self.canAttack = false;
         info.SetHighlight(false);
@@ -224,23 +246,33 @@ public class CardController : MonoBehaviour
             gameManager.ReduceMana(true, self.manaCost);
             gameManager.CheckCardsForManaAvailability();
         }
-        else
-        {
-            // Enemy offline...
-        }
 
         self.isPlaced = true;
-        if (slotIndex != -1) transform.SetSiblingIndex(slotIndex);
+        if (slotIndex != -1) 
+            transform.SetSiblingIndex(slotIndex);
 
-        if (self.HasAbility) ability.OnCast(self, isPlayerCard, info);
-        if (self.isSpell) UseSpell(null);
+        if (self.HasAbility) 
+            ability.OnCast(self, isPlayerCard, info);
+
+        if (self.isSpell) 
+            UseSpell(null);
 
         UIManager.Instance.UpdateHPAndMana();
     }
 
     public void OnTakeDamage(CardController attacker = null)
     {
-        CheckForAlive();
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer && linkedNetwork != null)
+        {
+            int maskBefore = AbilitiesToInt(self.abilities);
+            CheckForAlive();
+            int maskAfter = AbilitiesToInt(self.abilities);
+            if (maskBefore != maskAfter)
+                linkedNetwork.abilitiesNet.Value = maskAfter;
+        }
+        else
+            CheckForAlive();
+
         ability.OnTakeDamage(self, attacker);
     }
 
@@ -249,15 +281,26 @@ public class CardController : MonoBehaviour
         self.timesDealedDamage++;
         self.canAttack = false;
         info.SetHighlight(false);
+
         if (linkedNetwork != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
-            try
-            {
-                linkedNetwork.canAttack.Value = false;
-            }
+            try 
+            { 
+                linkedNetwork.canAttack.Value = false; 
+            } 
             catch { }
 
         if (self.HasAbility)
             ability.OnDamageDeal(self, isPlayerCard, info);
+
+        if (self.canAttack && linkedNetwork != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
+        {
+            try
+            {
+                linkedNetwork.canAttack.Value = true;
+                linkedNetwork.ForceCanAttackSyncClientRpc(true);
+            }
+            catch { }
+        }
     }
 
     public void DestroyCard()
@@ -284,8 +327,8 @@ public class CardController : MonoBehaviour
     void GiveDamageTo(CardController target, int damage)
     {
         target.self.GetDamage(damage);
-        target.CheckForAlive();
         target.OnTakeDamage();
+        target.CheckForAlive();
     }
 
     public void UseSpell(CardController target)
@@ -293,7 +336,7 @@ public class CardController : MonoBehaviour
         var spellCard = self as SpellCard;
         if (spellCard == null)
         {
-            Debug.LogError("UseSpell fail: not a spell card");
+            Debug.LogError("Not a spell card");
             DestroyCard();
             return;
         }
@@ -370,11 +413,19 @@ public class CardController : MonoBehaviour
                 break;
             case SpellType.AddShield:
                 if (!target.self.abilities.Exists(x => x == AbilityType.Shield))
+                {
                     target.self.abilities.Add(AbilityType.Shield);
+                    if (target.Network != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
+                        target.Network.abilitiesNet.Value = AbilitiesToInt(target.self.abilities);
+                }
                 break;
             case SpellType.AddTaunt:
                 if (!target.self.abilities.Exists(x => x == AbilityType.Taunt))
+                {
                     target.self.abilities.Add(AbilityType.Taunt);
+                    if (target.Network != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
+                        target.Network.abilitiesNet.Value = AbilitiesToInt(target.self.abilities);
+                }
                 break;
             case SpellType.BuffAttack:
                 if (target != null)
@@ -406,7 +457,47 @@ public class CardController : MonoBehaviour
         DestroyCard();
     }
 
-    public void SetNetworkData(int attack, int health, int manaCost, bool isSpell, int cardDataIndex, ulong ownerClientId)
+    public static int AbilitiesToInt(List<AbilityType> abilities)
+    {
+        int mask = 0;
+        if (abilities == null)
+            return mask;
+
+        foreach (var a in abilities)
+        {
+            if (a == AbilityType.None)
+                continue;
+
+            mask |= (1 << (int)a);
+        }
+        return mask;
+    }
+
+    public static List<AbilityType> IntToAbilities(int mask)
+    {
+        var list = new List<AbilityType>();
+        if (mask == 0)
+            return list;
+
+        foreach (AbilityType a in System.Enum.GetValues(typeof(AbilityType)))
+        {
+            if (a == AbilityType.None)
+                continue;
+
+            if ((mask & (1 << (int)a)) != 0)
+                list.Add(a);
+        }
+        return list;
+    }
+
+    public void UpdateAbilitiesFromMask(int mask)
+    {
+        self.abilities = IntToAbilities(mask);
+        if (ability != null)
+            ability.OnApplyEffect(self, isPlayerCard, info);
+    }
+
+    public void SetNetworkData(int attack, int health, int manaCost, bool isSpell, int cardDataIndex, ulong ownerClientId, int abilitiesMask)
     {
         CardData dataToUse = null;
         try
@@ -416,8 +507,13 @@ public class CardController : MonoBehaviour
             {
                 object entryObj = (object)all[cardDataIndex];
                 CardData cd = entryObj as CardData;
-                if (cd != null) dataToUse = cd;
-                else { Card existing = entryObj as Card; if (existing != null) { var tmp = ScriptableObject.CreateInstance<CardData>(); try { tmp.cardName = existing.name; } catch { tmp.cardName = "NetCard"; } try { tmp.isSpell = existing.isSpell; } catch { tmp.isSpell = isSpell; } try { tmp.logo = existing.logo; } catch { } try { tmp.manaCost = existing.manaCost; } catch { tmp.manaCost = manaCost; } try { tmp.attack = existing.attack; } catch { tmp.attack = attack; } try { tmp.health = existing.health; } catch { tmp.health = health; } try { tmp.abilities = new List<AbilityType>(existing.abilities ?? new List<AbilityType>()); } catch { tmp.abilities = new List<AbilityType>(); } dataToUse = tmp; } else dataToUse = null; }
+                if (cd != null) 
+                    dataToUse = cd;
+                else 
+                { 
+                    Card existing = entryObj as Card; 
+                    if (existing != null) { var tmp = ScriptableObject.CreateInstance<CardData>(); try { tmp.cardName = existing.name; } catch { tmp.cardName = "NetCard"; } try { tmp.isSpell = existing.isSpell; } catch { tmp.isSpell = isSpell; } try { tmp.logo = existing.logo; } catch { } try { tmp.manaCost = existing.manaCost; } catch { tmp.manaCost = manaCost; } try { tmp.attack = existing.attack; } catch { tmp.attack = attack; } try { tmp.health = existing.health; } catch { tmp.health = health; } try { tmp.abilities = new List<AbilityType>(existing.abilities ?? new List<AbilityType>()); } catch { tmp.abilities = new List<AbilityType>(); } dataToUse = tmp; } else dataToUse = null; 
+                }
             }
         }
         catch { dataToUse = null; }
@@ -427,6 +523,9 @@ public class CardController : MonoBehaviour
         bool finalIsSpell = isSpell;
         if (finalIsSpell) self = new SpellCard(dataToUse); else self = new Card(dataToUse);
         self.attack = attack; self.health = health; self.manaCost = manaCost; self.isSpell = isSpell;
+
+        UpdateAbilitiesFromMask(abilitiesMask);
+
         Info?.UpdateStats(self);
         bool isMine = NetworkManager.Singleton != null && ownerClientId == NetworkManager.Singleton.LocalClientId;
         if (!self.isPlaced) { bool showForNonOwnerCoin = false; if (!isMine && !string.IsNullOrEmpty(self.name)) { var n = self.name.ToLower(); if (n == "coin" || n.Contains("coin")) showForNonOwnerCoin = true; } if (isMine || showForNonOwnerCoin) Info?.ShowCard(self); else Info?.HideCard(); } else Info?.ShowCard(self);
@@ -484,6 +583,9 @@ public class CardController : MonoBehaviour
 
         if (targetParent != null)
             transform.SetParent(targetParent, false);
+
+        if (ability != null)
+            ability.OnApplyEffect(self, isPlayerCard, info);
     }
 
     public void OnUnplacedNetworkSide(ulong ownerClientId)

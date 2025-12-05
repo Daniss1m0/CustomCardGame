@@ -9,7 +9,7 @@ public enum AbilityType
     Taunt,
     Shield,
     Regeneration,
-    CounterAttack
+    CounterAttack //?
 }
 
 public class Card

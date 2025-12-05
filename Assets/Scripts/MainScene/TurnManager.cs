@@ -27,6 +27,16 @@ public class TurnManager : NetworkBehaviour
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server);
 
+    public NetworkVariable<int> PlayerHP = new NetworkVariable<int>(
+        30,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server);
+
+    public NetworkVariable<int> EnemyHP = new NetworkVariable<int>(
+        30,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server);
+
     public NetworkVariable<ulong> PlayerOwner = new NetworkVariable<ulong>(
         0UL,
         NetworkVariableReadPermission.Everyone,
@@ -37,12 +47,17 @@ public class TurnManager : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
+
         if (IsServer)
             TurnTimeRemaining.Value = 0;
+
         TurnTimeRemaining.OnValueChanged += OnTurnTimeRemainingChanged;
         PlayerMana.OnValueChanged += OnPlayerManaChanged;
         EnemyMana.OnValueChanged += OnEnemyManaChanged;
         PlayerOwner.OnValueChanged += OnPlayerOwnerChanged;
+
+        PlayerHP.OnValueChanged += (oldV, newV) => { };
+        EnemyHP.OnValueChanged += (oldV, newV) => { };
     }
 
     public override void OnNetworkDespawn()
@@ -51,51 +66,79 @@ public class TurnManager : NetworkBehaviour
         PlayerMana.OnValueChanged -= OnPlayerManaChanged;
         EnemyMana.OnValueChanged -= OnEnemyManaChanged;
         PlayerOwner.OnValueChanged -= OnPlayerOwnerChanged;
+
         base.OnNetworkDespawn();
     }
 
     private void OnTurnTimeRemainingChanged(int oldV, int newV) { }
-
     private void OnPlayerManaChanged(int oldV, int newV) { }
-
     private void OnEnemyManaChanged(int oldV, int newV) { }
-
     private void OnPlayerOwnerChanged(ulong oldV, ulong newV) { }
 
     public void SetCurrentTurnOwner(ulong ownerClientId)
     {
-        if (!IsServer) return;
+        if (!IsServer) 
+            return;
+
         CurrentTurnOwner.Value = ownerClientId;
     }
 
     public void SetPlayerManaServer(int value)
     {
-        if (!IsServer) return;
+        if (!IsServer) 
+            return;
+
         PlayerMana.Value = value;
     }
 
     public void SetEnemyManaServer(int value)
     {
-        if (!IsServer) return;
+        if (!IsServer) 
+            return;
+
         EnemyMana.Value = value;
+    }
+
+    public void SetPlayerHPServer(int value)
+    {
+        if (!IsServer) 
+            return;
+
+        PlayerHP.Value = value;
+    }
+
+    public void SetEnemyHPServer(int value)
+    {
+        if (!IsServer) 
+            return;
+
+        EnemyHP.Value = value;
     }
 
     public void SetPlayerOwnerServer(ulong ownerClientId)
     {
-        if (!IsServer) return;
+        if (!IsServer) 
+            return;
+
         PlayerOwner.Value = ownerClientId;
     }
 
     public void StartServerTurnLoop()
     {
-        if (!IsServer) return;
-        if (serverTurnCoroutine != null) StopCoroutine(serverTurnCoroutine);
+        if (!IsServer) 
+            return;
+
+        if (serverTurnCoroutine != null) 
+            StopCoroutine(serverTurnCoroutine);
+
         serverTurnCoroutine = StartCoroutine(ServerTurnLoop());
     }
 
     public void StopServerTurnLoop()
     {
-        if (!IsServer) return;
+        if (!IsServer) 
+            return;
+
         if (serverTurnCoroutine != null)
         {
             StopCoroutine(serverTurnCoroutine);
@@ -124,11 +167,14 @@ public class TurnManager : NetworkBehaviour
 
     public ulong GetOtherClientIdOrServerFallback()
     {
-        if (NetworkManager.Singleton == null) return NetworkManager.ServerClientId;
+        if (NetworkManager.Singleton == null) 
+            return NetworkManager.ServerClientId;
+
         foreach (var kv in NetworkManager.Singleton.ConnectedClients)
         {
             var clientId = kv.Key;
-            if (clientId != NetworkManager.ServerClientId) return clientId;
+            if (clientId != NetworkManager.ServerClientId) 
+                return clientId;
         }
         return NetworkManager.ServerClientId;
     }
@@ -136,10 +182,15 @@ public class TurnManager : NetworkBehaviour
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     public void RequestEndTurnServerRpc(RpcParams rpcParams = default)
     {
-        if (!IsServer) return;
+        if (!IsServer) 
+            return;
+
         ulong sender = rpcParams.Receive.SenderClientId;
-        if (sender != CurrentTurnOwner.Value) return;
-        if (GameManager.Instance != null) GameManager.Instance.ChangeTurn();
+        if (sender != CurrentTurnOwner.Value) 
+            return;
+
+        if (GameManager.Instance != null) 
+            GameManager.Instance.ChangeTurn();
     }
 
     [ClientRpc]

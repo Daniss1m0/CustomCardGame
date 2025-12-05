@@ -62,6 +62,7 @@ public class CardController : MonoBehaviour
         {
             if (NetworkManager.Singleton.IsServer)
             {
+                // HOST LOGIC
                 if (gameManager != null)
                 {
                     bool sideIsPlayerTurn = gameManager.IsPlayerTurn == isPlayerCard;
@@ -117,7 +118,7 @@ public class CardController : MonoBehaviour
                 {
                     if (isPlayerCard)
                     {
-                        if (gameManager.playerHandCards.Contains(this)) 
+                        if (gameManager.playerHandCards.Contains(this))
                             gameManager.playerHandCards.Remove(this);
 
                         if (!self.isSpell && !gameManager.playerFieldCards.Contains(this))
@@ -133,7 +134,7 @@ public class CardController : MonoBehaviour
                     }
                     else
                     {
-                        if (gameManager.enemyHandCards.Contains(this)) 
+                        if (gameManager.enemyHandCards.Contains(this))
                             gameManager.enemyHandCards.Remove(this);
 
                         if (!self.isSpell && !gameManager.enemyFieldCards.Contains(this))
@@ -165,14 +166,15 @@ public class CardController : MonoBehaviour
                     }
                 }
 
-                if (self.HasAbility) 
+                if (self.HasAbility)
                     ability.OnCast(self, isPlayerCard, info);
 
-                if (self.isSpell) 
+                if (self.isSpell)
                     UseSpell(null);
             }
             else
             {
+                // CLIENT LOGIC
                 try
                 {
                     if (self.isSpell)
@@ -180,16 +182,16 @@ public class CardController : MonoBehaviour
                         var sc = (SpellCard)self;
                         linkedNetwork.RequestCastSpellServerRpc((int)sc.spell, (int)sc.spellTarget, sc.spellPower, 0);
                         pendingServerAction = true;
-                        if (movement != null) 
-                        { 
-                            movement.OnEndDrag(null); 
-                            movement.enabled = false; 
+                        if (movement != null)
+                        {
+                            movement.OnEndDrag(null);
+                            movement.enabled = false;
                         }
                         var cg = GetComponent<CanvasGroup>();
-                        if (cg != null) 
-                        { 
-                            cg.interactable = false; 
-                            cg.blocksRaycasts = false; 
+                        if (cg != null)
+                        {
+                            cg.interactable = false;
+                            cg.blocksRaycasts = false;
                         }
                     }
                     else
@@ -301,7 +303,9 @@ public class CardController : MonoBehaviour
             ulong targetNetObjId = 0;
             if (target != null && target.Network != null)
                 targetNetObjId = target.Network.NetworkObject.NetworkObjectId;
+
             linkedNetwork.RequestCastSpellServerRpc((int)spellCard.spell, (int)spellCard.spellTarget, spellCard.spellPower, targetNetObjId);
+
             pendingServerAction = true;
             if (movement != null)
             {
@@ -388,6 +392,11 @@ public class CardController : MonoBehaviour
             target.CheckForAlive();
         }
 
+        if (gameManager != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
+        {
+            gameManager.UpdateStateNetworkIfServer();
+        }
+
         if (linkedNetwork != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
         {
             linkedNetwork.RemoveLocalCloneClientRpc();
@@ -407,73 +416,20 @@ public class CardController : MonoBehaviour
             {
                 object entryObj = (object)all[cardDataIndex];
                 CardData cd = entryObj as CardData;
-                if (cd != null)
-                    dataToUse = cd;
-                else
-                {
-                    Card existing = entryObj as Card;
-                    if (existing != null)
-                    {
-                        var tmp = ScriptableObject.CreateInstance<CardData>();
-                        try { tmp.cardName = existing.name; } catch { tmp.cardName = "NetCard"; }
-                        try { tmp.isSpell = existing.isSpell; } catch { tmp.isSpell = isSpell; }
-                        try { tmp.logo = existing.logo; } catch { }
-                        try { tmp.manaCost = existing.manaCost; } catch { tmp.manaCost = manaCost; }
-                        try { tmp.attack = existing.attack; } catch { tmp.attack = attack; }
-                        try { tmp.health = existing.health; } catch { tmp.health = health; }
-                        try { tmp.abilities = new List<AbilityType>(existing.abilities ?? new List<AbilityType>()); } catch { tmp.abilities = new List<AbilityType>(); }
-                        dataToUse = tmp;
-                    }
-                    else
-                        dataToUse = null;
-                }
+                if (cd != null) dataToUse = cd;
+                else { Card existing = entryObj as Card; if (existing != null) { var tmp = ScriptableObject.CreateInstance<CardData>(); try { tmp.cardName = existing.name; } catch { tmp.cardName = "NetCard"; } try { tmp.isSpell = existing.isSpell; } catch { tmp.isSpell = isSpell; } try { tmp.logo = existing.logo; } catch { } try { tmp.manaCost = existing.manaCost; } catch { tmp.manaCost = manaCost; } try { tmp.attack = existing.attack; } catch { tmp.attack = attack; } try { tmp.health = existing.health; } catch { tmp.health = health; } try { tmp.abilities = new List<AbilityType>(existing.abilities ?? new List<AbilityType>()); } catch { tmp.abilities = new List<AbilityType>(); } dataToUse = tmp; } else dataToUse = null; }
             }
         }
         catch { dataToUse = null; }
 
-        if (dataToUse == null)
-        {
-            dataToUse = ScriptableObject.CreateInstance<CardData>();
-            dataToUse.cardName = "NetCard";
-            dataToUse.isSpell = isSpell;
-            dataToUse.manaCost = manaCost;
-            dataToUse.attack = attack;
-            dataToUse.health = health;
-        }
+        if (dataToUse == null) { dataToUse = ScriptableObject.CreateInstance<CardData>(); dataToUse.cardName = "NetCard"; dataToUse.isSpell = isSpell; dataToUse.manaCost = manaCost; dataToUse.attack = attack; dataToUse.health = health; }
 
         bool finalIsSpell = isSpell;
-
-        if (finalIsSpell)
-            self = new SpellCard(dataToUse);
-        else
-            self = new Card(dataToUse);
-
-        self.attack = attack;
-        self.health = health;
-        self.manaCost = manaCost;
-        self.isSpell = isSpell;
-
+        if (finalIsSpell) self = new SpellCard(dataToUse); else self = new Card(dataToUse);
+        self.attack = attack; self.health = health; self.manaCost = manaCost; self.isSpell = isSpell;
         Info?.UpdateStats(self);
-
         bool isMine = NetworkManager.Singleton != null && ownerClientId == NetworkManager.Singleton.LocalClientId;
-
-        if (!self.isPlaced)
-        {
-            bool showForNonOwnerCoin = false;
-            if (!isMine && !string.IsNullOrEmpty(self.name))
-            {
-                var n = self.name.ToLower();
-                if (n == "coin" || n.Contains("coin"))
-                    showForNonOwnerCoin = true;
-            }
-            if (isMine || showForNonOwnerCoin)
-                Info?.ShowCard(self);
-            else
-                Info?.HideCard();
-        }
-        else
-            Info?.ShowCard(self);
-
+        if (!self.isPlaced) { bool showForNonOwnerCoin = false; if (!isMine && !string.IsNullOrEmpty(self.name)) { var n = self.name.ToLower(); if (n == "coin" || n.Contains("coin")) showForNonOwnerCoin = true; } if (isMine || showForNonOwnerCoin) Info?.ShowCard(self); else Info?.HideCard(); } else Info?.ShowCard(self);
         isPlayerCard = isMine;
     }
 
@@ -537,8 +493,10 @@ public class CardController : MonoBehaviour
         Transform handParent = null;
         if (dm != null)
             handParent = (ownerClientId == (NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0UL)) ? dm.PlayerHand : dm.EnemyHand;
+
         if (handParent != null)
             transform.SetParent(handParent, false);
+
         bool isMine = NetworkManager.Singleton != null && ownerClientId == NetworkManager.Singleton.LocalClientId;
         if (isMine)
             Info?.ShowCard(self);

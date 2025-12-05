@@ -472,7 +472,7 @@ GameObject:
   - component: {fileID: 152074217}
   - component: {fileID: 152074216}
   m_Layer: 5
-  m_Name: EnemyField
+  m_Name: Enemy Field
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -587,7 +587,7 @@ GameObject:
   - component: {fileID: 228459498}
   - component: {fileID: 228459500}
   m_Layer: 5
-  m_Name: PlayerHero
+  m_Name: Player Hero
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -678,7 +678,7 @@ GameObject:
   - component: {fileID: 294492380}
   - component: {fileID: 294492379}
   m_Layer: 5
-  m_Name: PlayerHP
+  m_Name: Player HP
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -967,7 +967,7 @@ GameObject:
   - component: {fileID: 437836526}
   - component: {fileID: 437836525}
   m_Layer: 5
-  m_Name: EnemyHand
+  m_Name: Enemy Hand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2868,8 +2868,6 @@ MonoBehaviour:
   turnManager: {fileID: 1131749044}
   playerHero: {fileID: 228459500}
   enemyHero: {fileID: 856375458}
-  playerControllerBehaviour: {fileID: 0}
-  opponentControllerBehaviour: {fileID: 0}
 --- !u!1 &741547246
 GameObject:
   m_ObjectHideFlags: 0
@@ -2880,7 +2878,7 @@ GameObject:
   m_Component:
   - component: {fileID: 741547247}
   m_Layer: 5
-  m_Name: ChangeTurn
+  m_Name: Change Turn
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2956,7 +2954,7 @@ GameObject:
   - component: {fileID: 856375456}
   - component: {fileID: 856375458}
   m_Layer: 5
-  m_Name: EnemyHero
+  m_Name: Enemy Hero
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3185,7 +3183,7 @@ GameObject:
   - component: {fileID: 865766835}
   - component: {fileID: 865766838}
   m_Layer: 5
-  m_Name: PlayerField
+  m_Name: Player Field
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4142,6 +4140,10 @@ MonoBehaviour:
     m_InternalValue: 0
   EnemyMana:
     m_InternalValue: 0
+  PlayerHP:
+    m_InternalValue: 30
+  EnemyHP:
+    m_InternalValue: 30
   PlayerOwner:
     m_InternalValue: 0
 --- !u!1 &1140106805
@@ -4266,7 +4268,7 @@ GameObject:
   - component: {fileID: 1157773023}
   - component: {fileID: 1157773022}
   m_Layer: 5
-  m_Name: EnemyHP
+  m_Name: Enemy HP
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5892,7 +5894,7 @@ GameObject:
   - component: {fileID: 1667145298}
   - component: {fileID: 1667145297}
   m_Layer: 5
-  m_Name: PlayerMana
+  m_Name: Player Mana
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7070,7 +7072,7 @@ GameObject:
   - component: {fileID: 1850512384}
   - component: {fileID: 1850512385}
   m_Layer: 5
-  m_Name: PlayerHand
+  m_Name: Player Hand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8067,7 +8069,7 @@ GameObject:
   - component: {fileID: 2018420970}
   - component: {fileID: 2018420969}
   m_Layer: 5
-  m_Name: EnemyMana
+  m_Name: Enemy Mana
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

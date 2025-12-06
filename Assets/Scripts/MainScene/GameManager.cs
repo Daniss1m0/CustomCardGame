@@ -592,8 +592,7 @@ public class GameManager : MonoBehaviour
         if (turnManager == null || NetworkManager.Singleton == null)
             return;
 
-        if (currentGame == null)
-            currentGame = new Game();
+        currentGame ??= new Game();
 
         ulong playerOwnerClientId = turnManager.PlayerOwner.Value;
         if (playerOwnerClientId == 0 && NetworkManager.Singleton != null)

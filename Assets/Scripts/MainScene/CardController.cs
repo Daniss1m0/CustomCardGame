@@ -43,20 +43,6 @@ public class CardController : MonoBehaviour
             ability.OnApplyEffect(self, isPlayerCard, info);
     }
 
-    public void OnNewTurn()
-    {
-        self.timesDealedDamage = 0;
-
-        int healthBefore = self.health;
-
-        if (ability != null)
-            ability.OnNewTurn(self, info);
-
-        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer && linkedNetwork != null)
-            if (self.health != healthBefore)
-                linkedNetwork.health.Value = self.health;
-    }
-
     public void OnCast(int slotIndex = -1)
     {
         if (self.isSpell)
@@ -451,6 +437,20 @@ public class CardController : MonoBehaviour
         DestroyCard();
     }
 
+    public void OnNewTurn()
+    {
+        self.timesDealedDamage = 0;
+
+        int healthBefore = self.health;
+
+        if (ability != null)
+            ability.OnNewTurn(self, info);
+
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer && linkedNetwork != null)
+            if (self.health != healthBefore)
+                linkedNetwork.health.Value = self.health;
+    }
+
     public static int AbilitiesToInt(List<AbilityType> abilities)
     {
         int mask = 0;
@@ -654,7 +654,7 @@ public class CardController : MonoBehaviour
     private void AnimateOpponentPlay(Transform targetParent, int fallbackIndex)
     {
         Canvas rootCanvas = GetComponentInParent<Canvas>();
-        if (rootCanvas != null && rootCanvas.rootCanvas != null) 
+        if (rootCanvas != null && rootCanvas.rootCanvas != null)
             rootCanvas = rootCanvas.rootCanvas;
 
         Transform showcaseParent = rootCanvas != null ? rootCanvas.transform : transform.root;
@@ -663,17 +663,33 @@ public class CardController : MonoBehaviour
         ResetVisualState();
 
         RectTransform rt = GetComponent<RectTransform>();
-        if (rt == null) 
+        if (rt == null)
             return;
 
+        rt.anchorMin = new Vector2(0.5f, 0.5f);
+        rt.anchorMax = new Vector2(0.5f, 0.5f);
+        rt.pivot = new Vector2(0.5f, 0.5f);
+
+        float startY = 600f;
+        if (rootCanvas != null)
+        {
+            RectTransform canvasRect = rootCanvas.GetComponent<RectTransform>();
+            startY = (canvasRect.rect.height / 2f) + 250f;
+        }
+
+        rt.anchoredPosition = new Vector2(0, startY);
+
         Vector3 originalScale = Vector3.one;
-        rt.anchorMin = new Vector2(0.5f, 0.5f); rt.anchorMax = new Vector2(0.5f, 0.5f); rt.pivot = new Vector2(0.5f, 0.5f);
 
         Sequence sequence = DOTween.Sequence();
-        sequence.Append(rt.DOAnchorPos(Vector2.zero, 0.4f).SetEase(Ease.OutBack));
-        sequence.Join(rt.DOScale(originalScale * 1.5f, 0.4f).SetEase(Ease.OutBack));
+
+        sequence.Append(rt.DOAnchorPos(Vector2.zero, 0.5f).SetEase(Ease.OutBack));
+
+        sequence.Join(rt.DOScale(originalScale * 1.5f, 0.5f).SetEase(Ease.OutBack));
         sequence.Join(rt.DORotate(Vector3.zero, 0.3f));
+
         sequence.AppendInterval(0.6f);
+
         sequence.AppendCallback(() => { rt.DOScale(originalScale, 0.3f); });
 
         if (targetParent != null)

@@ -88,7 +88,7 @@ GameObject:
   - component: {fileID: 5093622926748654472}
   - component: {fileID: 8289736401560428654}
   m_Layer: 5
-  m_Name: ManaCost
+  m_Name: Mana Cost
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -502,7 +502,7 @@ GameObject:
   - component: {fileID: 6312613824682419040}
   - component: {fileID: 7161421386551249376}
   m_Layer: 5
-  m_Name: AttackTxt
+  m_Name: Attack Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -716,7 +716,7 @@ GameObject:
   - component: {fileID: 2829045471361783111}
   - component: {fileID: 4148953900855694397}
   m_Layer: 5
-  m_Name: HealthTxt
+  m_Name: Health Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1014,7 +1014,7 @@ GameObject:
   - component: {fileID: 8166393242890810648}
   - component: {fileID: 2580415682543168692}
   m_Layer: 5
-  m_Name: Name
+  m_Name: Name Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1302,7 +1302,7 @@ GameObject:
   - component: {fileID: 1198110600918914795}
   - component: {fileID: 1002904998969521760}
   m_Layer: 5
-  m_Name: Description
+  m_Name: Description Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1438,7 +1438,7 @@ GameObject:
   - component: {fileID: 8244275849030388083}
   - component: {fileID: 2232906968274593046}
   m_Layer: 5
-  m_Name: ManaCostTxt
+  m_Name: Mana Cost Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

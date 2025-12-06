@@ -583,6 +583,7 @@ public class CardController : MonoBehaviour
         self.isPlaced = true;
         Info?.ShowCard(self);
         placedOnTurn = GameManager.Instance != null ? GameManager.Instance.CurrentTurn : -1;
+
         var dm = FindAnyObjectByType<DeckManager>();
         Transform targetParent = null;
         if (dm != null)
@@ -590,6 +591,15 @@ public class CardController : MonoBehaviour
 
         if (targetParent != null)
             transform.SetParent(targetParent, false);
+
+        var cg = GetComponent<CanvasGroup>();
+        if (cg != null)
+        {
+            cg.alpha = 1f;
+
+            cg.blocksRaycasts = true;
+            cg.interactable = true;
+        }
 
         if (ability != null)
             ability.OnApplyEffect(self, isPlayerCard, info);

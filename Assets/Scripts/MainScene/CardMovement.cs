@@ -16,7 +16,6 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
     private Vector2 pointerOffsetCanvas;
     private Camera mainCamera;
     private GameObject cardTemp;
-
     private RectTransform rt, canvasRect;
     private Canvas rootCanvas;
 
@@ -145,9 +144,7 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
                 rt.anchoredPosition = canvasLocal + pointerOffsetCanvas;
         }
         else
-        {
             transform.position += (Vector3)eventData.delta;
-        }
 
         var controller = GetComponent<CardController>();
         if (controller == null) 
@@ -215,9 +212,7 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
             }
         }
         else
-        {
             transform.SetAsLastSibling();
-        }
 
         isDraggable = false;
     }
@@ -313,12 +308,11 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
 
         float halfDur = moveDuration / 2f;
         if (halfDur <= 0f)
-        {
             transform.position = target.position;
-        }
         else
         {
-            if (DOTween.IsTweening(transform)) DOTween.Kill(transform, false);
+            if (DOTween.IsTweening(transform)) 
+                DOTween.Kill(transform, false);
 
             transform.DOMove(target.position, halfDur).SetLink(gameObject);
             yield return new WaitForSeconds(halfDur);

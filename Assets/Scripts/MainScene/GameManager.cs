@@ -189,13 +189,11 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        // --- ВАЖНО: Обновление карт для начала нового хода ---
         List<CardController> activeField = IsPlayerTurn ? playerFieldCards : enemyFieldCards;
         foreach (var card in activeField)
         {
             if (card == null || card.self == null || card.Info == null) continue;
 
-            // Вызываем OnNewTurn: здесь срабатывает Regeneration и сбрасывается счетчик атак
             card.OnNewTurn();
 
             if (!card.self.isPlaced)
@@ -207,19 +205,17 @@ public class GameManager : MonoBehaviour
                 continue;
             }
 
-            // Логика "Сонной болезни": карта может атаковать только если она была поставлена на поле ДО текущего хода
-            // (или если у неё есть Charge/Рывок, но это обрабатывается отдельно при размещении)
             if (card.placedOnTurn < CurrentTurn)
             {
                 card.self.canAttack = true;
-                card.Info.SetHighlight(true);
+                card.SetCanAttackVisual(true);
                 if (card.Network != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
                     card.Network.canAttack.Value = true;
             }
             else
             {
                 card.self.canAttack = false;
-                card.Info.SetHighlight(false);
+                card.SetCanAttackVisual(true);
                 if (card.Network != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
                     card.Network.canAttack.Value = false;
             }

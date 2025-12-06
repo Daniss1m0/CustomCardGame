@@ -174,9 +174,7 @@ public class CardController : MonoBehaviour
                 {
                     self.isPlaced = true;
                     if (slotIndex != -1)
-                    {
                         transform.SetSiblingIndex(slotIndex);
-                    }
                 }
 
                 if (self.HasAbility)
@@ -440,9 +438,7 @@ public class CardController : MonoBehaviour
         }
 
         if (gameManager != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
-        {
             gameManager.UpdateStateNetworkIfServer();
-        }
 
         if (linkedNetwork != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
         {
@@ -510,13 +506,37 @@ public class CardController : MonoBehaviour
                 else 
                 { 
                     Card existing = entryObj as Card; 
-                    if (existing != null) { var tmp = ScriptableObject.CreateInstance<CardData>(); try { tmp.cardName = existing.name; } catch { tmp.cardName = "NetCard"; } try { tmp.isSpell = existing.isSpell; } catch { tmp.isSpell = isSpell; } try { tmp.logo = existing.logo; } catch { } try { tmp.manaCost = existing.manaCost; } catch { tmp.manaCost = manaCost; } try { tmp.attack = existing.attack; } catch { tmp.attack = attack; } try { tmp.health = existing.health; } catch { tmp.health = health; } try { tmp.abilities = new List<AbilityType>(existing.abilities ?? new List<AbilityType>()); } catch { tmp.abilities = new List<AbilityType>(); } dataToUse = tmp; } else dataToUse = null; 
+                    if (existing != null) 
+                    { 
+                        var tmp = ScriptableObject.CreateInstance<CardData>(); 
+                        try { tmp.cardName = existing.name; } catch { tmp.cardName = "NetCard"; } 
+                        try { tmp.isSpell = existing.isSpell; } catch { tmp.isSpell = isSpell; } 
+                        try { tmp.logo = existing.logo; } catch { } 
+                        try { tmp.manaCost = existing.manaCost; } catch { tmp.manaCost = manaCost; } 
+                        try { tmp.attack = existing.attack; } catch { tmp.attack = attack; } 
+                        try { tmp.health = existing.health; } catch { tmp.health = health; } 
+                        try { tmp.abilities = new List<AbilityType>(existing.abilities ?? new List<AbilityType>()); } catch { tmp.abilities = new List<AbilityType>(); } 
+                        dataToUse = tmp; 
+                    } 
+                    else 
+                        dataToUse = null; 
                 }
             }
         }
-        catch { dataToUse = null; }
+        catch 
+        { 
+            dataToUse = null; 
+        }
 
-        if (dataToUse == null) { dataToUse = ScriptableObject.CreateInstance<CardData>(); dataToUse.cardName = "NetCard"; dataToUse.isSpell = isSpell; dataToUse.manaCost = manaCost; dataToUse.attack = attack; dataToUse.health = health; }
+        if (dataToUse == null) 
+        { 
+            dataToUse = ScriptableObject.CreateInstance<CardData>(); 
+            dataToUse.cardName = "NetCard"; 
+            dataToUse.isSpell = isSpell; 
+            dataToUse.manaCost = manaCost; 
+            dataToUse.attack = attack; 
+            dataToUse.health = health; 
+        }
 
         bool finalIsSpell = isSpell;
         if (finalIsSpell)
@@ -575,6 +595,12 @@ public class CardController : MonoBehaviour
 
     public void SetCanAttackVisual(bool canAttack)
     {
+        if (!isPlayerCard)
+        {
+            Info?.SetHighlight(false);
+            return;
+        }
+
         Info?.SetHighlight(canAttack);
     }
 

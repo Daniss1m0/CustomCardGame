@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using Unity.Netcode;
+using DG.Tweening;
 
 public class CardController : MonoBehaviour
 {
@@ -607,28 +609,106 @@ public class CardController : MonoBehaviour
     public void OnPlacedNetworkSide(ulong ownerClientId)
     {
         self.isPlaced = true;
-        Info?.ShowCard(self);
-        placedOnTurn = GameManager.Instance != null ? GameManager.Instance.CurrentTurn : -1;
+
+        int targetIndex = 0;
+        if (linkedNetwork != null)
+            targetIndex = linkedNetwork.fieldIndex.Value;
+
+        if (placedOnTurn <= 0 && GameManager.Instance != null)
+            placedOnTurn = GameManager.Instance.CurrentTurn;
 
         var dm = FindAnyObjectByType<DeckManager>();
         Transform targetParent = null;
+
+        ulong localId = (NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0UL);
+        bool isLocalPlayer = (ownerClientId == localId);
+
         if (dm != null)
-            targetParent = (ownerClientId == (NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0UL)) ? dm.PlayerField : dm.EnemyField;
+            targetParent = isLocalPlayer ? dm.PlayerField : dm.EnemyField;
 
-        if (targetParent != null)
-            transform.SetParent(targetParent, false);
+        bool isEnemyTurn = GameManager.Instance != null && !GameManager.Instance.IsPlayerTurn;
+        bool turnMatches = placedOnTurn == (GameManager.Instance != null ? GameManager.Instance.CurrentTurn : -99);
 
-        var cg = GetComponent<CanvasGroup>();
-        if (cg != null)
+        if (!isLocalPlayer && !self.isSpell && (isEnemyTurn || turnMatches))
         {
-            cg.alpha = 1f;
+            AnimateOpponentPlay(targetParent, targetIndex);
+        }
+        else
+        {
+            if (targetParent != null)
+            {
+                transform.SetParent(targetParent, false);
+                transform.SetSiblingIndex(targetIndex);
 
-            cg.blocksRaycasts = true;
-            cg.interactable = true;
+                LayoutRebuilder.ForceRebuildLayoutImmediate(targetParent as RectTransform);
+            }
+
+            ResetVisualState();
+            Info?.ShowCard(self);
         }
 
         if (ability != null)
             ability.OnApplyEffect(self, isPlayerCard, info);
+    }
+
+    private void AnimateOpponentPlay(Transform targetParent, int fallbackIndex)
+    {
+        Canvas rootCanvas = GetComponentInParent<Canvas>();
+        if (rootCanvas != null && rootCanvas.rootCanvas != null) 
+            rootCanvas = rootCanvas.rootCanvas;
+
+        Transform showcaseParent = rootCanvas != null ? rootCanvas.transform : transform.root;
+        transform.SetParent(showcaseParent, true);
+        Info?.ShowCard(self);
+        ResetVisualState();
+
+        RectTransform rt = GetComponent<RectTransform>();
+        if (rt == null) 
+            return;
+
+        Vector3 originalScale = Vector3.one;
+        rt.anchorMin = new Vector2(0.5f, 0.5f); rt.anchorMax = new Vector2(0.5f, 0.5f); rt.pivot = new Vector2(0.5f, 0.5f);
+
+        Sequence sequence = DOTween.Sequence();
+        sequence.Append(rt.DOAnchorPos(Vector2.zero, 0.4f).SetEase(Ease.OutBack));
+        sequence.Join(rt.DOScale(originalScale * 1.5f, 0.4f).SetEase(Ease.OutBack));
+        sequence.Join(rt.DORotate(Vector3.zero, 0.3f));
+        sequence.AppendInterval(0.6f);
+        sequence.AppendCallback(() => { rt.DOScale(originalScale, 0.3f); });
+
+        if (targetParent != null)
+            sequence.Append(transform.DOMove(targetParent.position, 0.4f).SetEase(Ease.InQuad));
+
+        sequence.OnComplete(() =>
+        {
+            if (targetParent != null)
+            {
+                transform.SetParent(targetParent, false);
+
+                int finalIndex = fallbackIndex;
+                if (linkedNetwork != null)
+                    finalIndex = linkedNetwork.fieldIndex.Value;
+
+                transform.SetSiblingIndex(finalIndex);
+
+                LayoutRebuilder.ForceRebuildLayoutImmediate(targetParent as RectTransform);
+            }
+
+            transform.localScale = Vector3.one;
+            transform.localRotation = Quaternion.identity;
+            transform.localPosition = Vector3.zero;
+        });
+    }
+
+    private void ResetVisualState()
+    {
+        var cg = GetComponent<CanvasGroup>();
+        if (cg != null)
+        {
+            cg.alpha = 1f;
+            cg.blocksRaycasts = true;
+            cg.interactable = true;
+        }
     }
 
     public void OnUnplacedNetworkSide(ulong ownerClientId)

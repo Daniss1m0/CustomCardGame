@@ -227,7 +227,29 @@ public class DeckManager : MonoBehaviour
 
     private IEnumerator ForcePositionRoutine(Transform t, int targetIndex)
     {
-        for (int i = 0; i < 5; i++) { if (t == null) yield break; if (t.parent != null) { if (i == 0) LayoutRebuilder.ForceRebuildLayoutImmediate(t.parent as RectTransform); int max = t.parent.childCount - 1; if (max < 0) max = 0; int actualIndex = Mathf.Clamp(targetIndex, 0, max); if (t.GetSiblingIndex() != actualIndex) t.SetSiblingIndex(actualIndex); LayoutRebuilder.MarkLayoutForRebuild(t.parent as RectTransform); } yield return null; }
+        for (int i = 0; i < 5; i++)
+        {
+            if (t == null) yield break;
+
+            var dropPlace = t.parent != null ? t.parent.GetComponent<DropPlace>() : null;
+            bool isOnField = dropPlace != null;
+
+            if (t.parent != null && isOnField)
+            {
+                if (i == 0) LayoutRebuilder.ForceRebuildLayoutImmediate(t.parent as RectTransform);
+
+                int max = t.parent.childCount - 1;
+                if (max < 0) max = 0;
+                int actualIndex = Mathf.Clamp(targetIndex, 0, max);
+
+                if (t.GetSiblingIndex() != actualIndex)
+                    t.SetSiblingIndex(actualIndex);
+
+                LayoutRebuilder.MarkLayoutForRebuild(t.parent as RectTransform);
+            }
+
+            yield return null;
+        }
     }
 
     private IEnumerator FinishLocalCloneRoutine(GameObject uiClone, Transform hand, Card card, int cardDataIndex, ulong ownerClientId, GameObject netInstance, CardController innerVisualOnNet, CardNetwork cn)
@@ -358,25 +380,35 @@ public class DeckManager : MonoBehaviour
 
                 cn.isPlaced.OnValueChanged += (o, n) => {
                     if (cloneController == null) return;
-                    cloneController.self.isPlaced = n;
-                    cloneController.Info?.ShowCard(cloneController.self);
 
-                    if (cloneController.Ability != null)
-                        cloneController.Ability.OnApplyEffect(cloneController.self, cloneController.isPlayerCard, cloneController.Info);
+                    if (n)
+                        cloneController.OnPlacedNetworkSide(cn.ownerClientIdNet.Value);
+                    else
+                        cloneController.OnUnplacedNetworkSide(cn.ownerClientIdNet.Value);
 
                     if (n)
                     {
-                        var dm = FindFirstObjectByType<DeckManager>();
-                        if (dm != null)
-                        {
-                            Transform targetField = (ownerClientId == (NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0UL)) ? dm.PlayerField : dm.EnemyField;
-                            try { uiClone.transform.SetParent(targetField, false); UpdateCardPosition(uiClone.transform, cn.fieldIndex.Value, true); } catch { }
-                        }
+                        UpdateCardPosition(uiClone.transform, cn.fieldIndex.Value, true);
+
                         var gm2 = GameManager.Instance;
                         if (gm2 != null)
                         {
-                            if (ownerClientId == (NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0UL)) { if (gm2.playerHandCards.Contains(cloneController)) gm2.playerHandCards.Remove(cloneController); if (!gm2.playerFieldCards.Contains(cloneController)) gm2.playerFieldCards.Add(cloneController); }
-                            else { if (gm2.enemyHandCards.Contains(cloneController)) gm2.enemyHandCards.Remove(cloneController); if (!gm2.enemyFieldCards.Contains(cloneController)) gm2.enemyFieldCards.Add(cloneController); }
+                            if (ownerClientId == (NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0UL))
+                            {
+                                if (gm2.playerHandCards.Contains(cloneController)) 
+                                    gm2.playerHandCards.Remove(cloneController);
+
+                                if (!gm2.playerFieldCards.Contains(cloneController)) 
+                                    gm2.playerFieldCards.Add(cloneController);
+                            }
+                            else
+                            {
+                                if (gm2.enemyHandCards.Contains(cloneController)) 
+                                    gm2.enemyHandCards.Remove(cloneController);
+
+                                if (!gm2.enemyFieldCards.Contains(cloneController)) 
+                                    gm2.enemyFieldCards.Add(cloneController);
+                            }
                         }
                     }
                 };

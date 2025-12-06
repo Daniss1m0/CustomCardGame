@@ -119,8 +119,14 @@ public class CardNetwork : NetworkBehaviour
 
     private void ApplySiblingIndex(int index)
     {
-        if (visual) 
-            visual.transform.SetSiblingIndex(index);
+        if (visual)
+        {
+            var dropPlace = visual.transform.parent != null ? visual.transform.parent.GetComponent<DropPlace>() : null;
+            bool isOnField = dropPlace != null;
+
+            if (isOnField)
+                visual.transform.SetSiblingIndex(index);
+        }
     }
 
     private void OnPlacedChanged()
@@ -216,21 +222,29 @@ public class CardNetwork : NetworkBehaviour
     {
         for (int i = 0; i < 5; i++)
         {
-            if (t == null) 
+            if (t == null)
                 yield break;
 
-            if (t.parent != null)
+            var dropPlace = t.parent != null ? t.parent.GetComponent<DropPlace>() : null;
+            bool isOnField = dropPlace != null;
+
+            if (t.parent != null && isOnField)
             {
-                if (i == 0) 
+                if (i == 0)
                     LayoutRebuilder.ForceRebuildLayoutImmediate(t.parent as RectTransform);
 
-                int max = t.parent.childCount - 1; if (max < 0) max = 0;
+                int max = t.parent.childCount - 1;
+                if (max < 0) 
+                    max = 0;
+
                 int actualIndex = Mathf.Clamp(targetIndex, 0, max);
-                if (t.GetSiblingIndex() != actualIndex) 
+
+                if (t.GetSiblingIndex() != actualIndex)
                     t.SetSiblingIndex(actualIndex);
 
                 LayoutRebuilder.MarkLayoutForRebuild(t.parent as RectTransform);
             }
+
             yield return null;
         }
     }
@@ -243,14 +257,19 @@ public class CardNetwork : NetworkBehaviour
         while (Time.realtimeSinceStartup - start < timeout) 
         { 
             dm = FindFirstObjectByType<DeckManager>(); 
-            if (dm != null) break; 
+            if (dm != null) 
+                break; 
+
             yield return null; 
         }
         if (dm == null) 
             yield break;
+
         Transform hand = null; float start2 = Time.realtimeSinceStartup;
         while (Time.realtimeSinceStartup - start2 < timeout) { hand = ownerClientId == (NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0UL) ? dm.PlayerHand : dm.EnemyHand; if (hand != null) break; yield return null; }
-        if (hand == null) yield break;
+        if (hand == null) 
+            yield break;
+
         GameObject visualPrefab = null; float start3 = Time.realtimeSinceStartup;
         while (Time.realtimeSinceStartup - start3 < timeout) { visualPrefab = dm.VisualCardPrefab; if (visualPrefab != null) break; yield return null; }
         if (visualPrefab == null) yield break;
@@ -335,12 +354,42 @@ public class CardNetwork : NetworkBehaviour
 
             isPlaced.OnValueChanged += (o, n) => {
                 var ctrl = uiClone != null ? uiClone.GetComponentInChildren<CardController>() : null;
-                if (ctrl == null) 
+                if (ctrl == null)
                     return;
-                ctrl.self.isPlaced = n;
-                ctrl.Info?.ShowCard(ctrl.self);
-                if (ctrl.Ability != null) ctrl.Ability.OnApplyEffect(ctrl.self, ctrl.isPlayerCard, ctrl.Info);
-                if (n) { var dm = FindFirstObjectByType<DeckManager>(); if (dm != null) { Transform targetField = (ownerClientId == (NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0UL)) ? dm.PlayerField : dm.EnemyField; try { uiClone.transform.SetParent(targetField, false); UpdateClonePosition(uiClone.transform, fieldIndex.Value, true); } catch { } } var gm2 = GameManager.Instance; if (gm2 != null) { if (ownerClientId == (NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0UL)) { if (gm2.playerHandCards.Contains(ctrl)) gm2.playerHandCards.Remove(ctrl); if (!gm2.playerFieldCards.Contains(ctrl)) gm2.playerFieldCards.Add(ctrl); } else { if (gm2.enemyHandCards.Contains(ctrl)) gm2.enemyHandCards.Remove(ctrl); if (!gm2.enemyFieldCards.Contains(ctrl)) gm2.enemyFieldCards.Add(ctrl); } } }
+
+                if (n)
+                    ctrl.OnPlacedNetworkSide(ownerClientIdNet.Value);
+                else
+                    ctrl.OnUnplacedNetworkSide(ownerClientIdNet.Value);
+
+                if (n)
+                {
+                    var dm = FindFirstObjectByType<DeckManager>();
+                    if (dm != null)
+                    {
+                        Transform targetField = (ownerClientId == (NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0UL)) ? dm.PlayerField : dm.EnemyField;
+                        try
+                        {
+                            UpdateClonePosition(uiClone.transform, fieldIndex.Value, true);
+                        }
+                        catch { }
+                    }
+
+                    var gm2 = GameManager.Instance;
+                    if (gm2 != null)
+                    {
+                        if (ownerClientId == (NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0UL))
+                        {
+                            if (gm2.playerHandCards.Contains(ctrl)) gm2.playerHandCards.Remove(ctrl);
+                            if (!gm2.playerFieldCards.Contains(ctrl)) gm2.playerFieldCards.Add(ctrl);
+                        }
+                        else
+                        {
+                            if (gm2.enemyHandCards.Contains(ctrl)) gm2.enemyHandCards.Remove(ctrl);
+                            if (!gm2.enemyFieldCards.Contains(ctrl)) gm2.enemyFieldCards.Add(ctrl);
+                        }
+                    }
+                }
             };
 
             spellType.OnValueChanged += (o, n) => { var ctrl = uiClone != null ? uiClone.GetComponentInChildren<CardController>() : null; if (ctrl == null || ctrl.self == null) return; if (ctrl.self is SpellCard s) { s.spell = (SpellType)n; ctrl.Info?.UpdateStats(s); } };
@@ -364,7 +413,8 @@ public class CardNetwork : NetworkBehaviour
         }
         catch 
         { 
-            if (uiClone != null) Destroy(uiClone); 
+            if (uiClone != null) 
+                Destroy(uiClone); 
         }
     }
 
@@ -377,12 +427,25 @@ public class CardNetwork : NetworkBehaviour
     private IEnumerator RemoveLocalCloneRoutine()
     {
         float timeout = 2f; float start = Time.realtimeSinceStartup; GameManager gm = null;
-        while (Time.realtimeSinceStartup - start < timeout) { gm = GameManager.Instance; if (gm != null) break; yield return null; }
-        if (gm == null) yield break;
+        while (Time.realtimeSinceStartup - start < timeout) 
+        { 
+            gm = GameManager.Instance; 
+            if (gm != null) 
+                break; 
+
+            yield return null; 
+        }
+        if (gm == null) 
+            yield break;
         gm.SanitizeLists();
         CardController found = null;
         foreach (var c in gm.playerHandCards) 
-            if (c != null && c.Network == this) { found = c; break; }
+            if (c != null && c.Network == this) 
+            { 
+                found = c; 
+                break; 
+            }
+
         if (found == null) 
             foreach (var c in gm.enemyHandCards) if (c != null && c.Network == this) { found = c; break; }
         if (found == null) 

@@ -17,6 +17,7 @@ MonoBehaviour:
   manaCost: 4
   logo: {fileID: 2087544068632207014, guid: 50b5e0dda8a85684e907c4673f2c18fa, type: 3}
   isSpell: 0
+  description: 
   attack: 4
   health: 5
   abilities: 

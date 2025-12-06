@@ -17,6 +17,7 @@ MonoBehaviour:
   manaCost: 3
   logo: {fileID: -4305618294791597071, guid: 3d05ef544b9ff194eb8dfc6674d18e7e, type: 3}
   isSpell: 1
+  description: Heal your field {0} HP
   attack: 0
   health: 0
   abilities: 

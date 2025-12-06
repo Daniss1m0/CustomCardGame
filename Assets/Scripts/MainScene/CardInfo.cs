@@ -1,11 +1,13 @@
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 
 public class CardInfo : MonoBehaviour
 {
     [SerializeField] private Color normalColor, targetColor, spellTargetColor;
-    [SerializeField] private TextMeshProUGUI nameTxt, attackTxt, healthTxt, manaCostTxt;
+    [SerializeField] private TextMeshProUGUI nameTxt, attackTxt, healthTxt, manaCostTxt, descriptionTxt;
     [SerializeField] private Image logo;
     [SerializeField] private GameObject hideState, highlightState;
 
@@ -62,6 +64,7 @@ public class CardInfo : MonoBehaviour
         }
 
         UpdateStats(card);
+        UpdateDescription(card);
     }
 
     public void HideCard()
@@ -92,6 +95,55 @@ public class CardInfo : MonoBehaviour
             healthTxt.text = card != null ? card.health.ToString() : "";
         if (manaCostTxt != null)
             manaCostTxt.text = card != null ? card.manaCost.ToString() : "";
+    }
+
+    public void UpdateDescription(Card card)
+    {
+        if (descriptionTxt == null || card == null)
+            return;
+
+        string finalText = "";
+
+        List<string> keywords = new List<string>();
+        if (card.abilities != null)
+        {
+            foreach (var ab in card.abilities)
+            {
+                if (ab == AbilityType.None)
+                    continue;
+
+                string niceName = Regex.Replace(ab.ToString(), "(\\B[A-Z])", " $1");
+                keywords.Add(niceName);
+            }
+        }
+
+        if (keywords.Count > 0)
+        {
+            finalText += "<b>" + string.Join(", ", keywords) + "</b>";
+            if (!string.IsNullOrEmpty(card.description))
+                finalText += "\n";
+        }
+
+        if (!string.IsNullOrEmpty(card.description))
+        {
+            string rawDescription = card.description;
+
+            if (card is SpellCard spellCard)
+            {
+                try
+                {
+                    rawDescription = string.Format(rawDescription, spellCard.spellPower);
+                }
+                catch (System.FormatException)
+                {
+                    Debug.LogWarning($"Description format error.");
+                }
+            }
+
+            finalText += rawDescription;
+        }
+
+        descriptionTxt.text = finalText;
     }
 
     public void SetHighlight(bool highlight)

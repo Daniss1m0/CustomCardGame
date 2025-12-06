@@ -35,6 +35,8 @@ public class CardController : MonoBehaviour
         else
             info.HideCard();
 
+        info.UpdateDescription(self);
+
         if (ability != null)
             ability.OnApplyEffect(self, isPlayerCard, info);
     }
@@ -60,16 +62,10 @@ public class CardController : MonoBehaviour
             if (self is SpellCard spellCard)
             {
                 if (spellCard.spellTarget != TargetType.None)
-                {
-                    Debug.Log($"Spell requires target: {spellCard.spellTarget}");
                     return;
-                }
             }
             else
-            {
-                Debug.LogError($"Card {self.name} has isSpell=true but is not SpellCard!");
                 return;
-            }
         }
 
         if (gameManager == null)
@@ -495,6 +491,8 @@ public class CardController : MonoBehaviour
         self.abilities = IntToAbilities(mask);
         if (ability != null)
             ability.OnApplyEffect(self, isPlayerCard, info);
+        
+        info.UpdateDescription(self);
     }
 
     public void SetNetworkData(int attack, int health, int manaCost, bool isSpell, int cardDataIndex, ulong ownerClientId, int abilitiesMask)
@@ -521,12 +519,21 @@ public class CardController : MonoBehaviour
         if (dataToUse == null) { dataToUse = ScriptableObject.CreateInstance<CardData>(); dataToUse.cardName = "NetCard"; dataToUse.isSpell = isSpell; dataToUse.manaCost = manaCost; dataToUse.attack = attack; dataToUse.health = health; }
 
         bool finalIsSpell = isSpell;
-        if (finalIsSpell) self = new SpellCard(dataToUse); else self = new Card(dataToUse);
-        self.attack = attack; self.health = health; self.manaCost = manaCost; self.isSpell = isSpell;
+        if (finalIsSpell)
+            self = new SpellCard(dataToUse);
+        else
+            self = new Card(dataToUse);
+
+        self.attack = attack;
+        self.health = health;
+        self.manaCost = manaCost;
+        self.isSpell = isSpell;
 
         UpdateAbilitiesFromMask(abilitiesMask);
 
         Info?.UpdateStats(self);
+        Info?.UpdateDescription(self);
+
         bool isMine = NetworkManager.Singleton != null && ownerClientId == NetworkManager.Singleton.LocalClientId;
         if (!self.isPlaced) { bool showForNonOwnerCoin = false; if (!isMine && !string.IsNullOrEmpty(self.name)) { var n = self.name.ToLower(); if (n == "coin" || n.Contains("coin")) showForNonOwnerCoin = true; } if (isMine || showForNonOwnerCoin) Info?.ShowCard(self); else Info?.HideCard(); } else Info?.ShowCard(self);
         isPlayerCard = isMine;

@@ -148,12 +148,15 @@ public class CardNetwork : NetworkBehaviour
 
     private void ApplySpellFields()
     {
-        if (visual?.self is SpellCard s) 
-        { 
-            s.spell = (SpellType)spellType.Value; 
-            s.spellTarget = (TargetType)spellTarget.Value; 
-            s.spellPower = spellPower.Value; 
-            visual.Info?.UpdateStats(s); 
+        if (visual?.self is SpellCard s)
+        {
+            s.spell = (SpellType)spellType.Value;
+            s.spellTarget = (TargetType)spellTarget.Value;
+            s.spellPower = spellPower.Value;
+
+            visual.Info?.UpdateStats(s);
+
+            visual.Info?.UpdateDescription(s);
         }
     }
 
@@ -190,9 +193,9 @@ public class CardNetwork : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void CreateLocalCloneClientRpc(int cardDataIndexValue, ulong ownerClientId, int attackValue, int healthValue, int manaCostValue, bool isSpellValue, string cardIdValue, string logoNameValue, int spellTypeValue, int spellTargetValue, int spellPowerValue, int abilitiesValue, ClientRpcParams clientRpcParams = default)
+    public void CreateLocalCloneClientRpc(int cardDataIndexValue, ulong ownerClientId, int attackValue, int healthValue, int manaCostValue, bool isSpellValue, string cardIdValue, string logoNameValue, int spellTypeValue, int spellTargetValue, int spellPowerValue, int abilitiesValue, string descriptionValue, ClientRpcParams clientRpcParams = default)
     {
-        StartCoroutine(CreateLocalCloneRoutine(cardDataIndexValue, ownerClientId, attackValue, healthValue, manaCostValue, isSpellValue, cardIdValue, logoNameValue, spellTypeValue, spellTargetValue, spellPowerValue, abilitiesValue));
+        StartCoroutine(CreateLocalCloneRoutine(cardDataIndexValue, ownerClientId, attackValue, healthValue, manaCostValue, isSpellValue, cardIdValue, logoNameValue, spellTypeValue, spellTargetValue, spellPowerValue, abilitiesValue, descriptionValue));
     }
 
     [ClientRpc]
@@ -232,7 +235,7 @@ public class CardNetwork : NetworkBehaviour
         }
     }
 
-    private IEnumerator CreateLocalCloneRoutine(int cardDataIndexValue, ulong ownerClientId, int attackValue, int healthValue, int manaCostValue, bool isSpellValue, string cardIdValue, string logoNameValue, int spellTypeValue, int spellTargetValue, int spellPowerValue, int abilitiesValue)
+    private IEnumerator CreateLocalCloneRoutine(int cardDataIndexValue, ulong ownerClientId, int attackValue, int healthValue, int manaCostValue, bool isSpellValue, string cardIdValue, string logoNameValue, int spellTypeValue, int spellTargetValue, int spellPowerValue, int abilitiesValue, string descriptionValue)
     {
         float timeout = 2f;
         float start = Time.realtimeSinceStartup;
@@ -255,7 +258,8 @@ public class CardNetwork : NetworkBehaviour
         GameObject uiClone = null;
         try
         {
-            uiClone = Instantiate(visualPrefab, hand, false); uiClone.SetActive(true);
+            uiClone = Instantiate(visualPrefab, hand, false); 
+            uiClone.SetActive(true);
             var rtRoot = uiClone.GetComponent<RectTransform>();
             if (rtRoot != null)
             {
@@ -277,6 +281,9 @@ public class CardNetwork : NetworkBehaviour
                 }
                 if (!string.IsNullOrEmpty(logoNameValue)) { var sp = Resources.Load<Sprite>(logoNameValue); if (sp != null) cloneController.self.logo = sp; }
                 if (cloneController.self is SpellCard sc) { sc.spell = (SpellType)spellTypeValue; sc.spellTarget = (TargetType)spellTargetValue; sc.spellPower = spellPowerValue; }
+                
+                if (!string.IsNullOrEmpty(descriptionValue))
+                    cloneController.self.description = descriptionValue;
 
                 cloneController.UpdateAbilitiesFromMask(abilitiesValue);
                 cloneController.Init(cloneController.self, isOwner);
@@ -328,7 +335,8 @@ public class CardNetwork : NetworkBehaviour
 
             isPlaced.OnValueChanged += (o, n) => {
                 var ctrl = uiClone != null ? uiClone.GetComponentInChildren<CardController>() : null;
-                if (ctrl == null) return;
+                if (ctrl == null) 
+                    return;
                 ctrl.self.isPlaced = n;
                 ctrl.Info?.ShowCard(ctrl.self);
                 if (ctrl.Ability != null) ctrl.Ability.OnApplyEffect(ctrl.self, ctrl.isPlayerCard, ctrl.Info);

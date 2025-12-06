@@ -14,8 +14,7 @@ public enum AbilityType
 
 public class Card
 {
-    public string id;
-    public string name;
+    public string id, name, description;
     public int attack, health, manaCost, timesDealedDamage;
     public bool canAttack, isPlaced, isSpell;
     public Sprite logo;
@@ -29,6 +28,7 @@ public class Card
     {
         id = data.cardId;
         name = data.cardName;
+        description = data.description;
         manaCost = data.manaCost;
         logo = data.logo;
         attack = data.attack;
@@ -45,6 +45,7 @@ public class Card
     {
         id = card.id;
         name = card.name;
+        description = card.description;
         manaCost = card.manaCost;
         logo = card.logo;
         attack = card.attack;

@@ -12,6 +12,8 @@ public class CardData : ScriptableObject
     public int manaCost;
     public Sprite logo;
     public bool isSpell = false;
+    [TextArea(2, 3)]
+    public string description;
 
     [Header("Stats (for non-spell)")]
     public int attack;

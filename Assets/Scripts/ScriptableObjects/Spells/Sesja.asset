@@ -17,6 +17,7 @@ MonoBehaviour:
   manaCost: 2
   logo: {fileID: -1420537352192691650, guid: 84ed7cb670804f743a606bed3422fedb, type: 3}
   isSpell: 1
+  description: Gives a taunt to your card
   attack: 0
   health: 0
   abilities: 

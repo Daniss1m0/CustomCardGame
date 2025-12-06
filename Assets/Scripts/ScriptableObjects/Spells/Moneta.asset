@@ -17,6 +17,7 @@ MonoBehaviour:
   manaCost: 0
   logo: {fileID: 4316632390762738984, guid: 62889e97c432f5e44bae4c5d2714c292, type: 3}
   isSpell: 1
+  description: Give {0} temp mana
   attack: 0
   health: 0
   abilities: 

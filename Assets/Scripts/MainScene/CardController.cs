@@ -716,6 +716,58 @@ public class CardController : MonoBehaviour
         });
     }
 
+    public void AnimateOpponentSpellAndDestroy()
+    {
+        Canvas rootCanvas = GetComponentInParent<Canvas>();
+        if (rootCanvas != null && rootCanvas.rootCanvas != null)
+            rootCanvas = rootCanvas.rootCanvas;
+
+        Transform showcaseParent = rootCanvas != null ? rootCanvas.transform : transform.root;
+        transform.SetParent(showcaseParent, true);
+
+        Info?.ShowCard(self);
+        ResetVisualState();
+
+        RectTransform rt = GetComponent<RectTransform>();
+        if (rt == null)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        rt.anchorMin = new Vector2(0.5f, 0.5f);
+        rt.anchorMax = new Vector2(0.5f, 0.5f);
+        rt.pivot = new Vector2(0.5f, 0.5f);
+
+        float startY = 600f;
+        if (rootCanvas != null)
+        {
+            RectTransform canvasRect = rootCanvas.GetComponent<RectTransform>();
+            startY = (canvasRect.rect.height / 2f) + 250f;
+        }
+        rt.anchoredPosition = new Vector2(0, startY);
+
+        Vector3 originalScale = Vector3.one;
+        Sequence sequence = DOTween.Sequence();
+
+        sequence.Append(rt.DOAnchorPos(Vector2.zero, 0.5f).SetEase(Ease.OutBack));
+        sequence.Join(rt.DOScale(originalScale * 1.6f, 0.5f).SetEase(Ease.OutBack));
+        sequence.Join(rt.DORotate(Vector3.zero, 0.3f));
+
+        sequence.AppendInterval(0.8f);
+
+        CanvasGroup cg = GetComponent<CanvasGroup>();
+        if (cg == null) cg = gameObject.AddComponent<CanvasGroup>();
+
+        sequence.Append(rt.DOScale(originalScale * 2f, 0.4f));
+        sequence.Join(cg.DOFade(0f, 0.4f));
+
+        sequence.OnComplete(() =>
+        {
+            Destroy(gameObject);
+        });
+    }
+
     private void ResetVisualState()
     {
         var cg = GetComponent<CanvasGroup>();

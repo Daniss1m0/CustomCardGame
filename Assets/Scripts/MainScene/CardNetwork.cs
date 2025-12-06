@@ -426,19 +426,22 @@ public class CardNetwork : NetworkBehaviour
 
     private IEnumerator RemoveLocalCloneRoutine()
     {
-        float timeout = 2f; float start = Time.realtimeSinceStartup; GameManager gm = null;
-        while (Time.realtimeSinceStartup - start < timeout) 
-        { 
-            gm = GameManager.Instance; 
-            if (gm != null) 
-                break; 
+        float timeout = 2f;
+        float start = Time.realtimeSinceStartup;
+        GameManager gm = null;
 
-            yield return null; 
+        while (Time.realtimeSinceStartup - start < timeout)
+        {
+            gm = GameManager.Instance;
+            if (gm != null) break;
+            yield return null;
         }
-        if (gm == null) 
-            yield break;
+
+        if (gm == null) yield break;
+
         gm.SanitizeLists();
         CardController found = null;
+
         foreach (var c in gm.playerHandCards) 
             if (c != null && c.Network == this) 
             { 
@@ -447,14 +450,42 @@ public class CardNetwork : NetworkBehaviour
             }
 
         if (found == null) 
-            foreach (var c in gm.enemyHandCards) if (c != null && c.Network == this) { found = c; break; }
+            foreach (var c in gm.enemyHandCards) 
+                if (c != null && c.Network == this) 
+                { 
+                    found = c; 
+                    break; 
+                }
         if (found == null) 
-            foreach (var c in gm.playerFieldCards) if (c != null && c.Network == this) { found = c; break; }
+            foreach (var c in gm.playerFieldCards) 
+                if (c != null && c.Network == this) 
+                { 
+                    found = c; 
+                    break; 
+                }
         if (found == null) 
-            foreach (var c in gm.enemyFieldCards) if (c != null && c.Network == this) { found = c; break; }
-        if (found != null) 
-        { 
-            try { gm.playerHandCards.Remove(found); gm.enemyHandCards.Remove(found); gm.playerFieldCards.Remove(found); gm.enemyFieldCards.Remove(found); } catch { } try { Destroy(found.gameObject); } catch { } 
+            foreach (var c in gm.enemyFieldCards) 
+                if (c != null && c.Network == this) 
+                {
+                    found = c; 
+                    break; 
+                }
+
+        if (found != null)
+        {
+            try
+            {
+                gm.playerHandCards.Remove(found);
+                gm.enemyHandCards.Remove(found);
+                gm.playerFieldCards.Remove(found);
+                gm.enemyFieldCards.Remove(found);
+            }
+            catch { }
+
+            if (found.self.isSpell && !found.isPlayerCard)
+                found.AnimateOpponentSpellAndDestroy();
+            else
+                try { Destroy(found.gameObject); } catch { }
         }
     }
 

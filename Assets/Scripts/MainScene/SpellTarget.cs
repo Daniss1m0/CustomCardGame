@@ -5,7 +5,7 @@ public class SpellTarget : MonoBehaviour, IDropHandler
 {
     public void OnDrop(PointerEventData eventData)
     {
-        if (!GameManager.Instance.IsPlayerTurn)
+        if (!GameManager.Instance.IsMyTurn)
             return;
 
         var dragObj = eventData.pointerDrag;

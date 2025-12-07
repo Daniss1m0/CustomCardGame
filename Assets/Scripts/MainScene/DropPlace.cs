@@ -42,7 +42,7 @@ public class DropPlace : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoi
             var spell = card.self as SpellCard;
             if (spell != null && spell.spellTarget == TargetType.None)
             {
-                if (!GameManager.Instance.IsPlayerTurn || !card.isPlayerCard) 
+                if (!GameManager.Instance.IsMyTurn || !card.isPlayerCard)
                     return;
 
                 if (GameManager.Instance.currentGame.player.mana < card.self.manaCost) 
@@ -68,7 +68,7 @@ public class DropPlace : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoi
         if (!foundTemp) 
             dropIndex = transform.childCount;
 
-        if (card && GameManager.Instance.IsPlayerTurn && GameManager.Instance.currentGame.player.mana >= card.self.manaCost && !card.self.isPlaced)
+        if (card && GameManager.Instance.IsMyTurn && GameManager.Instance.currentGame.player.mana >= card.self.manaCost && !card.self.isPlaced)
         {
             Transform originalParent = null;
             if (card.Movement != null) 

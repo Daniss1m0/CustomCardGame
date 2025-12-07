@@ -24,6 +24,8 @@ public class CardNetwork : NetworkBehaviour
 
     public System.Action<bool> onCanAttackForceUpdate;
 
+    public event System.Action<ulong> onNetworkDespawn;
+
     private CardController visual;
 
     private NetworkVariable<int>.OnValueChangedDelegate attackChangedHandler;
@@ -47,6 +49,8 @@ public class CardNetwork : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
+        onNetworkDespawn?.Invoke(ownerClientIdNet.Value);
+
         base.OnNetworkSpawn();
 
         attackChangedHandler = (oldV, newV) => UpdateVisual();
@@ -321,7 +325,7 @@ public class CardNetwork : NetworkBehaviour
             }
 
             attack.OnValueChanged += (o, n) => { if (uiClone == null) return; var ctrl = uiClone.GetComponentInChildren<CardController>(); if (ctrl != null && ctrl.self != null) { ctrl.self.attack = n; ctrl.Info?.UpdateStats(ctrl.self); } };
-            health.OnValueChanged += (o, n) => { if (uiClone == null) return; var ctrl = uiClone.GetComponentInChildren<CardController>(); if (ctrl != null && ctrl.self != null) { ctrl.self.health = n; ctrl.Info?.UpdateStats(ctrl.self); if (n <= 0) { var gm = GameManager.Instance; if (gm != null) { if (ownerClientId == (NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0UL)) { if (gm.playerHandCards.Contains(ctrl)) gm.playerHandCards.Remove(ctrl); if (gm.playerFieldCards.Contains(ctrl)) gm.playerFieldCards.Remove(ctrl); } else { if (gm.enemyHandCards.Contains(ctrl)) gm.enemyHandCards.Remove(ctrl); if (gm.enemyFieldCards.Contains(ctrl)) gm.enemyFieldCards.Remove(ctrl); } } if (uiClone != null) Destroy(uiClone); } } };
+            health.OnValueChanged += (o, n) => { if (uiClone == null) return; var ctrl = uiClone.GetComponentInChildren<CardController>(); if (ctrl != null && ctrl.self != null) { ctrl.self.health = n; ctrl.Info?.UpdateStats(ctrl.self); if (n <= 0) { var gm = GameManager.Instance; if (gm != null) { ctrl.OnDeath(); if (ownerClientId == (NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0UL)) { if (gm.playerHandCards.Contains(ctrl)) gm.playerHandCards.Remove(ctrl); if (gm.playerFieldCards.Contains(ctrl)) gm.playerFieldCards.Remove(ctrl); } else { if (gm.enemyHandCards.Contains(ctrl)) gm.enemyHandCards.Remove(ctrl); if (gm.enemyFieldCards.Contains(ctrl)) gm.enemyFieldCards.Remove(ctrl); } } if (uiClone != null) Destroy(uiClone); } } };
             manaCost.OnValueChanged += (o, n) => { if (uiClone == null) return; var ctrl = uiClone.GetComponentInChildren<CardController>(); if (ctrl != null && ctrl.self != null) { ctrl.self.manaCost = n; ctrl.Info?.UpdateStats(ctrl.self); } };
 
             canAttack.OnValueChanged += (o, n) => {
@@ -533,22 +537,30 @@ public class CardNetwork : NetworkBehaviour
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
     public void RequestAttackServerRpc(ulong targetNetObjId, RpcParams rpcParams = default)
     {
-        if (!IsServer) 
+        if (!IsServer)
             return;
 
-        ulong sender = rpcParams.Receive.SenderClientId; 
-        if (ownerClientIdNet.Value != sender) 
+        ulong sender = rpcParams.Receive.SenderClientId;
+        if (ownerClientIdNet.Value != sender)
             return;
 
-        if (!isPlaced.Value || !canAttack.Value) 
+        if (!isPlaced.Value || !canAttack.Value)
             return;
 
-        if (!NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(targetNetObjId, out var targetNetObj)) 
-            return;
+        var gm = GameManager.Instance;
+        if (gm == null) return;
 
-        var targetCardController = targetNetObj.GetComponentInChildren<CardController>();
-        if (targetCardController != null && visual != null)
-            GameManager.Instance.Attack(visual, targetCardController);
+        ulong myNetId = NetworkObjectId;
+        CardController realAttacker = gm.playerFieldCards.Find(x => x.Network != null && x.Network.NetworkObjectId == myNetId);
+        if (realAttacker == null)
+            realAttacker = gm.enemyFieldCards.Find(x => x.Network != null && x.Network.NetworkObjectId == myNetId);
+
+        CardController realTarget = gm.playerFieldCards.Find(x => x.Network != null && x.Network.NetworkObjectId == targetNetObjId);
+        if (realTarget == null)
+            realTarget = gm.enemyFieldCards.Find(x => x.Network != null && x.Network.NetworkObjectId == targetNetObjId);
+
+        if (realAttacker != null && realTarget != null)
+            gm.Attack(realAttacker, realTarget);
     }
 
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]

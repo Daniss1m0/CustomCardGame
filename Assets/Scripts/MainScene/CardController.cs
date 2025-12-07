@@ -246,6 +246,9 @@ public class CardController : MonoBehaviour
     {
         if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer && linkedNetwork != null)
         {
+            if (linkedNetwork.health.Value != self.health)
+                linkedNetwork.health.Value = self.health;
+
             int maskBefore = AbilitiesToInt(self.abilities);
             CheckForAlive();
             int maskAfter = AbilitiesToInt(self.abilities);
@@ -275,14 +278,12 @@ public class CardController : MonoBehaviour
             ability.OnDamageDeal(self, isPlayerCard, info);
 
         if (self.canAttack && linkedNetwork != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
-        {
             try
             {
                 linkedNetwork.canAttack.Value = true;
                 linkedNetwork.ForceCanAttackSyncClientRpc(true);
             }
             catch { }
-        }
     }
 
     public void DestroyCard()
@@ -295,6 +296,12 @@ public class CardController : MonoBehaviour
             gameManager.playerFieldCards.Remove(this);
             gameManager.enemyFieldCards.Remove(this);
         }
+
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer && linkedNetwork != null)
+            if (linkedNetwork.TryGetComponent<NetworkObject>(out var no))
+                if (no.IsSpawned)
+                    no.Despawn(true);
+
         Destroy(gameObject);
     }
 
@@ -303,7 +310,7 @@ public class CardController : MonoBehaviour
         if (self.IsAlive)
             info.UpdateStats(self);
         else
-            DestroyCard();
+            OnDeath();
     }
 
     void GiveDamageTo(CardController target, int damage)
@@ -429,11 +436,8 @@ public class CardController : MonoBehaviour
             gameManager.UpdateStateNetworkIfServer();
 
         if (linkedNetwork != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
-        {
             linkedNetwork.RemoveLocalCloneClientRpc();
-            if (linkedNetwork.TryGetComponent<NetworkObject>(out var no))
-                no.Despawn(true);
-        }
+
         DestroyCard();
     }
 
@@ -757,7 +761,8 @@ public class CardController : MonoBehaviour
         sequence.AppendInterval(0.8f);
 
         CanvasGroup cg = GetComponent<CanvasGroup>();
-        if (cg == null) cg = gameObject.AddComponent<CanvasGroup>();
+        if (cg == null) 
+            cg = gameObject.AddComponent<CanvasGroup>();
 
         sequence.Append(rt.DOScale(originalScale * 2f, 0.4f));
         sequence.Join(cg.DOFade(0f, 0.4f));
@@ -800,11 +805,51 @@ public class CardController : MonoBehaviour
     public void LinkNetwork(CardNetwork cn)
     {
         linkedNetwork = cn;
+        if (linkedNetwork != null)
+            linkedNetwork.onNetworkDespawn += OnNetworkDespawnHandler;
     }
 
     public void SetMovement(CardMovement m)
     {
         if (m != null)
             movement = m;
+    }
+
+    private bool isDead = false;
+
+    public void OnDeath()
+    {
+        if (isDead) 
+            return;
+        isDead = true;
+
+        if (movement != null)
+        {
+            movement.OnEndDrag(null);
+            movement.enabled = false;
+        }
+        var cg = GetComponent<CanvasGroup>();
+        if (cg != null)
+        {
+            cg.interactable = false;
+            cg.blocksRaycasts = false;
+        }
+
+        Info?.SetHighlight(false);
+
+        transform.DOKill();
+
+        transform.DOScale(Vector3.zero, 0.3f).SetEase(Ease.InBack).SetLink(gameObject).OnComplete(() => { DestroyCard();});
+    }
+
+    private void OnNetworkDespawnHandler(ulong id)
+    {
+        OnDeath();
+    }
+
+    private void OnDestroy()
+    {
+        if (linkedNetwork != null)
+            linkedNetwork.onNetworkDespawn -= OnNetworkDespawnHandler;
     }
 }

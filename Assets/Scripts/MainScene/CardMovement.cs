@@ -58,7 +58,7 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
             tempParent = defaultParent;
 
         var dropPlace = defaultParent != null ? defaultParent.GetComponent<DropPlace>() : null;
-        isDraggable = GameManager.Instance != null && GameManager.Instance.IsPlayerTurn &&
+        isDraggable = GameManager.Instance != null && GameManager.Instance.IsMyTurn &&
                       dropPlace != null &&
                       (
                         (dropPlace.type == FieldType.PlayerHand && GameManager.Instance.currentGame.player.mana >= controller.self.manaCost)

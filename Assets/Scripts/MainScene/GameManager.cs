@@ -21,8 +21,19 @@ public class GameManager : MonoBehaviour
     private bool localIsOwnerTurn = false;
 
     public int CurrentTurn => turn;
-    public bool IsPlayerTurn => turn % 2 == 0;
+    public bool IsPlayerTurn => turn % 2 == 0; //?
     public AttackedHero PlayerHero => playerHero;
+
+    public bool IsMyTurn
+    {
+        get
+        {
+            if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsClient && !NetworkManager.Singleton.IsServer)
+                return localIsOwnerTurn;
+
+            return IsPlayerTurn;
+        }
+    }
 
     private void Awake()
     {

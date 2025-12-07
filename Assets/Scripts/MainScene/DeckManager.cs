@@ -354,7 +354,7 @@ public class DeckManager : MonoBehaviour
             if (cn != null && cloneController != null)
             {
                 cn.attack.OnValueChanged += (o, n) => { if (cloneController != null && cloneController.self != null) { cloneController.self.attack = n; cloneController.Info?.UpdateStats(cloneController.self); } };
-                cn.health.OnValueChanged += (o, n) => { if (cloneController != null && cloneController.self != null) { cloneController.self.health = n; cloneController.Info?.UpdateStats(cloneController.self); if (n <= 0) { var gmInst = GameManager.Instance; if (gmInst != null) { if (isOwner) { if (gmInst.playerHandCards.Contains(cloneController)) gmInst.playerHandCards.Remove(cloneController); if (gmInst.playerFieldCards.Contains(cloneController)) gmInst.playerFieldCards.Remove(cloneController); } else { if (gmInst.enemyHandCards.Contains(cloneController)) gmInst.enemyHandCards.Remove(cloneController); if (gmInst.enemyFieldCards.Contains(cloneController)) gmInst.enemyFieldCards.Remove(cloneController); } } if (uiClone != null) Destroy(uiClone); } } };
+                cn.health.OnValueChanged += (o, n) => { if (cloneController != null && cloneController.self != null) { cloneController.self.health = n; cloneController.Info?.UpdateStats(cloneController.self); if (n <= 0) { cloneController.OnDeath(); var gmInst = GameManager.Instance; if (gmInst != null) { if (isOwner) { if (gmInst.playerHandCards.Contains(cloneController)) gmInst.playerHandCards.Remove(cloneController); if (gmInst.playerFieldCards.Contains(cloneController)) gmInst.playerFieldCards.Remove(cloneController); } else { if (gmInst.enemyHandCards.Contains(cloneController)) gmInst.enemyHandCards.Remove(cloneController); if (gmInst.enemyFieldCards.Contains(cloneController)) gmInst.enemyFieldCards.Remove(cloneController); } } if (uiClone != null) Destroy(uiClone); } } };
                 cn.manaCost.OnValueChanged += (o, n) => { if (cloneController != null && cloneController.self != null) { cloneController.self.manaCost = n; cloneController.Info?.UpdateStats(cloneController.self); } };
 
                 cn.canAttack.OnValueChanged += (o, n) => {
@@ -435,7 +435,10 @@ public class DeckManager : MonoBehaviour
                     cloneController.UpdateAbilitiesFromMask(cn.abilitiesNet.Value);
             }
         }
-        catch { if (uiClone != null) Destroy(uiClone); }
+        catch { 
+            if (uiClone != null) 
+                Destroy(uiClone); 
+        }
     }
     public SpecialCardEntry GetSpecialCardEntry(string id) { if (string.IsNullOrEmpty(id)) return null; foreach (var e in specialCards) if (e != null && e.id == id) return e; return null; }
     public CardData GetSpecialCardData(string id) { var e = GetSpecialCardEntry(id); return e != null ? e.cardData : null; }

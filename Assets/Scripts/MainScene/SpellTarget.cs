@@ -19,9 +19,8 @@ public class SpellTarget : MonoBehaviour, IDropHandler
         {
             var dropPlace = GetComponentInParent<DropPlace>();
             if (dropPlace != null)
-            {
                 dropPlace.OnDrop(eventData);
-            }
+
             return;
         }
 
@@ -38,7 +37,6 @@ public class SpellTarget : MonoBehaviour, IDropHandler
                 return;
 
             Transform fieldTransform = null;
-
             if (target != null && target.transform.parent != null)
                 fieldTransform = target.transform.parent;
             else
@@ -56,8 +54,22 @@ public class SpellTarget : MonoBehaviour, IDropHandler
         if (target == null || !target.self.isPlaced)
             return;
 
-        if ((spellCard.spellTarget == TargetType.AllyCard && target.isPlayerCard) ||
-            (spellCard.spellTarget == TargetType.EnemyCard && !target.isPlayerCard))
+        bool isValidTarget = false;
+
+        if (spellCard.spellTarget == TargetType.AllyCard)
+        {
+            if (target.isPlayerCard) 
+                isValidTarget = true;
+        }
+        else if (spellCard.spellTarget == TargetType.EnemyCard)
+        {
+            if (!target.isPlayerCard) 
+                isValidTarget = true;
+        }
+
+        if (isValidTarget)
             GameManager.Instance.CastSpell(spell, target, true);
+        else
+            Debug.LogWarning($"SpellTarget: {spellCard.spellTarget}, TargetIsPlayer: {target.isPlayerCard}");
     }
 }

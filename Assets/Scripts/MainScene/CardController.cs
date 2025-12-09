@@ -364,19 +364,25 @@ public class CardController : MonoBehaviour
                 UIManager.Instance.UpdateHPAndMana();
                 GameManager.Instance.CheckCardsForManaAvailability();
                 break;
+
             case SpellType.HealAlliesField:
                 var allyCards = isPlayerCard ? gameManager.playerFieldCards : gameManager.enemyFieldCards;
                 foreach (var card in allyCards)
                 {
                     card.self.health += spellCard.spellPower;
                     card.info.UpdateStats(card.self);
+
+                    if (card.Network != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
+                        card.Network.health.Value = card.self.health;
                 }
                 break;
+
             case SpellType.DamageEnemiesField:
                 var enemyCards = isPlayerCard ? new List<CardController>(gameManager.enemyFieldCards) : new List<CardController>(gameManager.playerFieldCards);
                 foreach (var card in enemyCards)
                     GiveDamageTo(card, spellCard.spellPower);
                 break;
+
             case SpellType.HealHero:
                 if (isPlayerCard)
                     gameManager.currentGame.player.hp += spellCard.spellPower;
@@ -384,6 +390,7 @@ public class CardController : MonoBehaviour
                     gameManager.currentGame.enemy.hp += spellCard.spellPower;
                 UIManager.Instance.UpdateHPAndMana();
                 break;
+
             case SpellType.DamageHero:
                 if (isPlayerCard)
                     gameManager.currentGame.enemy.hp -= spellCard.spellPower;
@@ -392,14 +399,23 @@ public class CardController : MonoBehaviour
                 UIManager.Instance.UpdateHPAndMana();
                 gameManager.CheckForResult();
                 break;
+
             case SpellType.HealCard:
                 if (target != null)
+                {
                     target.self.health += spellCard.spellPower;
+                    target.info.UpdateStats(target.self);
+
+                    if (target.Network != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
+                        target.Network.health.Value = target.self.health;
+                }
                 break;
+
             case SpellType.DamageCard:
                 if (target != null)
                     GiveDamageTo(target, spellCard.spellPower);
                 break;
+
             case SpellType.AddShield:
                 if (!target.self.abilities.Exists(x => x == AbilityType.Shield))
                 {
@@ -408,6 +424,7 @@ public class CardController : MonoBehaviour
                         target.Network.abilitiesNet.Value = AbilitiesToInt(target.self.abilities);
                 }
                 break;
+
             case SpellType.AddTaunt:
                 if (!target.self.abilities.Exists(x => x == AbilityType.Taunt))
                 {
@@ -416,13 +433,27 @@ public class CardController : MonoBehaviour
                         target.Network.abilitiesNet.Value = AbilitiesToInt(target.self.abilities);
                 }
                 break;
+
             case SpellType.BuffAttack:
                 if (target != null)
+                {
                     target.self.attack += spellCard.spellPower;
+                    target.info.UpdateStats(target.self);
+
+                    if (target.Network != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
+                        target.Network.attack.Value = target.self.attack;
+                }
                 break;
+
             case SpellType.DebuffAttack:
                 if (target != null)
+                {
                     target.self.attack = Mathf.Max(0, target.self.attack - spellCard.spellPower);
+                    target.info.UpdateStats(target.self);
+
+                    if (target.Network != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
+                        target.Network.attack.Value = target.self.attack;
+                }
                 break;
         }
 

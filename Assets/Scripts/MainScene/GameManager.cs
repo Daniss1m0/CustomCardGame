@@ -52,11 +52,12 @@ public class GameManager : MonoBehaviour
     {
         currentGame = new Game();
 
-        if (deckManager == null) deckManager = FindAnyObjectByType<DeckManager>();
+        if (deckManager == null) 
+            deckManager = FindAnyObjectByType<DeckManager>();
 
         if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer)
         {
-            UIManager.Instance?.StartGame();
+            UIManager.Instance.StartGame();
             return;
         }
 
@@ -96,8 +97,8 @@ public class GameManager : MonoBehaviour
 
         UpdateStateNetworkIfServer();
 
-        UIManager.Instance?.UpdateHPAndMana();
-        UIManager.Instance?.StartGame();
+        UIManager.Instance.UpdateHPAndMana();
+        UIManager.Instance.StartGame();
 
         if (turnManager != null)
             turnManager.NotifyClientsOwnerClientRpc(turnManager.CurrentTurnOwner.Value);
@@ -166,6 +167,8 @@ public class GameManager : MonoBehaviour
             }
 
             currentGame.player.ClearTempMana();
+            currentGame.enemy.ClearTempMana();
+
             deckManager.GiveNewCards(currentGame, newOwner);
 
             if (newOwner == playerOwnerClientId)
@@ -179,7 +182,7 @@ public class GameManager : MonoBehaviour
                 currentGame.enemy.RestoreRoundMana();
             }
 
-            UIManager.Instance?.UpdateHPAndMana();
+            UIManager.Instance.UpdateHPAndMana();
             UpdateStateNetworkIfServer();
         }
         else
@@ -189,14 +192,14 @@ public class GameManager : MonoBehaviour
                 currentGame.player.ClearTempMana();
                 currentGame.player.IncreaseManaPool();
                 currentGame.player.RestoreRoundMana();
-                UIManager.Instance?.UpdateHPAndMana();
+                UIManager.Instance.UpdateHPAndMana();
             }
             else
             {
                 currentGame.enemy.ClearTempMana();
                 currentGame.enemy.IncreaseManaPool();
                 currentGame.enemy.RestoreRoundMana();
-                UIManager.Instance?.UpdateHPAndMana();
+                UIManager.Instance.UpdateHPAndMana();
             }
         }
 
@@ -249,7 +252,7 @@ public class GameManager : MonoBehaviour
         var fieldCount = isPlayerSide ? playerFieldCards.Count : enemyFieldCards.Count;
         if (!card.self.isSpell && fieldCount >= (deckManager != null ? DeckManager.MAX_FIELD_SIZE : 7))
         {
-            Debug.LogWarning($"Field is full. Count: {fieldCount}.");
+            Debug.LogWarning($"Field is full.");
             return;
         }
 
@@ -287,7 +290,7 @@ public class GameManager : MonoBehaviour
                 enemyHandCards.Remove(spell);
 
             enemyFieldCards.Add(spell);
-            spell.Info?.ShowCard(spell.self);
+            spell.Info.ShowCard(spell.self);
         }
 
         ReduceMana(isPlayerSide, spell.self.manaCost);
@@ -362,6 +365,7 @@ public class GameManager : MonoBehaviour
             else
                 return;
         }
+
         ChangeTurn();
     }
 
@@ -388,7 +392,7 @@ public class GameManager : MonoBehaviour
         if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
             UpdateStateNetworkIfServer();
 
-        UIManager.Instance?.UpdateHPAndMana();
+        UIManager.Instance.UpdateHPAndMana();
         CheckCardsForManaAvailability();
     }
 
@@ -402,7 +406,7 @@ public class GameManager : MonoBehaviour
         if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
             UpdateStateNetworkIfServer();
 
-        UIManager.Instance?.UpdateHPAndMana();
+        UIManager.Instance.UpdateHPAndMana();
         card.OnDamageDeal();
         CheckForResult();
     }

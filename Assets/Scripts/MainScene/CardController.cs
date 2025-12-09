@@ -249,16 +249,18 @@ public class CardController : MonoBehaviour
             if (linkedNetwork.health.Value != self.health)
                 linkedNetwork.health.Value = self.health;
 
-            int maskBefore = AbilitiesToInt(self.abilities);
+            int currentMask = AbilitiesToInt(self.abilities);
+
+            if (linkedNetwork.abilitiesNet.Value != currentMask)
+                linkedNetwork.abilitiesNet.Value = currentMask;
+
             CheckForAlive();
-            int maskAfter = AbilitiesToInt(self.abilities);
-            if (maskBefore != maskAfter)
-                linkedNetwork.abilitiesNet.Value = maskAfter;
         }
         else
             CheckForAlive();
 
-        ability.OnTakeDamage(self, attacker);
+        if (ability != null)
+            ability.OnTakeDamage(self, attacker);
     }
 
     public void OnDamageDeal()
@@ -665,9 +667,7 @@ public class CardController : MonoBehaviour
         bool turnMatches = placedOnTurn == (GameManager.Instance != null ? GameManager.Instance.CurrentTurn : -99);
 
         if (!isLocalPlayer && !self.isSpell && (isEnemyTurn || turnMatches))
-        {
             AnimateOpponentPlay(targetParent, targetIndex);
-        }
         else
         {
             if (targetParent != null)
@@ -852,6 +852,7 @@ public class CardController : MonoBehaviour
     {
         if (isDead) 
             return;
+
         isDead = true;
 
         if (movement != null)
@@ -859,6 +860,7 @@ public class CardController : MonoBehaviour
             movement.OnEndDrag(null);
             movement.enabled = false;
         }
+
         var cg = GetComponent<CanvasGroup>();
         if (cg != null)
         {
@@ -870,7 +872,10 @@ public class CardController : MonoBehaviour
 
         transform.DOKill();
 
-        transform.DOScale(Vector3.zero, 0.3f).SetEase(Ease.InBack).SetLink(gameObject).OnComplete(() => { DestroyCard();});
+        transform.DOScale(Vector3.zero, 0.3f).SetEase(Ease.InBack).SetLink(gameObject).OnComplete(() => 
+        { 
+            DestroyCard();
+        });
     }
 
     private void OnNetworkDespawnHandler(ulong id)

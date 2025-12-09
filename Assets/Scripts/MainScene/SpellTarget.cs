@@ -69,7 +69,5 @@ public class SpellTarget : MonoBehaviour, IDropHandler
 
         if (isValidTarget)
             GameManager.Instance.CastSpell(spell, target, true);
-        else
-            Debug.LogWarning($"SpellTarget: {spellCard.spellTarget}, TargetIsPlayer: {target.isPlayerCard}");
     }
 }

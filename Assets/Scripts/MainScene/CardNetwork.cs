@@ -675,11 +675,47 @@ public class CardNetwork : NetworkBehaviour
                 break;
 
             case SpellType.AddShield:
-                if (targetNetObjId != 0) { if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(targetNetObjId, out var tno)) { var tc = tno.GetComponentInChildren<CardController>(true); var cn = tno.GetComponent<CardNetwork>(); if (tc != null && !tc.self.abilities.Exists(x => x == AbilityType.Shield)) { tc.self.abilities.Add(AbilityType.Shield); if (cn != null) cn.abilitiesNet.Value = CardController.AbilitiesToInt(tc.self.abilities); } } }
+                if (targetNetObjId != 0)
+                {
+                    if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(targetNetObjId, out var tno))
+                    {
+                        var cn = tno.GetComponent<CardNetwork>();
+                        if (cn != null)
+                        {
+                            int currentMask = cn.abilitiesNet.Value;
+
+                            var currentAbilities = CardController.IntToAbilities(currentMask);
+
+                            if (!currentAbilities.Contains(AbilityType.Shield))
+                            {
+                                currentAbilities.Add(AbilityType.Shield);
+
+                                cn.abilitiesNet.Value = CardController.AbilitiesToInt(currentAbilities);
+                            }
+                        }
+                    }
+                }
                 break;
 
             case SpellType.AddTaunt:
-                if (targetNetObjId != 0) { if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(targetNetObjId, out var tno2)) { var tc2 = tno2.GetComponentInChildren<CardController>(true); var cn2 = tno2.GetComponent<CardNetwork>(); if (tc2 != null && !tc2.self.abilities.Exists(x => x == AbilityType.Taunt)) { tc2.self.abilities.Add(AbilityType.Taunt); if (cn2 != null) cn2.abilitiesNet.Value = CardController.AbilitiesToInt(tc2.self.abilities); } } }
+                if (targetNetObjId != 0)
+                {
+                    if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(targetNetObjId, out var tno2))
+                    {
+                        var cn2 = tno2.GetComponent<CardNetwork>();
+                        if (cn2 != null)
+                        {
+                            int currentMask = cn2.abilitiesNet.Value;
+                            var currentAbilities = CardController.IntToAbilities(currentMask);
+
+                            if (!currentAbilities.Contains(AbilityType.Taunt))
+                            {
+                                currentAbilities.Add(AbilityType.Taunt);
+                                cn2.abilitiesNet.Value = CardController.AbilitiesToInt(currentAbilities);
+                            }
+                        }
+                    }
+                }
                 break;
 
             case SpellType.BuffAttack: if (tt == TargetType.AllyCard && targetNetObjId != 0) { if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(targetNetObjId, out var tno3)) { var tnet3 = tno3.GetComponent<CardNetwork>(); if (tnet3 != null) tnet3.attack.Value += spellPowerValue; } } break;

@@ -541,31 +541,71 @@ public class CardNetwork : NetworkBehaviour
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
     public void RequestAttackServerRpc(ulong targetNetObjId, RpcParams rpcParams = default)
     {
-        if (!IsServer)
-            return;
-
+        if (!IsServer) return;
         ulong sender = rpcParams.Receive.SenderClientId;
-        if (ownerClientIdNet.Value != sender)
-            return;
-
-        if (!isPlaced.Value || !canAttack.Value)
-            return;
+        if (ownerClientIdNet.Value != sender) return;
+        if (!isPlaced.Value || !canAttack.Value) return;
 
         var gm = GameManager.Instance;
-        if (gm == null) 
-            return;
+        if (gm == null) return;
 
         ulong myNetId = NetworkObjectId;
-        CardController realAttacker = gm.playerFieldCards.Find(x => x.Network != null && x.Network.NetworkObjectId == myNetId);
-        if (realAttacker == null)
-            realAttacker = gm.enemyFieldCards.Find(x => x.Network != null && x.Network.NetworkObjectId == myNetId);
 
-        CardController realTarget = gm.playerFieldCards.Find(x => x.Network != null && x.Network.NetworkObjectId == targetNetObjId);
-        if (realTarget == null)
-            realTarget = gm.enemyFieldCards.Find(x => x.Network != null && x.Network.NetworkObjectId == targetNetObjId);
+        AnimateAttackClientRpc(myNetId, false, false, targetNetObjId);
+
+        StartCoroutine(DelayedAttackRoutine(gm, myNetId, targetNetObjId));
+    }
+
+    private IEnumerator DelayedAttackRoutine(GameManager gm, ulong attackerId, ulong targetId)
+    {
+        yield return new WaitForSeconds(0.65f);
+
+        CardController realAttacker = gm.playerFieldCards.Find(x => x.Network != null && x.Network.NetworkObjectId == attackerId);
+        if (realAttacker == null) realAttacker = gm.enemyFieldCards.Find(x => x.Network != null && x.Network.NetworkObjectId == attackerId);
+
+        CardController realTarget = gm.playerFieldCards.Find(x => x.Network != null && x.Network.NetworkObjectId == targetId);
+        if (realTarget == null) realTarget = gm.enemyFieldCards.Find(x => x.Network != null && x.Network.NetworkObjectId == targetId);
 
         if (realAttacker != null && realTarget != null)
-            gm.Attack(realAttacker, realTarget);
+            gm.CardsFight(realAttacker, realTarget);
+    }
+
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
+    public void RequestAttackHeroServerRpc(bool isAttackingEnemyHero, RpcParams rpcParams = default)
+    {
+        if (!IsServer) return;
+        if (rpcParams.Receive.SenderClientId != ownerClientIdNet.Value) return;
+        if (!canAttack.Value || !isPlaced.Value) return;
+
+        var gm = GameManager.Instance;
+        if (gm != null)
+        {
+            bool actualTargetIsOpponent = isAttackingEnemyHero;
+            AnimateAttackClientRpc(NetworkObjectId, true, actualTargetIsOpponent, 0);
+
+            StartCoroutine(DelayedHeroAttackRoutine(gm, isAttackingEnemyHero));
+        }
+    }
+
+    private IEnumerator DelayedHeroAttackRoutine(GameManager gm, bool isAttackingEnemyHero)
+    {
+        yield return new WaitForSeconds(0.65f);
+
+        CardController attackerCard = null;
+        if (gm.playerFieldCards.Exists(x => x.Network == this))
+            attackerCard = gm.playerFieldCards.Find(x => x.Network == this);
+        else if (gm.enemyFieldCards.Exists(x => x.Network == this))
+            attackerCard = gm.enemyFieldCards.Find(x => x.Network == this);
+
+        if (attackerCard != null)
+        {
+            bool isClientOwner = ownerClientIdNet.Value != NetworkManager.ServerClientId;
+            bool finalTargetIsEnemy = isAttackingEnemyHero;
+            if (isClientOwner)
+                finalTargetIsEnemy = !isAttackingEnemyHero;
+
+            gm.DamageHero(attackerCard, finalTargetIsEnemy);
+        }
     }
 
     private IEnumerator DelayedDespawn(NetworkObject no)
@@ -728,36 +768,68 @@ public class CardNetwork : NetworkBehaviour
             StartCoroutine(DelayedDespawn(casterNO));
     }
 
-    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
-    public void RequestAttackHeroServerRpc(bool isAttackingEnemyHero, RpcParams rpcParams = default)
+    [ClientRpc]
+    public void AnimateAttackClientRpc(ulong attackerId, bool targetIsHero, bool isEnemyHeroTarget, ulong targetCardId, ClientRpcParams clientRpcParams = default)
     {
-        if (!IsServer) 
+        var attackerVisual = FindVisualCardByNetId(attackerId);
+        if (attackerVisual == null)
             return;
 
-        if (rpcParams.Receive.SenderClientId != ownerClientIdNet.Value) 
-            return;
-
-        if (!canAttack.Value || !isPlaced.Value) 
-            return;
-
+        Transform targetTransform = null;
         var gm = GameManager.Instance;
+
         if (gm != null)
         {
-            CardController attackerCard = null;
-            if (gm.playerFieldCards.Exists(x => x.Network == this)) 
-                attackerCard = gm.playerFieldCards.Find(x => x.Network == this);
-            else if (gm.enemyFieldCards.Exists(x => x.Network == this)) 
-                attackerCard = gm.enemyFieldCards.Find(x => x.Network == this);
-
-            if (attackerCard != null)
+            if (targetIsHero)
             {
-                bool isClientOwner = ownerClientIdNet.Value != NetworkManager.ServerClientId;
-                bool finalTargetIsEnemy = isAttackingEnemyHero;
-                if (isClientOwner) 
-                    finalTargetIsEnemy = !isAttackingEnemyHero;
-
-                gm.AttackHero(attackerCard, finalTargetIsEnemy);
+                bool attackerIsMine = attackerVisual.isPlayerCard;
+                if (attackerIsMine)
+                {
+                    if (isEnemyHeroTarget && gm.EnemyHero != null)
+                        targetTransform = gm.EnemyHero.transform;
+                }
+                else
+                {
+                    if (isEnemyHeroTarget && gm.PlayerHero != null)
+                        targetTransform = gm.PlayerHero.transform;
+                }
+            }
+            else
+            {
+                var targetVisual = FindVisualCardByNetId(targetCardId);
+                if (targetVisual != null)
+                    targetTransform = targetVisual.transform;
             }
         }
+
+        if (targetTransform != null && attackerVisual.Movement != null)
+            StartCoroutine(WaitAndAnimateRoutine(attackerVisual.Movement, targetTransform));
+    }
+
+    private IEnumerator WaitAndAnimateRoutine(CardMovement movement, Transform target)
+    {
+        yield return new WaitForEndOfFrame();
+
+        if (movement != null && target != null)
+        {
+            movement.AnimateAttack(target, null);
+        }
+    }
+
+    private CardController FindVisualCardByNetId(ulong netId)
+    {
+        var gm = GameManager.Instance;
+        if (gm == null) 
+            return null;
+
+        var card = gm.playerFieldCards.Find(x => x.Network != null && x.Network.NetworkObjectId == netId);
+        if (card != null) 
+            return card;
+
+        card = gm.enemyFieldCards.Find(x => x.Network != null && x.Network.NetworkObjectId == netId);
+        if (card != null) 
+            return card;
+
+        return null;
     }
 }

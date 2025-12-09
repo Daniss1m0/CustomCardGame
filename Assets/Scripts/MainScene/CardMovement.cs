@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -30,9 +30,10 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
         if (rootCanvas == null)
         {
             var go = GameObject.Find("Canvas");
-            if (go != null) 
+            if (go != null)
                 rootCanvas = go.GetComponent<Canvas>();
         }
+
         if (rootCanvas != null)
             canvasRect = rootCanvas.GetComponent<RectTransform>();
 
@@ -49,7 +50,7 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
     public void OnBeginDrag(PointerEventData eventData)
     {
         var controller = GetComponent<CardController>();
-        if (controller == null) 
+        if (controller == null)
             return;
 
         if (defaultParent == null)
@@ -66,7 +67,7 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
                         (dropPlace.type == FieldType.PlayerField && controller.self.canAttack)
                       );
 
-        if (!isDraggable) 
+        if (!isDraggable)
             return;
 
         startIndex = transform.GetSiblingIndex();
@@ -127,13 +128,13 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
         }
 
         var cg = GetComponent<CanvasGroup>();
-        if (cg != null) 
+        if (cg != null)
             cg.blocksRaycasts = false;
     }
 
     public void OnDrag(PointerEventData eventData)
     {
-        if (!isDraggable) 
+        if (!isDraggable)
             return;
 
         if (canvasRect != null)
@@ -147,7 +148,7 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
             transform.position += (Vector3)eventData.delta;
 
         var controller = GetComponent<CardController>();
-        if (controller == null) 
+        if (controller == null)
             return;
 
         if (!controller.self.isSpell)
@@ -172,7 +173,7 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        if (!isDraggable) 
+        if (!isDraggable)
             return;
 
         var controller = GetComponent<CardController>();
@@ -183,19 +184,19 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
             transform.SetParent(defaultParent, false);
 
         var cg = GetComponent<CanvasGroup>();
-        if (cg != null) 
+        if (cg != null)
             cg.blocksRaycasts = true;
 
         if (cardTemp != null)
         {
             int sibling = 0;
-            try 
-            { 
-                sibling = Mathf.Clamp(cardTemp.transform.GetSiblingIndex(), 0, defaultParent != null ? defaultParent.childCount : 0); 
-            } 
-            catch 
-            { 
-                sibling = 0; 
+            try
+            {
+                sibling = Mathf.Clamp(cardTemp.transform.GetSiblingIndex(), 0, defaultParent != null ? defaultParent.childCount : 0);
+            }
+            catch
+            {
+                sibling = 0;
             }
 
             transform.SetSiblingIndex(sibling);
@@ -219,7 +220,7 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
 
     private void CheckPosition()
     {
-        if (tempParent == null || cardTemp == null || defaultParent == null) 
+        if (tempParent == null || cardTemp == null || defaultParent == null)
             return;
 
         int newIndex = tempParent.childCount;
@@ -228,14 +229,14 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
             if (transform.position.x < tempParent.GetChild(i).position.x)
             {
                 newIndex = i;
-                if (cardTemp.transform.GetSiblingIndex() < newIndex) 
+                if (cardTemp.transform.GetSiblingIndex() < newIndex)
                     newIndex--;
 
                 break;
             }
         }
 
-        if (cardTemp.transform.parent == defaultParent) 
+        if (cardTemp.transform.parent == defaultParent)
             newIndex = startIndex;
 
         cardTemp.transform.SetSiblingIndex(Mathf.Max(0, newIndex));
@@ -243,11 +244,11 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
 
     private void EnsureCardTempExists()
     {
-        if (cardTemp != null) 
+        if (cardTemp != null)
             return;
 
         cardTemp = GameObject.Find("CardTemp");
-        if (cardTemp != null) 
+        if (cardTemp != null)
             return;
 
         cardTemp = new GameObject("CardTemp", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
@@ -267,7 +268,7 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
 
     public void MoveToField(Transform field)
     {
-        if (field == null) 
+        if (field == null)
             return;
 
         var canvasGO = GameObject.Find("Canvas");
@@ -293,7 +294,7 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
 
     private IEnumerator MoveToTargetCor(Transform target)
     {
-        if (target == null || transform == null) 
+        if (target == null || transform == null)
             yield break;
 
         Vector3 pos = transform.position;
@@ -311,28 +312,81 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
             transform.position = target.position;
         else
         {
-            if (DOTween.IsTweening(transform)) 
+            if (DOTween.IsTweening(transform))
                 DOTween.Kill(transform, false);
 
             transform.DOMove(target.position, halfDur).SetLink(gameObject);
             yield return new WaitForSeconds(halfDur);
 
-            if (transform == null) 
+            if (transform == null)
                 yield break;
 
             transform.DOMove(pos, halfDur).SetLink(gameObject);
             yield return new WaitForSeconds(halfDur);
         }
 
-        if (transform == null) 
+        if (transform == null)
             yield break;
 
-        if (parent != null) 
+        if (parent != null)
             transform.SetParent(parent, false);
 
         transform.SetSiblingIndex(Mathf.Clamp(index, 0, parent?.childCount ?? 0));
 
-        if (parentHL != null) 
+        if (parentHL != null)
             parentHL.enabled = true;
+    }
+
+    public void AnimateAttack(Transform target, System.Action onImpactCallback)
+    {
+        if (this == null || transform == null || gameObject == null)
+            return;
+
+        if (target == null)
+        {
+            onImpactCallback?.Invoke();
+            return;
+        }
+
+        DOTween.Kill(transform);
+
+        Transform originalParent = transform.parent;
+        int originalIndex = transform.GetSiblingIndex();
+
+        Canvas rootCanvas = GetComponentInParent<Canvas>();
+        if (rootCanvas != null && rootCanvas.rootCanvas != null)
+            rootCanvas = rootCanvas.rootCanvas;
+
+        Transform topLevel = rootCanvas != null ? rootCanvas.transform : transform.root;
+
+        transform.SetParent(topLevel, true);
+
+        Vector3 originalPos = transform.position;
+
+        Vector3 impactPos = target.position;
+
+        Sequence seq = DOTween.Sequence();
+        seq.SetLink(gameObject);
+
+        seq.Append(transform.DOMove(impactPos, 0.65f).SetEase(Ease.InQuad));
+
+        seq.AppendCallback(() =>
+        {
+            if (this == null || gameObject == null) return;
+            onImpactCallback?.Invoke();
+            if (target != null)
+                target.DOShakePosition(0.3f, 15, 20);
+        });
+
+        seq.Append(transform.DOMove(originalPos, 0.5f).SetEase(Ease.OutQuad));
+
+        seq.OnComplete(() =>
+        {
+            if (this == null || transform == null) return;
+
+            transform.SetParent(originalParent, true);
+            transform.SetSiblingIndex(originalIndex);
+            LayoutRebuilder.ForceRebuildLayoutImmediate(originalParent as RectTransform);
+        });
     }
 }

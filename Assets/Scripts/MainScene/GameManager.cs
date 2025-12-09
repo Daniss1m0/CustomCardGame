@@ -23,6 +23,7 @@ public class GameManager : MonoBehaviour
     public int CurrentTurn => turn;
     public bool IsPlayerTurn => turn % 2 == 0; //?
     public AttackedHero PlayerHero => playerHero;
+    public AttackedHero EnemyHero => enemyHero;
 
     public bool IsMyTurn
     {

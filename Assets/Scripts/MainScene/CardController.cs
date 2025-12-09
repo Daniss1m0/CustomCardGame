@@ -888,4 +888,35 @@ public class CardController : MonoBehaviour
         if (linkedNetwork != null)
             linkedNetwork.onNetworkDespawn -= OnNetworkDespawnHandler;
     }
+
+    public void PlayAttackAnimation(bool targetIsHero, bool isEnemyHero, ulong targetCardObjectId)
+    {
+        Transform targetTransform = null;
+
+        if (targetIsHero)
+        {
+            var heroes = FindObjectsByType<AttackedHero>(FindObjectsSortMode.None);
+            foreach (var h in heroes)
+            {
+                bool isVisualEnemyHero = h.type == AttackedHero.HeroType.Enemy;
+
+                if (isEnemyHero && h.type == AttackedHero.HeroType.Enemy)
+                    targetTransform = h.transform;
+                else if (!isEnemyHero && h.type == AttackedHero.HeroType.Player)
+                    targetTransform = h.transform;
+            }
+        }
+        else
+        {
+            if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(targetCardObjectId, out var targetObj))
+            {
+                var visualCard = targetObj.GetComponentInChildren<CardController>();
+                if (visualCard != null)
+                    targetTransform = visualCard.transform;
+            }
+        }
+
+        if (targetTransform != null && movement != null)
+            movement.AnimateAttack(targetTransform, null);
+    }
 }

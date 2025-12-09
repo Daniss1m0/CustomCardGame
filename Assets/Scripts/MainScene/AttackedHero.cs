@@ -26,17 +26,14 @@ public class AttackedHero : MonoBehaviour, IDropHandler
         {
             if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
             {
-                if (NetworkManager.Singleton.IsServer)
-                    GameManager.Instance.DamageHero(card, true);
-                else
+                if (card.Network != null)
                 {
-                    if (card.Network != null)
-                    {
-                        card.Network.RequestAttackHeroServerRpc(true);
+                    bool isEnemy = (type == HeroType.Enemy);
 
-                        card.self.canAttack = false;
-                        card.Info.SetHighlight(false);
-                    }
+                    card.Network.RequestAttackHeroServerRpc(isEnemy);
+
+                    card.self.canAttack = false;
+                    card.Info.SetHighlight(false);
                 }
             }
             else

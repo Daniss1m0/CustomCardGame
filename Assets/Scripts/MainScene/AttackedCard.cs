@@ -20,7 +20,7 @@ public class AttackedCard : MonoBehaviour, IDropHandler
             if (GameManager.Instance.enemyFieldCards.Exists(x => x.self.IsProvocation) && !defender.self.IsProvocation)
                 return;
 
-            if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsClient && !NetworkManager.Singleton.IsServer)
+            if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
             {
                 if (attacker.Network != null && defender.Network != null)
                 {

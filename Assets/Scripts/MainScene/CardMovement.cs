@@ -2,8 +2,6 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using DG.Tweening;
-using Unity.Netcode;
 
 public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
@@ -15,7 +13,7 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
     private bool isDraggable;
     private Vector2 pointerOffsetCanvas;
     private Camera mainCamera;
-    private GameObject cardTemp, attackPlaceholder;
+    private GameObject cardTemp;
     private RectTransform rt, canvasRect;
     private Canvas rootCanvas;
 
@@ -261,23 +259,8 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
 
     public void MoveToField(Transform field)
     {
-        if (field == null)
-            return;
-
-        var canvasGO = GameObject.Find("Canvas");
-        if (canvasGO != null)
-            transform.SetParent(canvasGO.transform, false);
-
-        if (DOTween.IsTweening(transform))
-            DOTween.Kill(transform, false);
-
-        if (moveDuration <= 0f)
-        {
-            transform.position = field.position;
-            return;
-        }
-
-        transform.DOMove(field.position, moveDuration).SetLink(gameObject);
+        if (AnimationManager.Instance != null)
+            AnimationManager.Instance.MoveToField(transform, field, moveDuration);
     }
 
     public void MoveToTarget(Transform target)
@@ -287,161 +270,23 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
 
     private IEnumerator MoveToTargetCor(Transform target)
     {
-        if (target == null || transform == null)
+        if (target == null || transform == null) 
             yield break;
 
         Vector3 pos = transform.position;
-        Transform parent = transform.parent;
-        int index = transform.GetSiblingIndex();
-
-        var parentHL = parent?.GetComponent<UnityEngine.UI.HorizontalLayoutGroup>();
-        if (parentHL != null) parentHL.enabled = false;
-
-        var canvasGO = GameObject.Find("Canvas");
-        if (canvasGO != null) transform.SetParent(canvasGO.transform, false);
-
-        float halfDur = moveDuration / 2f;
-        if (halfDur <= 0f)
-            transform.position = target.position;
-        else
+        if (AnimationManager.Instance != null)
         {
-            if (DOTween.IsTweening(transform))
-                DOTween.Kill(transform, false);
+            AnimationManager.Instance.MoveToField(transform, target, moveDuration / 2f);
+            yield return new WaitForSeconds(moveDuration / 2f);
 
-            transform.DOMove(target.position, halfDur).SetLink(gameObject);
-            yield return new WaitForSeconds(halfDur);
-
-            if (transform == null)
-                yield break;
-
-            transform.DOMove(pos, halfDur).SetLink(gameObject);
-            yield return new WaitForSeconds(halfDur);
         }
 
-        if (transform == null)
-            yield break;
-
-        if (parent != null)
-            transform.SetParent(parent, false);
-
-        transform.SetSiblingIndex(Mathf.Clamp(index, 0, parent?.childCount ?? 0));
-
-        if (parentHL != null)
-            parentHL.enabled = true;
+        yield break;
     }
 
     public void AnimateAttack(Transform target, System.Action onImpactCallback)
     {
-        if (this == null || transform == null || gameObject == null)
-            return;
-
-        var controller = GetComponent<CardController>();
-
-        if (controller != null) 
-            controller.IsAnimating = true;
-
-        if (attackPlaceholder != null)
-            Destroy(attackPlaceholder);
-
-        if (target == null)
-        {
-            onImpactCallback?.Invoke();
-            return;
-        }
-
-        DOTween.Kill(transform);
-
-        Transform originalParent = transform.parent;
-        int originalIndex = transform.GetSiblingIndex();
-
-        attackPlaceholder = new GameObject("AttackPlaceholder", typeof(RectTransform));
-        attackPlaceholder.transform.SetParent(originalParent, false);
-        attackPlaceholder.transform.SetSiblingIndex(originalIndex);
-
-        RectTransform myRect = GetComponent<RectTransform>();
-        RectTransform phRect = attackPlaceholder.GetComponent<RectTransform>();
-
-        if (myRect != null)
-        {
-            phRect.sizeDelta = myRect.sizeDelta;
-            phRect.anchorMin = myRect.anchorMin;
-            phRect.anchorMax = myRect.anchorMax;
-            phRect.pivot = myRect.pivot;
-            phRect.localScale = myRect.localScale;
-        }
-
-        Canvas rootCanvas = GetComponentInParent<Canvas>();
-        if (rootCanvas != null && rootCanvas.rootCanvas != null)
-            rootCanvas = rootCanvas.rootCanvas;
-
-        Transform topLevel = rootCanvas != null ? rootCanvas.transform : transform.root;
-
-        transform.SetParent(topLevel, true);
-
-        Vector3 impactPos = target.position;
-
-        Sequence seq = DOTween.Sequence();
-        seq.SetLink(gameObject);
-
-        seq.Append(transform.DOMove(impactPos, 0.4f).SetEase(Ease.InQuad));
-        seq.Join(transform.DORotate(new Vector3(0, 0, 5f), 0.2f));
-
-        seq.AppendCallback(() =>
-        {
-            if (this == null || gameObject == null)
-                return;
-
-            onImpactCallback?.Invoke();
-            if (target != null)
-                target.DOShakePosition(0.3f, 15, 20);
-        });
-
-        seq.AppendCallback(() =>
-        {
-            if (attackPlaceholder != null && transform != null)
-            {
-                Vector3 returnTarget = attackPlaceholder.transform.position;
-
-                transform.DOMove(returnTarget, 0.4f).SetEase(Ease.OutQuad);
-                transform.DORotate(Vector3.zero, 0.4f).SetEase(Ease.OutQuad);
-                transform.DOScale(Vector3.one, 0.4f).SetEase(Ease.OutQuad);
-            }
-        });
-
-        seq.AppendInterval(0.4f);
-
-        seq.OnComplete(() =>
-        {
-            if (attackPlaceholder != null)
-                Destroy(attackPlaceholder);
-
-            attackPlaceholder = null;
-
-            if (this == null || transform == null)
-                return;
-
-            transform.SetParent(originalParent, true);
-            transform.SetSiblingIndex(originalIndex);
-
-            transform.localPosition = Vector3.zero;
-            transform.localRotation = Quaternion.identity;
-            transform.localScale = Vector3.one;
-
-            LayoutRebuilder.ForceRebuildLayoutImmediate(originalParent as RectTransform);
-
-            if (controller != null) 
-                controller.IsAnimating = false;
-        });
-    }
-
-    public void ForceCleanupAnimation()
-    {
-        DOTween.Kill(transform);
-
-        if (attackPlaceholder != null)
-        {
-            Destroy(attackPlaceholder);
-            attackPlaceholder = null;
-        }
+        if (AnimationManager.Instance != null)
+            AnimationManager.Instance.PlayAttack(transform, target, onImpactCallback);
     }
 }

@@ -541,10 +541,15 @@ public class CardNetwork : NetworkBehaviour
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
     public void RequestAttackServerRpc(ulong targetNetObjId, RpcParams rpcParams = default)
     {
-        if (!IsServer) return;
+        if (!IsServer) 
+            return;
+
         ulong sender = rpcParams.Receive.SenderClientId;
-        if (ownerClientIdNet.Value != sender) return;
-        if (!isPlaced.Value || !canAttack.Value) return;
+        if (ownerClientIdNet.Value != sender) 
+            return;
+
+        if (!isPlaced.Value || !canAttack.Value) 
+            return;
 
         var gm = GameManager.Instance;
         if (gm == null) return;
@@ -573,9 +578,14 @@ public class CardNetwork : NetworkBehaviour
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
     public void RequestAttackHeroServerRpc(bool isAttackingEnemyHero, RpcParams rpcParams = default)
     {
-        if (!IsServer) return;
-        if (rpcParams.Receive.SenderClientId != ownerClientIdNet.Value) return;
-        if (!canAttack.Value || !isPlaced.Value) return;
+        if (!IsServer) 
+            return;
+
+        if (rpcParams.Receive.SenderClientId != ownerClientIdNet.Value) 
+            return;
+
+        if (!canAttack.Value || !isPlaced.Value) 
+            return;
 
         var gm = GameManager.Instance;
         if (gm != null)
@@ -810,16 +820,16 @@ public class CardNetwork : NetworkBehaviour
     {
         yield return null;
 
-        while (CardController.GlobalAnimationBusyCount > 0)
+        while (AnimationManager.Instance != null && AnimationManager.Instance.GlobalBusyCount > 0)
         {
-            if (controller == null) 
+            if (controller == null)
                 yield break;
 
             yield return null;
         }
 
         if (movement != null && target != null && controller != null)
-            movement.AnimateAttack(target, null);
+            AnimationManager.Instance.PlayAttack(controller.transform, target, null);
     }
 
     private CardController FindVisualCardByNetId(ulong netId)

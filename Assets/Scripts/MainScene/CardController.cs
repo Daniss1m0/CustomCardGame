@@ -2,12 +2,9 @@
 using UnityEngine;
 using UnityEngine.UI;
 using Unity.Netcode;
-using DG.Tweening;
 
 public class CardController : MonoBehaviour
 {
-    public static int GlobalAnimationBusyCount = 0;
-
     public bool isPlayerCard;
     public Card self;
 
@@ -101,17 +98,16 @@ public class CardController : MonoBehaviour
                 {
                     if (!self.isSpell)
                     {
-                        linkedNetwork.isPlaced.Value = true;
-                        linkedNetwork.canAttack.Value = false;
                         linkedNetwork.placedOnTurn.Value = (gameManager != null ? gameManager.CurrentTurn : 0);
                         linkedNetwork.abilitiesNet.Value = AbilitiesToInt(self.abilities);
 
                         int targetIndex = slotIndex;
                         if (targetIndex == -1)
-                        {
                             targetIndex = isPlayerCard ? gameManager.playerFieldCards.Count : gameManager.enemyFieldCards.Count;
-                        }
+
                         linkedNetwork.fieldIndex.Value = targetIndex;
+                        linkedNetwork.canAttack.Value = false;
+                        linkedNetwork.isPlaced.Value = true;
                     }
                 }
                 catch (System.Exception e)
@@ -234,13 +230,13 @@ public class CardController : MonoBehaviour
         }
 
         self.isPlaced = true;
-        if (slotIndex != -1) 
+        if (slotIndex != -1)
             transform.SetSiblingIndex(slotIndex);
 
-        if (self.HasAbility) 
+        if (self.HasAbility)
             ability.OnCast(self, isPlayerCard, info);
 
-        if (self.isSpell) 
+        if (self.isSpell)
             UseSpell(null);
 
         UIManager.Instance.UpdateHPAndMana();
@@ -274,10 +270,10 @@ public class CardController : MonoBehaviour
         info.SetHighlight(false);
 
         if (linkedNetwork != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
-            try 
-            { 
-                linkedNetwork.canAttack.Value = false; 
-            } 
+            try
+            {
+                linkedNetwork.canAttack.Value = false;
+            }
             catch { }
 
         if (self.HasAbility)
@@ -302,7 +298,6 @@ public class CardController : MonoBehaviour
         if (movement != null)
         {
             movement.OnEndDrag(null);
-            movement.ForceCleanupAnimation();
             movement.enabled = false;
         }
 
@@ -315,12 +310,14 @@ public class CardController : MonoBehaviour
 
         Info?.SetHighlight(false);
 
-        transform.DOKill();
-
-        transform.DOScale(Vector3.zero, 0.3f).SetEase(Ease.InBack).SetLink(gameObject).OnComplete(() =>
+        if (AnimationManager.Instance != null)
+        {
+            AnimationManager.Instance.PlayDeath(transform, DestroyCard);
+        }
+        else
         {
             DestroyCard();
-        });
+        }
     }
 
     public void DestroyCard()
@@ -328,8 +325,6 @@ public class CardController : MonoBehaviour
         Transform parentTransform = transform.parent;
 
         movement.OnEndDrag(null);
-        if (movement != null) 
-            movement.ForceCleanupAnimation();
 
         if (gameManager != null)
         {
@@ -569,7 +564,7 @@ public class CardController : MonoBehaviour
         self.abilities = IntToAbilities(mask);
         if (ability != null)
             ability.OnApplyEffect(self, isPlayerCard, info);
-        
+
         info.UpdateDescription(self);
     }
 
@@ -583,41 +578,41 @@ public class CardController : MonoBehaviour
             {
                 object entryObj = (object)all[cardDataIndex];
                 CardData cd = entryObj as CardData;
-                if (cd != null) 
+                if (cd != null)
                     dataToUse = cd;
-                else 
-                { 
-                    Card existing = entryObj as Card; 
-                    if (existing != null) 
-                    { 
-                        var tmp = ScriptableObject.CreateInstance<CardData>(); 
-                        try { tmp.cardName = existing.name; } catch { tmp.cardName = "NetCard"; } 
-                        try { tmp.isSpell = existing.isSpell; } catch { tmp.isSpell = isSpell; } 
-                        try { tmp.logo = existing.logo; } catch { } 
-                        try { tmp.manaCost = existing.manaCost; } catch { tmp.manaCost = manaCost; } 
-                        try { tmp.attack = existing.attack; } catch { tmp.attack = attack; } 
-                        try { tmp.health = existing.health; } catch { tmp.health = health; } 
-                        try { tmp.abilities = new List<AbilityType>(existing.abilities ?? new List<AbilityType>()); } catch { tmp.abilities = new List<AbilityType>(); } 
-                        dataToUse = tmp; 
-                    } 
-                    else 
-                        dataToUse = null; 
+                else
+                {
+                    Card existing = entryObj as Card;
+                    if (existing != null)
+                    {
+                        var tmp = ScriptableObject.CreateInstance<CardData>();
+                        try { tmp.cardName = existing.name; } catch { tmp.cardName = "NetCard"; }
+                        try { tmp.isSpell = existing.isSpell; } catch { tmp.isSpell = isSpell; }
+                        try { tmp.logo = existing.logo; } catch { }
+                        try { tmp.manaCost = existing.manaCost; } catch { tmp.manaCost = manaCost; }
+                        try { tmp.attack = existing.attack; } catch { tmp.attack = attack; }
+                        try { tmp.health = existing.health; } catch { tmp.health = health; }
+                        try { tmp.abilities = new List<AbilityType>(existing.abilities ?? new List<AbilityType>()); } catch { tmp.abilities = new List<AbilityType>(); }
+                        dataToUse = tmp;
+                    }
+                    else
+                        dataToUse = null;
                 }
             }
         }
-        catch 
-        { 
-            dataToUse = null; 
+        catch
+        {
+            dataToUse = null;
         }
 
-        if (dataToUse == null) 
-        { 
-            dataToUse = ScriptableObject.CreateInstance<CardData>(); 
-            dataToUse.cardName = "NetCard"; 
-            dataToUse.isSpell = isSpell; 
-            dataToUse.manaCost = manaCost; 
-            dataToUse.attack = attack; 
-            dataToUse.health = health; 
+        if (dataToUse == null)
+        {
+            dataToUse = ScriptableObject.CreateInstance<CardData>();
+            dataToUse.cardName = "NetCard";
+            dataToUse.isSpell = isSpell;
+            dataToUse.manaCost = manaCost;
+            dataToUse.attack = attack;
+            dataToUse.health = health;
         }
 
         bool finalIsSpell = isSpell;
@@ -710,7 +705,12 @@ public class CardController : MonoBehaviour
         bool turnMatches = placedOnTurn == (GameManager.Instance != null ? GameManager.Instance.CurrentTurn : -99);
 
         if (!isLocalPlayer && !self.isSpell && (isEnemyTurn || turnMatches))
-            AnimateOpponentPlay(targetParent, targetIndex);
+        {
+            if (AnimationManager.Instance != null)
+                AnimationManager.Instance.PlayOpponentDraw(this, targetParent, targetIndex);
+            else
+                Debug.LogWarning("AnimationManager missing!");
+        }
         else
         {
             if (targetParent != null)
@@ -729,138 +729,12 @@ public class CardController : MonoBehaviour
             ability.OnApplyEffect(self, isPlayerCard, info);
     }
 
-    private void AnimateOpponentPlay(Transform targetParent, int fallbackIndex)
-    {
-        GlobalAnimationBusyCount++;
-
-        IsAnimating = true;
-
-        Canvas rootCanvas = GetComponentInParent<Canvas>();
-        if (rootCanvas != null && rootCanvas.rootCanvas != null)
-            rootCanvas = rootCanvas.rootCanvas;
-
-        Transform showcaseParent = rootCanvas != null ? rootCanvas.transform : transform.root;
-        transform.SetParent(showcaseParent, true);
-        Info?.ShowCard(self);
-        ResetVisualState();
-
-        RectTransform rt = GetComponent<RectTransform>();
-        if (rt == null)
-            return;
-
-        rt.anchorMin = new Vector2(0.5f, 0.5f);
-        rt.anchorMax = new Vector2(0.5f, 0.5f);
-        rt.pivot = new Vector2(0.5f, 0.5f);
-
-        float startY = 600f;
-        if (rootCanvas != null)
-        {
-            RectTransform canvasRect = rootCanvas.GetComponent<RectTransform>();
-            startY = (canvasRect.rect.height / 2f) + 250f;
-        }
-
-        rt.anchoredPosition = new Vector2(0, startY);
-
-        Vector3 originalScale = Vector3.one;
-
-        Sequence sequence = DOTween.Sequence();
-
-        sequence.Append(rt.DOAnchorPos(Vector2.zero, 0.5f).SetEase(Ease.OutBack));
-
-        sequence.Join(rt.DOScale(originalScale * 1.5f, 0.5f).SetEase(Ease.OutBack));
-        sequence.Join(rt.DORotate(Vector3.zero, 0.3f));
-
-        sequence.AppendInterval(0.6f);
-
-        sequence.AppendCallback(() => { rt.DOScale(originalScale, 0.3f); });
-
-        if (targetParent != null)
-            sequence.Append(transform.DOMove(targetParent.position, 0.4f).SetEase(Ease.InQuad));
-
-        sequence.OnComplete(() =>
-        {
-            if (targetParent != null)
-            {
-                transform.SetParent(targetParent, false);
-
-                int finalIndex = fallbackIndex;
-                if (linkedNetwork != null)
-                    finalIndex = linkedNetwork.fieldIndex.Value;
-
-                transform.SetSiblingIndex(finalIndex);
-
-                LayoutRebuilder.ForceRebuildLayoutImmediate(targetParent as RectTransform);
-            }
-
-            transform.localScale = Vector3.one;
-            transform.localRotation = Quaternion.identity;
-            transform.localPosition = Vector3.zero;
-
-            IsAnimating = false;
-
-            GlobalAnimationBusyCount--;
-            if (GlobalAnimationBusyCount < 0) 
-                GlobalAnimationBusyCount = 0;
-        });
-    }
-
     public void AnimateOpponentSpellAndDestroy()
     {
-        GlobalAnimationBusyCount++;
-
-        Canvas rootCanvas = GetComponentInParent<Canvas>();
-        if (rootCanvas != null && rootCanvas.rootCanvas != null)
-            rootCanvas = rootCanvas.rootCanvas;
-
-        Transform showcaseParent = rootCanvas != null ? rootCanvas.transform : transform.root;
-        transform.SetParent(showcaseParent, true);
-
-        Info?.ShowCard(self);
-        ResetVisualState();
-
-        RectTransform rt = GetComponent<RectTransform>();
-        if (rt == null)
-        {
+        if (AnimationManager.Instance != null)
+            AnimationManager.Instance.PlayOpponentSpell(this);
+        else
             Destroy(gameObject);
-            return;
-        }
-
-        rt.anchorMin = new Vector2(0.5f, 0.5f);
-        rt.anchorMax = new Vector2(0.5f, 0.5f);
-        rt.pivot = new Vector2(0.5f, 0.5f);
-
-        float startY = 600f;
-        if (rootCanvas != null)
-        {
-            RectTransform canvasRect = rootCanvas.GetComponent<RectTransform>();
-            startY = (canvasRect.rect.height / 2f) + 250f;
-        }
-        rt.anchoredPosition = new Vector2(0, startY);
-
-        Vector3 originalScale = Vector3.one;
-        Sequence sequence = DOTween.Sequence();
-
-        sequence.Append(rt.DOAnchorPos(Vector2.zero, 0.5f).SetEase(Ease.OutBack));
-        sequence.Join(rt.DOScale(originalScale * 1.6f, 0.5f).SetEase(Ease.OutBack));
-        sequence.Join(rt.DORotate(Vector3.zero, 0.3f));
-
-        sequence.AppendInterval(0.8f);
-
-        CanvasGroup cg = GetComponent<CanvasGroup>();
-        if (cg == null) 
-            cg = gameObject.AddComponent<CanvasGroup>();
-
-        sequence.Append(rt.DOScale(originalScale * 2f, 0.4f));
-        sequence.Join(cg.DOFade(0f, 0.4f));
-
-        sequence.OnComplete(() =>
-        {
-            GlobalAnimationBusyCount--;
-            if (GlobalAnimationBusyCount < 0) 
-                GlobalAnimationBusyCount = 0;
-
-            Destroy(gameObject);
-        });
     }
 
     private void ResetVisualState()
@@ -943,7 +817,7 @@ public class CardController : MonoBehaviour
             }
         }
 
-        if (targetTransform != null && movement != null)
-            movement.AnimateAttack(targetTransform, null);
+        if (movement != null && AnimationManager.Instance != null)
+            AnimationManager.Instance.PlayAttack(transform, targetTransform, null);
     }
 }

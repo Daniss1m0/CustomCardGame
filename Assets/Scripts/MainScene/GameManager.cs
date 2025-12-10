@@ -521,7 +521,7 @@ public class GameManager : MonoBehaviour
             turnManager = FindFirstObjectByType<TurnManager>();
         }
 
-        if (turnManager.TryGetComponent<Unity.Netcode.NetworkObject>(out var no))
+        if (turnManager.TryGetComponent<NetworkObject>(out var no))
             while (!no.IsSpawned)
                 yield return null;
 

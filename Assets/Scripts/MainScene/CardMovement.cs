@@ -15,7 +15,7 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
     private bool isDraggable;
     private Vector2 pointerOffsetCanvas;
     private Camera mainCamera;
-    private GameObject cardTemp;
+    private GameObject cardTemp, attackPlaceholder;
     private RectTransform rt, canvasRect;
     private Canvas rootCanvas;
 
@@ -38,13 +38,6 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
             canvasRect = rootCanvas.GetComponent<RectTransform>();
 
         cardTemp = GameObject.Find("CardTemp");
-    }
-
-    private bool CanReparentNetworkObject()
-    {
-        if (TryGetComponent<NetworkObject>(out var no))
-            return NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening;
-        return true;
     }
 
     public void OnBeginDrag(PointerEventData eventData)
@@ -342,6 +335,9 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
         if (this == null || transform == null || gameObject == null)
             return;
 
+        if (attackPlaceholder != null)
+            Destroy(attackPlaceholder);
+
         if (target == null)
         {
             onImpactCallback?.Invoke();
@@ -353,12 +349,13 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
         Transform originalParent = transform.parent;
         int originalIndex = transform.GetSiblingIndex();
 
-        GameObject placeholder = new GameObject("AttackPlaceholder", typeof(RectTransform));
-        placeholder.transform.SetParent(originalParent, false);
-        placeholder.transform.SetSiblingIndex(originalIndex);
+        attackPlaceholder = new GameObject("AttackPlaceholder", typeof(RectTransform));
+        attackPlaceholder.transform.SetParent(originalParent, false);
+        attackPlaceholder.transform.SetSiblingIndex(originalIndex);
 
         RectTransform myRect = GetComponent<RectTransform>();
-        RectTransform phRect = placeholder.GetComponent<RectTransform>();
+        RectTransform phRect = attackPlaceholder.GetComponent<RectTransform>();
+
         if (myRect != null)
         {
             phRect.sizeDelta = myRect.sizeDelta;
@@ -382,12 +379,11 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
         seq.SetLink(gameObject);
 
         seq.Append(transform.DOMove(impactPos, 0.4f).SetEase(Ease.InQuad));
-
         seq.Join(transform.DORotate(new Vector3(0, 0, 5f), 0.2f));
 
         seq.AppendCallback(() =>
         {
-            if (this == null || gameObject == null) 
+            if (this == null || gameObject == null)
                 return;
 
             onImpactCallback?.Invoke();
@@ -397,12 +393,11 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
 
         seq.AppendCallback(() =>
         {
-            if (placeholder != null && transform != null)
+            if (attackPlaceholder != null && transform != null)
             {
-                Vector3 returnTarget = placeholder.transform.position;
+                Vector3 returnTarget = attackPlaceholder.transform.position;
 
                 transform.DOMove(returnTarget, 0.4f).SetEase(Ease.OutQuad);
-
                 transform.DORotate(Vector3.zero, 0.4f).SetEase(Ease.OutQuad);
                 transform.DOScale(Vector3.one, 0.4f).SetEase(Ease.OutQuad);
             }
@@ -412,10 +407,12 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
 
         seq.OnComplete(() =>
         {
-            if (placeholder != null)
-                Destroy(placeholder);
+            if (attackPlaceholder != null)
+                Destroy(attackPlaceholder);
 
-            if (this == null || transform == null) 
+            attackPlaceholder = null;
+
+            if (this == null || transform == null)
                 return;
 
             transform.SetParent(originalParent, true);
@@ -427,5 +424,16 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
 
             LayoutRebuilder.ForceRebuildLayoutImmediate(originalParent as RectTransform);
         });
+    }
+
+    public void ForceCleanupAnimation()
+    {
+        DOTween.Kill(transform);
+
+        if (attackPlaceholder != null)
+        {
+            Destroy(attackPlaceholder);
+            attackPlaceholder = null;
+        }
     }
 }

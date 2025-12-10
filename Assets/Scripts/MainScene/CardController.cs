@@ -13,6 +13,7 @@ public class CardController : MonoBehaviour
     [SerializeField] private CardMovement movement;
     [SerializeField] private CardAbility ability;
 
+    private bool isDead = false;
     private GameManager gameManager;
     private CardNetwork linkedNetwork;
 
@@ -288,9 +289,45 @@ public class CardController : MonoBehaviour
             catch { }
     }
 
+    public void OnDeath()
+    {
+        if (isDead)
+            return;
+
+        isDead = true;
+
+        if (movement != null)
+        {
+            movement.OnEndDrag(null);
+            movement.ForceCleanupAnimation();
+            movement.enabled = false;
+        }
+
+        var cg = GetComponent<CanvasGroup>();
+        if (cg != null)
+        {
+            cg.interactable = false;
+            cg.blocksRaycasts = false;
+        }
+
+        Info?.SetHighlight(false);
+
+        transform.DOKill();
+
+        transform.DOScale(Vector3.zero, 0.3f).SetEase(Ease.InBack).SetLink(gameObject).OnComplete(() =>
+        {
+            DestroyCard();
+        });
+    }
+
     public void DestroyCard()
     {
+        Transform parentTransform = transform.parent;
+
         movement.OnEndDrag(null);
+        if (movement != null) 
+            movement.ForceCleanupAnimation();
+
         if (gameManager != null)
         {
             gameManager.playerHandCards.Remove(this);
@@ -305,6 +342,9 @@ public class CardController : MonoBehaviour
                     no.Despawn(true);
 
         Destroy(gameObject);
+
+        if (parentTransform != null)
+            LayoutRebuilder.ForceRebuildLayoutImmediate(parentTransform as RectTransform);
     }
 
     public void CheckForAlive()
@@ -844,38 +884,6 @@ public class CardController : MonoBehaviour
     {
         if (m != null)
             movement = m;
-    }
-
-    private bool isDead = false;
-
-    public void OnDeath()
-    {
-        if (isDead) 
-            return;
-
-        isDead = true;
-
-        if (movement != null)
-        {
-            movement.OnEndDrag(null);
-            movement.enabled = false;
-        }
-
-        var cg = GetComponent<CanvasGroup>();
-        if (cg != null)
-        {
-            cg.interactable = false;
-            cg.blocksRaycasts = false;
-        }
-
-        Info?.SetHighlight(false);
-
-        transform.DOKill();
-
-        transform.DOScale(Vector3.zero, 0.3f).SetEase(Ease.InBack).SetLink(gameObject).OnComplete(() => 
-        { 
-            DestroyCard();
-        });
     }
 
     private void OnNetworkDespawnHandler(ulong id)

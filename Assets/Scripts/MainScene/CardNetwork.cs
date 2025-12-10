@@ -803,17 +803,18 @@ public class CardNetwork : NetworkBehaviour
         }
 
         if (targetTransform != null && attackerVisual.Movement != null)
-            StartCoroutine(WaitAndAnimateRoutine(attackerVisual.Movement, targetTransform));
+            StartCoroutine(WaitAndAnimateRoutine(attackerVisual, attackerVisual.Movement, targetTransform));
     }
 
-    private IEnumerator WaitAndAnimateRoutine(CardMovement movement, Transform target)
+    private IEnumerator WaitAndAnimateRoutine(CardController controller, CardMovement movement, Transform target)
     {
-        yield return new WaitForEndOfFrame();
+        yield return null;
 
-        if (movement != null && target != null)
-        {
+        while (controller != null && controller.IsAnimating)
+            yield return null;
+
+        if (movement != null && target != null && controller != null)
             movement.AnimateAttack(target, null);
-        }
     }
 
     private CardController FindVisualCardByNetId(ulong netId)

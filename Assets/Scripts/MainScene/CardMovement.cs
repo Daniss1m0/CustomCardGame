@@ -335,6 +335,11 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
         if (this == null || transform == null || gameObject == null)
             return;
 
+        var controller = GetComponent<CardController>();
+
+        if (controller != null) 
+            controller.IsAnimating = true;
+
         if (attackPlaceholder != null)
             Destroy(attackPlaceholder);
 
@@ -423,6 +428,9 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
             transform.localScale = Vector3.one;
 
             LayoutRebuilder.ForceRebuildLayoutImmediate(originalParent as RectTransform);
+
+            if (controller != null) 
+                controller.IsAnimating = false;
         });
     }
 

@@ -24,6 +24,7 @@ public class CardController : MonoBehaviour
     public CardMovement Movement => movement;
     public CardAbility Ability => ability;
     public CardNetwork Network => linkedNetwork;
+    public bool IsAnimating { get; set; }
 
     public void Init(Card card, bool isPlayerCard)
     {
@@ -728,6 +729,8 @@ public class CardController : MonoBehaviour
 
     private void AnimateOpponentPlay(Transform targetParent, int fallbackIndex)
     {
+        IsAnimating = true;
+
         Canvas rootCanvas = GetComponentInParent<Canvas>();
         if (rootCanvas != null && rootCanvas.rootCanvas != null)
             rootCanvas = rootCanvas.rootCanvas;
@@ -788,6 +791,8 @@ public class CardController : MonoBehaviour
             transform.localScale = Vector3.one;
             transform.localRotation = Quaternion.identity;
             transform.localPosition = Vector3.zero;
+
+            IsAnimating = false;
         });
     }
 

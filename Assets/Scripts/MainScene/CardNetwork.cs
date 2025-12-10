@@ -810,8 +810,13 @@ public class CardNetwork : NetworkBehaviour
     {
         yield return null;
 
-        while (controller != null && controller.IsAnimating)
+        while (CardController.GlobalAnimationBusyCount > 0)
+        {
+            if (controller == null) 
+                yield break;
+
             yield return null;
+        }
 
         if (movement != null && target != null && controller != null)
             movement.AnimateAttack(target, null);

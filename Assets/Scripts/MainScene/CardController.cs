@@ -6,6 +6,8 @@ using DG.Tweening;
 
 public class CardController : MonoBehaviour
 {
+    public static int GlobalAnimationBusyCount = 0;
+
     public bool isPlayerCard;
     public Card self;
 
@@ -729,6 +731,8 @@ public class CardController : MonoBehaviour
 
     private void AnimateOpponentPlay(Transform targetParent, int fallbackIndex)
     {
+        GlobalAnimationBusyCount++;
+
         IsAnimating = true;
 
         Canvas rootCanvas = GetComponentInParent<Canvas>();
@@ -793,11 +797,17 @@ public class CardController : MonoBehaviour
             transform.localPosition = Vector3.zero;
 
             IsAnimating = false;
+
+            GlobalAnimationBusyCount--;
+            if (GlobalAnimationBusyCount < 0) 
+                GlobalAnimationBusyCount = 0;
         });
     }
 
     public void AnimateOpponentSpellAndDestroy()
     {
+        GlobalAnimationBusyCount++;
+
         Canvas rootCanvas = GetComponentInParent<Canvas>();
         if (rootCanvas != null && rootCanvas.rootCanvas != null)
             rootCanvas = rootCanvas.rootCanvas;
@@ -845,6 +855,10 @@ public class CardController : MonoBehaviour
 
         sequence.OnComplete(() =>
         {
+            GlobalAnimationBusyCount--;
+            if (GlobalAnimationBusyCount < 0) 
+                GlobalAnimationBusyCount = 0;
+
             Destroy(gameObject);
         });
     }

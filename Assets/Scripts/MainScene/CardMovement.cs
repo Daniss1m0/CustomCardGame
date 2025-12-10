@@ -353,6 +353,21 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
         Transform originalParent = transform.parent;
         int originalIndex = transform.GetSiblingIndex();
 
+        GameObject placeholder = new GameObject("AttackPlaceholder", typeof(RectTransform));
+        placeholder.transform.SetParent(originalParent, false);
+        placeholder.transform.SetSiblingIndex(originalIndex);
+
+        RectTransform myRect = GetComponent<RectTransform>();
+        RectTransform phRect = placeholder.GetComponent<RectTransform>();
+        if (myRect != null)
+        {
+            phRect.sizeDelta = myRect.sizeDelta;
+            phRect.anchorMin = myRect.anchorMin;
+            phRect.anchorMax = myRect.anchorMax;
+            phRect.pivot = myRect.pivot;
+            phRect.localScale = myRect.localScale;
+        }
+
         Canvas rootCanvas = GetComponentInParent<Canvas>();
         if (rootCanvas != null && rootCanvas.rootCanvas != null)
             rootCanvas = rootCanvas.rootCanvas;
@@ -361,31 +376,55 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
 
         transform.SetParent(topLevel, true);
 
-        Vector3 originalPos = transform.position;
-
         Vector3 impactPos = target.position;
 
         Sequence seq = DOTween.Sequence();
         seq.SetLink(gameObject);
 
-        seq.Append(transform.DOMove(impactPos, 0.65f).SetEase(Ease.InQuad));
+        seq.Append(transform.DOMove(impactPos, 0.4f).SetEase(Ease.InQuad));
+
+        seq.Join(transform.DORotate(new Vector3(0, 0, 5f), 0.2f));
 
         seq.AppendCallback(() =>
         {
-            if (this == null || gameObject == null) return;
+            if (this == null || gameObject == null) 
+                return;
+
             onImpactCallback?.Invoke();
             if (target != null)
                 target.DOShakePosition(0.3f, 15, 20);
         });
 
-        seq.Append(transform.DOMove(originalPos, 0.5f).SetEase(Ease.OutQuad));
+        seq.AppendCallback(() =>
+        {
+            if (placeholder != null && transform != null)
+            {
+                Vector3 returnTarget = placeholder.transform.position;
+
+                transform.DOMove(returnTarget, 0.4f).SetEase(Ease.OutQuad);
+
+                transform.DORotate(Vector3.zero, 0.4f).SetEase(Ease.OutQuad);
+                transform.DOScale(Vector3.one, 0.4f).SetEase(Ease.OutQuad);
+            }
+        });
+
+        seq.AppendInterval(0.4f);
 
         seq.OnComplete(() =>
         {
-            if (this == null || transform == null) return;
+            if (placeholder != null)
+                Destroy(placeholder);
+
+            if (this == null || transform == null) 
+                return;
 
             transform.SetParent(originalParent, true);
             transform.SetSiblingIndex(originalIndex);
+
+            transform.localPosition = Vector3.zero;
+            transform.localRotation = Quaternion.identity;
+            transform.localScale = Vector3.one;
+
             LayoutRebuilder.ForceRebuildLayoutImmediate(originalParent as RectTransform);
         });
     }

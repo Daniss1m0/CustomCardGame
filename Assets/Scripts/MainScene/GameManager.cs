@@ -121,7 +121,7 @@ public class GameManager : MonoBehaviour
     {
         SanitizeLists();
 
-        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening && !NetworkManager.Singleton.IsServer)
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsClient && !NetworkManager.Singleton.IsServer)
             return;
 
         if (Time.realtimeSinceStartup - lastChangeTime < MIN_TIME_BETWEEN_CHANGE)
@@ -129,28 +129,30 @@ public class GameManager : MonoBehaviour
 
         lastChangeTime = Time.realtimeSinceStartup;
 
-        foreach (var c in playerFieldCards) if (c != null && c.Info != null)
+        foreach (var c in playerFieldCards) 
+            if (c?.Info != null) 
                 c.Info.SetHighlight(false);
 
-        foreach (var c in enemyFieldCards) if (c != null && c.Info != null)
+        foreach (var c in enemyFieldCards) 
+            if (c?.Info != null) 
                 c.Info.SetHighlight(false);
 
         var prevActiveField = IsPlayerTurn ? playerFieldCards : enemyFieldCards;
         foreach (var c in prevActiveField)
         {
-            if (c == null || c.self == null || c.Info == null)
+            if (c == null || c.self == null) 
                 continue;
 
             c.self.canAttack = false;
             c.Info.SetHighlight(false);
-            if (c.Network != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
+            if (c.Network != null && NetworkManager.Singleton.IsServer)
                 c.Network.canAttack.Value = false;
         }
 
         turn++;
         UIManager.Instance?.DisableTurnBtn();
 
-        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
+        if (NetworkManager.Singleton.IsServer)
         {
             ulong playerOwnerClientId = NetworkManager.ServerClientId;
             if (turnManager != null && turnManager.PlayerOwner.Value != 0UL)
@@ -169,7 +171,6 @@ public class GameManager : MonoBehaviour
 
             currentGame.player.ClearTempMana();
             currentGame.enemy.ClearTempMana();
-
             deckManager.GiveNewCards(currentGame, newOwner);
 
             if (newOwner == playerOwnerClientId)
@@ -186,53 +187,34 @@ public class GameManager : MonoBehaviour
             UIManager.Instance.UpdateHPAndMana();
             UpdateStateNetworkIfServer();
         }
-        else
-        {
-            if (IsPlayerTurn)
-            {
-                currentGame.player.ClearTempMana();
-                currentGame.player.IncreaseManaPool();
-                currentGame.player.RestoreRoundMana();
-                UIManager.Instance.UpdateHPAndMana();
-            }
-            else
-            {
-                currentGame.enemy.ClearTempMana();
-                currentGame.enemy.IncreaseManaPool();
-                currentGame.enemy.RestoreRoundMana();
-                UIManager.Instance.UpdateHPAndMana();
-            }
-        }
 
         List<CardController> activeField = IsPlayerTurn ? playerFieldCards : enemyFieldCards;
         foreach (var card in activeField)
         {
-            if (card == null || card.self == null || card.Info == null) continue;
+            if (card == null || card.self == null) 
+                continue;
 
             card.OnNewTurn();
 
-            if (!card.self.isPlaced)
-            {
-                card.self.canAttack = false;
-                card.Info.SetHighlight(false);
-                if (card.Network != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
-                    card.Network.canAttack.Value = false;
+            if (!card.self.isPlaced) 
                 continue;
-            }
 
             if (card.placedOnTurn < CurrentTurn)
             {
                 card.self.canAttack = true;
                 card.SetCanAttackVisual(true);
-                if (card.Network != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
+                if (card.Network != null && NetworkManager.Singleton.IsServer)
                     card.Network.canAttack.Value = true;
             }
             else
             {
-                card.self.canAttack = false;
-                card.SetCanAttackVisual(true);
-                if (card.Network != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
-                    card.Network.canAttack.Value = false;
+                if (!card.self.abilities.Contains(AbilityType.Charge))
+                {
+                    card.self.canAttack = false;
+                    card.SetCanAttackVisual(false);
+                    if (card.Network != null && NetworkManager.Singleton.IsServer)
+                        card.Network.canAttack.Value = false;
+                }
             }
         }
     }

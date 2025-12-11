@@ -46,200 +46,135 @@ public class CardController : MonoBehaviour
 
     public void OnCast(int slotIndex = -1)
     {
-        if (self.isSpell)
-        {
-            if (self is SpellCard spellCard)
-            {
-                if (spellCard.spellTarget != TargetType.None)
-                    return;
-            }
-            else
-                return;
-        }
+        if (self.isSpell && self is SpellCard spellCard && spellCard.spellTarget != TargetType.None)
+            return;
 
-        if (gameManager == null)
+        if (gameManager == null) 
             gameManager = GameManager.Instance;
 
-        if (linkedNetwork != null && NetworkManager.Singleton != null)
+        if (linkedNetwork == null) 
+            return;
+
+        if (NetworkManager.Singleton.IsServer)
         {
-            if (NetworkManager.Singleton.IsServer)
+            bool sideIsPlayerTurn = gameManager.IsPlayerTurn == isPlayerCard;
+            if (!sideIsPlayerTurn) 
+                return;
+
+            int currentMana = isPlayerCard ? gameManager.currentGame.player.mana : gameManager.currentGame.enemy.mana;
+            if (currentMana < self.manaCost) 
+                return;
+
+            var dm = FindAnyObjectByType<DeckManager>();
+            gameManager.SanitizeLists();
+
+            int fieldCount = isPlayerCard ? gameManager.playerFieldCards.Count : gameManager.enemyFieldCards.Count;
+            if (!self.isSpell && fieldCount >= (dm != null ? DeckManager.MAX_FIELD_SIZE : 7)) 
+                return;
+
+            try
             {
-                if (gameManager != null)
-                {
-                    bool sideIsPlayerTurn = gameManager.IsPlayerTurn == isPlayerCard;
-                    if (!sideIsPlayerTurn)
-                        return;
-                }
-
-                int currentMana = isPlayerCard ? gameManager.currentGame.player.mana : gameManager.currentGame.enemy.mana;
-                if (currentMana < self.manaCost)
-                    return;
-
-                var dm = FindAnyObjectByType<DeckManager>();
-
-                gameManager.SanitizeLists();
-
-                int fieldCount = isPlayerCard ? gameManager.playerFieldCards.Count : gameManager.enemyFieldCards.Count;
-
-                if (!self.isSpell && fieldCount >= (dm != null ? DeckManager.MAX_FIELD_SIZE : 7))
-                {
-                    Debug.LogError($"Field is full! Count: {fieldCount}");
-                    return;
-                }
-
-                var cg = GetComponent<CanvasGroup>();
-                if (cg != null)
-                {
-                    cg.blocksRaycasts = true;
-                    cg.interactable = true;
-                }
-
-                try
-                {
-                    if (!self.isSpell)
-                    {
-                        linkedNetwork.placedOnTurn.Value = (gameManager != null ? gameManager.CurrentTurn : 0);
-                        linkedNetwork.abilitiesNet.Value = AbilitiesToInt(self.abilities);
-
-                        int targetIndex = slotIndex;
-                        if (targetIndex == -1)
-                            targetIndex = isPlayerCard ? gameManager.playerFieldCards.Count : gameManager.enemyFieldCards.Count;
-
-                        linkedNetwork.fieldIndex.Value = targetIndex;
-                        linkedNetwork.canAttack.Value = false;
-                        linkedNetwork.isPlaced.Value = true;
-                    }
-                }
-                catch (System.Exception e)
-                {
-                    Debug.LogError($"Network Variable Error: {e.Message}");
-                }
-
-                if (gameManager != null)
-                {
-                    if (isPlayerCard)
-                    {
-                        if (gameManager.playerHandCards.Contains(this))
-                            gameManager.playerHandCards.Remove(this);
-
-                        if (!self.isSpell && !gameManager.playerFieldCards.Contains(this))
-                        {
-                            if (slotIndex != -1 && slotIndex <= gameManager.playerFieldCards.Count)
-                                gameManager.playerFieldCards.Insert(slotIndex, this);
-                            else
-                                gameManager.playerFieldCards.Add(this);
-                        }
-
-                        gameManager.ReduceMana(true, self.manaCost);
-                        gameManager.CheckCardsForManaAvailability();
-                    }
-                    else
-                    {
-                        if (gameManager.enemyHandCards.Contains(this))
-                            gameManager.enemyHandCards.Remove(this);
-
-                        if (!self.isSpell && !gameManager.enemyFieldCards.Contains(this))
-                        {
-                            if (slotIndex != -1 && slotIndex <= gameManager.enemyFieldCards.Count)
-                                gameManager.enemyFieldCards.Insert(slotIndex, this);
-                            else
-                                gameManager.enemyFieldCards.Add(this);
-
-                            if (dm != null)
-                                transform.SetParent(dm.EnemyField, false);
-                        }
-
-                        gameManager.ReduceMana(false, self.manaCost);
-                        info.ShowCard(self);
-                    }
-                }
-
-                placedOnTurn = gameManager != null ? gameManager.CurrentTurn : -1;
-                self.canAttack = false;
-                info.SetHighlight(false);
-
                 if (!self.isSpell)
                 {
-                    self.isPlaced = true;
-                    if (slotIndex != -1)
-                        transform.SetSiblingIndex(slotIndex);
+                    linkedNetwork.placedOnTurn.Value = gameManager.CurrentTurn;
+                    linkedNetwork.abilitiesNet.Value = AbilitiesToInt(self.abilities);
+
+                    int targetIndex = slotIndex;
+                    if (targetIndex == -1)
+                        targetIndex = isPlayerCard ? gameManager.playerFieldCards.Count : gameManager.enemyFieldCards.Count;
+
+                    linkedNetwork.fieldIndex.Value = targetIndex;
+                    linkedNetwork.canAttack.Value = false;
+                    linkedNetwork.isPlaced.Value = true;
                 }
+            }
+            catch (System.Exception e) 
+            { 
+                Debug.LogError($"NetVar Error: {e.Message}"); 
+            }
 
-                if (self.HasAbility)
-                    ability.OnCast(self, isPlayerCard, info);
+            if (isPlayerCard)
+            {
+                if (gameManager.playerHandCards.Contains(this)) 
+                    gameManager.playerHandCards.Remove(this);
 
-                if (self.abilities.Contains(AbilityType.Charge))
+                if (!self.isSpell && !gameManager.playerFieldCards.Contains(this))
                 {
-                    self.canAttack = true;
-                    linkedNetwork.canAttack.Value = true;
-                    info.SetHighlight(true);
+                    if (slotIndex != -1 && slotIndex <= gameManager.playerFieldCards.Count) 
+                        gameManager.playerFieldCards.Insert(slotIndex, this);
+                    else 
+                        gameManager.playerFieldCards.Add(this);
                 }
-
-                if (self.isSpell)
-                    UseSpell(null);
+                gameManager.ReduceMana(true, self.manaCost);
             }
             else
             {
-                try
+                if (gameManager.enemyHandCards.Contains(this)) 
+                    gameManager.enemyHandCards.Remove(this);
+
+                if (!self.isSpell && !gameManager.enemyFieldCards.Contains(this))
                 {
-                    if (self.isSpell)
-                    {
-                        var sc = (SpellCard)self;
-                        linkedNetwork.RequestCastSpellServerRpc((int)sc.spell, (int)sc.spellTarget, sc.spellPower, 0);
-                        pendingServerAction = true;
-                        if (movement != null)
-                        {
-                            movement.OnEndDrag(null);
-                            movement.enabled = false;
-                        }
-                        var cg = GetComponent<CanvasGroup>();
-                        if (cg != null)
-                        {
-                            cg.interactable = false;
-                            cg.blocksRaycasts = false;
-                        }
-                    }
-                    else
-                    {
-                        info.SetHighlight(false);
-                        int targetIdx = slotIndex == -1 ? 999 : slotIndex;
-                        linkedNetwork.RequestPlaceCardServerRpc(isPlayerCard, targetIdx);
-                    }
+                    if (slotIndex != -1 && slotIndex <= gameManager.enemyFieldCards.Count) 
+                        gameManager.enemyFieldCards.Insert(slotIndex, this);
+                    else 
+                        gameManager.enemyFieldCards.Add(this);
+                    if (dm != null) 
+                        transform.SetParent(dm.EnemyField, false);
                 }
-                catch { }
+                gameManager.ReduceMana(false, self.manaCost);
             }
-            return;
-        }
 
-        placedOnTurn = gameManager != null ? gameManager.CurrentTurn : -1;
-        self.canAttack = false;
-        info.SetHighlight(false);
+            placedOnTurn = gameManager.CurrentTurn;
+            self.canAttack = false;
+            info.SetHighlight(false);
 
-        if (isPlayerCard)
-        {
-            gameManager.playerHandCards.Remove(this);
-            if (!gameManager.playerFieldCards.Contains(this))
+            if (!self.isSpell)
             {
-                if (slotIndex != -1 && slotIndex <= gameManager.playerFieldCards.Count)
-                    gameManager.playerFieldCards.Insert(slotIndex, this);
-                else
-                    gameManager.playerFieldCards.Add(this);
+                self.isPlaced = true;
+                if (slotIndex != -1) 
+                    transform.SetSiblingIndex(slotIndex);
             }
-            gameManager.ReduceMana(true, self.manaCost);
-            gameManager.CheckCardsForManaAvailability();
+
+            if (self.HasAbility) 
+                ability.OnCast(self, isPlayerCard, info);
+
+            if (self.abilities.Contains(AbilityType.Charge))
+            {
+                self.canAttack = true;
+                linkedNetwork.canAttack.Value = true;
+                info.SetHighlight(true);
+            }
+
+            if (self.isSpell) 
+                UseSpell(null);
         }
+        else
+        {
+            if (self.isSpell)
+            {
+                var sc = (SpellCard)self;
+                linkedNetwork.RequestCastSpellServerRpc((int)sc.spell, (int)sc.spellTarget, sc.spellPower, 0);
 
-        self.isPlaced = true;
-        if (slotIndex != -1)
-            transform.SetSiblingIndex(slotIndex);
-
-        if (self.HasAbility)
-            ability.OnCast(self, isPlayerCard, info);
-
-        if (self.isSpell)
-            UseSpell(null);
-
-        UIManager.Instance.UpdateHPAndMana();
+                pendingServerAction = true;
+                if (movement != null) 
+                { 
+                    movement.OnEndDrag(null); 
+                    movement.enabled = false; 
+                }
+                var cg = GetComponent<CanvasGroup>();
+                if (cg != null) 
+                { 
+                    cg.interactable = false; 
+                    cg.blocksRaycasts = false; 
+                }
+            }
+            else
+            {
+                info.SetHighlight(false);
+                int targetIdx = slotIndex == -1 ? 999 : slotIndex;
+                linkedNetwork.RequestPlaceCardServerRpc(isPlayerCard, targetIdx);
+            }
+        }
     }
 
     public void OnTakeDamage(CardController attacker = null)

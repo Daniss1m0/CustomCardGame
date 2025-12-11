@@ -1,16 +1,15 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using Unity.Netcode;
 
 public class AttackedHero : MonoBehaviour, IDropHandler
 {
     public Color normalCol, highlightCol;
 
-    public enum HeroType
-    {
-        Player,
-        Enemy
+    public enum HeroType 
+    { 
+        Player, 
+        Enemy 
     }
 
     public HeroType type;
@@ -23,22 +22,13 @@ public class AttackedHero : MonoBehaviour, IDropHandler
         CardController card = eventData.pointerDrag.GetComponent<CardController>();
 
         if (card && card.self.canAttack && type == HeroType.Enemy && !GameManager.Instance.enemyFieldCards.Exists(x => x.self.IsProvocation))
-        {
-            if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
+            if (card.Network != null)
             {
-                if (card.Network != null)
-                {
-                    bool isEnemy = (type == HeroType.Enemy);
+                card.Network.RequestAttackHeroServerRpc(true);
 
-                    card.Network.RequestAttackHeroServerRpc(isEnemy);
-
-                    card.self.canAttack = false;
-                    card.Info.SetHighlight(false);
-                }
+                card.self.canAttack = false;
+                card.Info.SetHighlight(false);
             }
-            else
-                GameManager.Instance.DamageHero(card, true);
-        }
     }
 
     public void HighlightAsTarget(bool highlight)

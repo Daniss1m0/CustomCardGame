@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
-using Unity.Netcode;
 
 public class AttackedCard : MonoBehaviour, IDropHandler
 {
@@ -12,7 +11,7 @@ public class AttackedCard : MonoBehaviour, IDropHandler
         CardController attacker = eventData.pointerDrag.GetComponent<CardController>();
         CardController defender = GetComponent<CardController>();
 
-        if (attacker == null)
+        if (attacker == null || defender == null)
             return;
 
         if (attacker.self.isPlaced && attacker.self.canAttack && defender.self.isPlaced)
@@ -20,21 +19,15 @@ public class AttackedCard : MonoBehaviour, IDropHandler
             if (GameManager.Instance.enemyFieldCards.Exists(x => x.self.IsProvocation) && !defender.self.IsProvocation)
                 return;
 
-            if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
+            if (attacker.Network != null && defender.Network != null)
             {
-                if (attacker.Network != null && defender.Network != null)
-                {
-                    ulong targetId = defender.Network.NetworkObjectId;
+                ulong targetId = defender.Network.NetworkObjectId;
 
-                    attacker.Network.RequestAttackServerRpc(targetId);
+                attacker.Network.RequestAttackServerRpc(targetId);
 
-                    attacker.self.canAttack = false;
-                    attacker.Info.SetHighlight(false);
-                }
+                attacker.self.canAttack = false;
+                attacker.Info.SetHighlight(false);
             }
-            else
-                GameManager.Instance.CardsFight(attacker, defender);
-
             return;
         }
 

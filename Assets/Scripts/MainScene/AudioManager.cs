@@ -12,6 +12,7 @@ public class AudioManager : MonoBehaviour
     public AudioClip attackImpactClip;
     public AudioClip heroHitClip;
     public AudioClip drawCardClip;
+    public AudioClip spellCastClip;
 
     private void Awake()
     {
@@ -33,4 +34,5 @@ public class AudioManager : MonoBehaviour
     public void PlayPlaceCard() => PlaySound(placeCardClip);
     public void PlayAttack() => PlaySound(attackImpactClip);
     public void PlayHeroHit() => PlaySound(heroHitClip);
+    public void PlaySpellCast() => PlaySound(spellCastClip);
 }

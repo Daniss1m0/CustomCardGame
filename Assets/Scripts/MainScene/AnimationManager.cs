@@ -92,6 +92,9 @@ public class AnimationManager : MonoBehaviour
         if (card == null) 
             return;
 
+        if (AudioManager.Instance != null) 
+            AudioManager.Instance.PlaySpellCast();
+
         GlobalBusyCount++;
 
         Canvas rootCanvas = card.GetComponentInParent<Canvas>();

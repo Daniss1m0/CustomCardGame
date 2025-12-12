@@ -300,10 +300,12 @@ public class CardController : MonoBehaviour
         var spellCard = self as SpellCard;
         if (spellCard == null)
         {
-            Debug.LogError("Not a spell card");
             DestroyCard();
             return;
         }
+
+        if (AudioManager.Instance != null) 
+            AudioManager.Instance.PlaySpellCast();
 
         if (linkedNetwork != null && NetworkManager.Singleton != null && !NetworkManager.Singleton.IsServer)
         {

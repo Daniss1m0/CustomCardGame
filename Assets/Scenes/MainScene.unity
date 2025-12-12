@@ -4029,6 +4029,7 @@ MonoBehaviour:
   attackImpactClip: {fileID: 8300000, guid: 242f1431e0f3d1c43b86c983a5d94264, type: 3}
   heroHitClip: {fileID: 8300000, guid: 7ccaf640686ede94db25a9030ba18a00, type: 3}
   drawCardClip: {fileID: 8300000, guid: 874537b073f136747bcfd959d4480987, type: 3}
+  spellCastClip: {fileID: 8300000, guid: df13547c5f17c1c4f9431df0c865cc2f, type: 3}
 --- !u!1 &1016453398
 GameObject:
   m_ObjectHideFlags: 0

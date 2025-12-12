@@ -40,10 +40,6 @@ public class CardInfo : MonoBehaviour
             {
                 logo.enabled = true;
                 logo.sprite = card.logo;
-                logo.preserveAspect = true;
-                var rt = logo.GetComponent<RectTransform>();
-                if (rt != null && logoInitialSize != Vector2.zero)
-                    rt.sizeDelta = logoInitialSize;
             }
             else
             {

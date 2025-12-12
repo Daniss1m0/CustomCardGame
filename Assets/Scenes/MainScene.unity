@@ -754,7 +754,7 @@ GameObject:
   - component: {fileID: 318518645}
   - component: {fileID: 318518644}
   m_Layer: 5
-  m_Name: PlayerHPText
+  m_Name: Player HP Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3622,7 +3622,7 @@ GameObject:
   - component: {fileID: 915520595}
   - component: {fileID: 915520594}
   m_Layer: 5
-  m_Name: Text (TMP)
+  m_Name: End Turn Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4133,7 +4133,7 @@ GameObject:
   - component: {fileID: 1082041108}
   - component: {fileID: 1082041107}
   m_Layer: 5
-  m_Name: EndTurnBtn
+  m_Name: End Turn Button
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5193,7 +5193,7 @@ GameObject:
   - component: {fileID: 1396918034}
   - component: {fileID: 1396918033}
   m_Layer: 5
-  m_Name: PlayerSpr
+  m_Name: Player Image
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5362,7 +5362,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2371344435708253971, guid: 554e7fdb1335c564bbd2ae233c9c6b03, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 1186
+      value: 1221
       objectReference: {fileID: 0}
     - target: {fileID: 2371344435708253971, guid: 554e7fdb1335c564bbd2ae233c9c6b03, type: 3}
       propertyPath: m_AnchoredPosition.y
@@ -5626,7 +5626,7 @@ GameObject:
   - component: {fileID: 1546779916}
   - component: {fileID: 1546779915}
   m_Layer: 5
-  m_Name: EnemyHPText
+  m_Name: Enemy HP Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5799,7 +5799,7 @@ GameObject:
   - component: {fileID: 1579334758}
   - component: {fileID: 1579334757}
   m_Layer: 5
-  m_Name: EnemySpr
+  m_Name: Enemy Image
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6614,7 +6614,7 @@ GameObject:
   - component: {fileID: 1744781571}
   - component: {fileID: 1744781570}
   m_Layer: 5
-  m_Name: EnemyManaText
+  m_Name: Enemy Mana Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6886,7 +6886,7 @@ GameObject:
   - component: {fileID: 1766040400}
   - component: {fileID: 1766040399}
   m_Layer: 5
-  m_Name: PlayerManaText
+  m_Name: Player Mana Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7174,7 +7174,7 @@ GameObject:
   - component: {fileID: 1811299088}
   - component: {fileID: 1811299087}
   m_Layer: 5
-  m_Name: BG
+  m_Name: Background
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7469,7 +7469,7 @@ GameObject:
   - component: {fileID: 1910776033}
   - component: {fileID: 1910776032}
   m_Layer: 5
-  m_Name: TurnTimeTxt
+  m_Name: Turn Time Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

@@ -275,7 +275,9 @@ public class DeckManager : MonoBehaviour
                 rtRoot.pivot = new Vector2(0.5f, 0.5f);
                 rtRoot.anchorMin = new Vector2(0.5f, 0.5f);
                 rtRoot.anchorMax = new Vector2(0.5f, 0.5f);
-                if (rtRoot.sizeDelta == Vector2.zero) rtRoot.sizeDelta = new Vector2(176f, 230f);
+                if (rtRoot.sizeDelta == Vector2.zero) 
+                    rtRoot.sizeDelta = new Vector2(175f, 230f);
+
                 rtRoot.anchoredPosition = Vector2.zero;
                 rtRoot.localScale = Vector3.one;
             }

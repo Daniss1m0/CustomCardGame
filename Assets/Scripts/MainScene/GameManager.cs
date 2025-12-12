@@ -219,33 +219,31 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void PlayCard(CardController card, bool isPlayerSide, int slotIndex = -1)
+    public bool PlayCard(CardController card, bool isPlayerSide, int slotIndex = -1)
     {
         SanitizeLists();
 
         if (card == null)
-            return;
+            return false;
 
         if (isPlayerSide != IsPlayerTurn)
-            return;
+            return false;
 
         if (card.self.isPlaced)
-            return;
+            return false;
 
         var fieldCount = isPlayerSide ? playerFieldCards.Count : enemyFieldCards.Count;
         if (!card.self.isSpell && fieldCount >= (deckManager != null ? DeckManager.MAX_FIELD_SIZE : 7))
-        {
-            Debug.LogWarning($"Field is full.");
-            return;
-        }
+            return false;
 
         if (isPlayerSide && currentGame.player.mana < card.self.manaCost)
-            return;
+            return false;
 
         if (!isPlayerSide && currentGame.enemy.mana < card.self.manaCost)
-            return;
+            return false;
 
         card.OnCast(slotIndex);
+        return true;
     }
 
     public void CastSpell(CardController spell, CardController target, bool isPlayerSide)

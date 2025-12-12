@@ -21,18 +21,12 @@ public class DropPlace : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoi
 
     public void OnDrop(PointerEventData eventData)
     {
-        if (type == FieldType.EnemyField || type == FieldType.EnemyHand)
-            return;
-
-        if (type != FieldType.PlayerField)
-            return;
-
         var dragObj = eventData.pointerDrag;
         if (dragObj == null)
             return;
 
         var card = dragObj.GetComponent<CardController>();
-        if (card == null)
+        if (card == null) 
             return;
 
         GameManager.Instance.SanitizeLists();
@@ -45,11 +39,12 @@ public class DropPlace : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoi
                 if (!GameManager.Instance.IsMyTurn || !card.isPlayerCard)
                     return;
 
-                if (GameManager.Instance.currentGame.player.mana < card.self.manaCost) 
+                if (GameManager.Instance.currentGame.player.mana < card.self.manaCost)
                     return;
 
-                card.Movement.MoveToField(transform);
-                GameManager.Instance.PlayCard(card, true, -1);
+                if (GameManager.Instance.PlayCard(card, true, -1))
+                    card.Movement.MoveToField(transform);
+                
                 return;
             }
             return;
@@ -65,19 +60,16 @@ public class DropPlace : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoi
                 break;
             }
 
-        if (!foundTemp) 
+        if (!foundTemp)
             dropIndex = transform.childCount;
 
         if (card && GameManager.Instance.IsMyTurn && GameManager.Instance.currentGame.player.mana >= card.self.manaCost && !card.self.isPlaced)
         {
-            Transform originalParent = null;
-            if (card.Movement != null) 
-                originalParent = card.Movement.defaultParent;
+            bool success = GameManager.Instance.PlayCard(card, true, dropIndex);
 
-            if (!card.self.isSpell) 
-                card.Movement.defaultParent = transform;
-
-            GameManager.Instance.PlayCard(card, true, dropIndex);
+            if (success)
+                if (!card.self.isSpell && card.Movement != null)
+                    card.Movement.defaultParent = transform;
         }
     }
 

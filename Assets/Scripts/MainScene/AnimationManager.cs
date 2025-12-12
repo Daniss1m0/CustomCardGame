@@ -151,11 +151,11 @@ public class AnimationManager : MonoBehaviour
 
     public void PlayAttack(Transform attackerTransform, Transform targetTransform, System.Action onImpactCallback)
     {
-        if (attackerTransform == null) 
+        if (attackerTransform == null)
             return;
 
         var controller = attackerTransform.GetComponent<CardController>();
-        if (controller != null) 
+        if (controller != null)
             controller.IsAnimating = true;
 
         Transform originalParent = attackerTransform.parent;
@@ -168,13 +168,7 @@ public class AnimationManager : MonoBehaviour
         RectTransform myRect = attackerTransform.GetComponent<RectTransform>();
         RectTransform phRect = attackPlaceholder.GetComponent<RectTransform>();
         if (myRect != null)
-        {
             phRect.sizeDelta = myRect.sizeDelta;
-            phRect.anchorMin = myRect.anchorMin;
-            phRect.anchorMax = myRect.anchorMax;
-            phRect.pivot = myRect.pivot;
-            phRect.localScale = myRect.localScale;
-        }
 
         Canvas rootCanvas = attackerTransform.GetComponentInParent<Canvas>();
         if (rootCanvas != null && rootCanvas.rootCanvas != null)
@@ -218,9 +212,10 @@ public class AnimationManager : MonoBehaviour
         });
 
         seq.AppendInterval(0.4f);
-        seq.OnComplete(() =>
+
+        seq.OnKill(() =>
         {
-            if (attackPlaceholder != null) 
+            if (attackPlaceholder != null)
                 Destroy(attackPlaceholder);
 
             if (attackerTransform != null)
@@ -233,7 +228,8 @@ public class AnimationManager : MonoBehaviour
 
                 LayoutRebuilder.ForceRebuildLayoutImmediate(originalParent as RectTransform);
             }
-            if (controller != null) 
+
+            if (controller != null)
                 controller.IsAnimating = false;
         });
     }

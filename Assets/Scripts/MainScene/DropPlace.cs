@@ -21,12 +21,15 @@ public class DropPlace : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoi
 
     public void OnDrop(PointerEventData eventData)
     {
+        if (type != FieldType.PlayerField)
+            return;
+
         var dragObj = eventData.pointerDrag;
         if (dragObj == null)
             return;
 
         var card = dragObj.GetComponent<CardController>();
-        if (card == null) 
+        if (card == null)
             return;
 
         GameManager.Instance.SanitizeLists();
@@ -44,7 +47,7 @@ public class DropPlace : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoi
 
                 if (GameManager.Instance.PlayCard(card, true, -1))
                     card.Movement.MoveToField(transform);
-                
+
                 return;
             }
             return;
@@ -63,13 +66,16 @@ public class DropPlace : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoi
         if (!foundTemp)
             dropIndex = transform.childCount;
 
-        if (card && GameManager.Instance.IsMyTurn && GameManager.Instance.currentGame.player.mana >= card.self.manaCost && !card.self.isPlaced)
+        if (card && GameManager.Instance.IsMyTurn &&
+            GameManager.Instance.currentGame.player.mana >= card.self.manaCost &&
+            !card.self.isPlaced)
         {
             bool success = GameManager.Instance.PlayCard(card, true, dropIndex);
 
             if (success)
-                if (!card.self.isSpell && card.Movement != null)
+                if (card.Movement != null)
                     card.Movement.defaultParent = transform;
+
         }
     }
 
@@ -104,7 +110,7 @@ public class DropPlace : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoi
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        if (eventData.pointerDrag == null) 
+        if (eventData.pointerDrag == null)
             return;
 
         CardMovement card = eventData.pointerDrag.GetComponent<CardMovement>();

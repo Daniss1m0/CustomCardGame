@@ -647,9 +647,11 @@ public class CardController : MonoBehaviour
         if (!isLocalPlayer && !self.isSpell && (isEnemyTurn || turnMatches))
         {
             if (AnimationManager.Instance != null)
-                AnimationManager.Instance.PlayOpponentDraw(this, targetParent, targetIndex);
-            else
-                Debug.LogWarning("AnimationManager missing!");
+                AnimationManager.Instance.EnqueueVisual(() =>
+                {
+                    if (this != null)
+                        AnimationManager.Instance.PlayOpponentDraw(this, targetParent, targetIndex);
+                });
         }
         else
         {

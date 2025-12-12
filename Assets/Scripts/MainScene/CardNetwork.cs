@@ -491,9 +491,24 @@ public class CardNetwork : NetworkBehaviour
             catch { }
 
             if (found.self.isSpell && !found.isPlayerCard)
-                found.AnimateOpponentSpellAndDestroy();
+            {
+                if (AnimationManager.Instance != null)
+                    AnimationManager.Instance.EnqueueVisual(() =>
+                    {
+                        if (found != null) 
+                            found.AnimateOpponentSpellAndDestroy();
+                    });
+                else
+                    found.AnimateOpponentSpellAndDestroy();
+            }
             else
-                try { Destroy(found.gameObject); } catch { }
+            {
+                try 
+                { 
+                    Destroy(found.gameObject); 
+                } 
+                catch { }
+            }
         }
     }
 

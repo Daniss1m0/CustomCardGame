@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using DG.Tweening;
@@ -6,7 +7,37 @@ public class AnimationManager : MonoBehaviour
 {
     public static AnimationManager Instance;
 
+    private bool _isQueueProcessing = false;
+    private Queue<System.Action> _visualQueue = new Queue<System.Action>();
+
     public int GlobalBusyCount { get; private set; } = 0;
+
+    public void EnqueueVisual(System.Action action)
+    {
+        _visualQueue.Enqueue(action);
+
+        if (!_isQueueProcessing)
+            StartCoroutine(ProcessQueueRoutine());
+    }
+
+    private System.Collections.IEnumerator ProcessQueueRoutine()
+    {
+        _isQueueProcessing = true;
+
+        while (_visualQueue.Count > 0)
+        {
+            while (GlobalBusyCount > 0)
+                yield return null;
+
+            var action = _visualQueue.Dequeue();
+
+            action?.Invoke();
+
+            yield return null;
+        }
+
+        _isQueueProcessing = false;
+    }
 
     private void Awake()
     {
@@ -236,10 +267,13 @@ public class AnimationManager : MonoBehaviour
 
     public void PlayDeath(Transform cardTransform, System.Action onComplete)
     {
-        if (cardTransform == null) return;
+        if (cardTransform == null) 
+            return;
 
         var le = cardTransform.GetComponent<LayoutElement>();
-        if (le == null) le = cardTransform.gameObject.AddComponent<LayoutElement>();
+        if (le == null) 
+            le = cardTransform.gameObject.AddComponent<LayoutElement>();
+
         le.ignoreLayout = true;
 
         if (cardTransform.parent != null)

@@ -530,12 +530,21 @@ public class GameManager : MonoBehaviour
 
     private void OnCurrentTurnOwnerChanged(ulong oldOwner, ulong newOwner)
     {
-        bool amOwner = NetworkManager.Singleton != null && NetworkManager.Singleton.LocalClientId == newOwner;
-        localIsOwnerTurn = amOwner;
-        if (UIManager.Instance != null)
-            UIManager.Instance.SetEndTurnInteractable(amOwner);
+        System.Action turnChangeAction = () =>
+        {
+            bool amOwner = NetworkManager.Singleton != null && NetworkManager.Singleton.LocalClientId == newOwner;
+            localIsOwnerTurn = amOwner;
 
-        CheckCardsForManaAvailability();
+            if (UIManager.Instance != null)
+                UIManager.Instance.SetEndTurnInteractable(amOwner);
+
+            CheckCardsForManaAvailability();
+        };
+
+        if (AnimationManager.Instance != null)
+            AnimationManager.Instance.EnqueueVisual(turnChangeAction);
+        else
+            turnChangeAction.Invoke();
     }
 
     private void OnTurnTimeChanged(int oldTime, int newTime)
@@ -588,37 +597,45 @@ public class GameManager : MonoBehaviour
         if (turnManager == null || NetworkManager.Singleton == null)
             return;
 
-        currentGame ??= new Game();
-
-        ulong playerOwnerClientId = turnManager.PlayerOwner.Value;
-        if (playerOwnerClientId == 0 && NetworkManager.Singleton != null)
-            playerOwnerClientId = NetworkManager.ServerClientId;
-
-        bool localIsPlayerOwner = NetworkManager.Singleton.LocalClientId == playerOwnerClientId;
-
-        int pMana = turnManager.PlayerMana.Value;
-        int eMana = turnManager.EnemyMana.Value;
-        int pHP = turnManager.PlayerHP.Value;
-        int eHP = turnManager.EnemyHP.Value;
-
-        if (localIsPlayerOwner)
+        System.Action updateStatsAction = () =>
         {
-            currentGame.player.mana = pMana;
-            currentGame.enemy.mana = eMana;
-            currentGame.player.hp = pHP;
-            currentGame.enemy.hp = eHP;
-        }
+            currentGame ??= new Game();
+
+            ulong playerOwnerClientId = turnManager.PlayerOwner.Value;
+            if (playerOwnerClientId == 0 && NetworkManager.Singleton != null)
+                playerOwnerClientId = NetworkManager.ServerClientId;
+
+            bool localIsPlayerOwner = NetworkManager.Singleton.LocalClientId == playerOwnerClientId;
+
+            int pMana = turnManager.PlayerMana.Value;
+            int eMana = turnManager.EnemyMana.Value;
+            int pHP = turnManager.PlayerHP.Value;
+            int eHP = turnManager.EnemyHP.Value;
+
+            if (localIsPlayerOwner)
+            {
+                currentGame.player.mana = pMana;
+                currentGame.enemy.mana = eMana;
+                currentGame.player.hp = pHP;
+                currentGame.enemy.hp = eHP;
+            }
+            else
+            {
+                currentGame.player.mana = eMana;
+                currentGame.enemy.mana = pMana;
+                currentGame.player.hp = eHP;
+                currentGame.enemy.hp = pHP;
+            }
+
+            UIManager.Instance?.UpdateHPAndMana();
+            CheckCardsForManaAvailability();
+            CheckForResult();
+        };
+
+        if (AnimationManager.Instance != null)
+            AnimationManager.Instance.EnqueueVisual(updateStatsAction);
         else
-        {
-            currentGame.player.mana = eMana;
-            currentGame.enemy.mana = pMana;
-            currentGame.player.hp = eHP;
-            currentGame.enemy.hp = pHP;
-        }
-
-        UIManager.Instance?.UpdateHPAndMana();
-        CheckCardsForManaAvailability();
-        CheckForResult();
+            updateStatsAction.Invoke();
     }
 
     private ulong GetOtherClientOf(ulong clientId)

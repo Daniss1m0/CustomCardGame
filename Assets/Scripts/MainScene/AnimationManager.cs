@@ -190,6 +190,14 @@ public class AnimationManager : MonoBehaviour
 
         seq.AppendCallback(() =>
         {
+            if (AudioManager.Instance != null)
+            {
+                if (targetTransform != null && targetTransform.GetComponent<AttackedHero>() != null)
+                    AudioManager.Instance.PlayHeroHit();
+                else
+                    AudioManager.Instance.PlayAttack();
+            }
+
             onImpactCallback?.Invoke();
             if (targetTransform != null)
                 targetTransform.DOShakePosition(0.3f, 15, 20);

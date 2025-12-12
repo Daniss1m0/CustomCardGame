@@ -217,6 +217,9 @@ public class DeckManager : MonoBehaviour
         {
             if (uiClone != null) Destroy(uiClone);
         }
+
+        if (AudioManager.Instance != null)
+            AudioManager.Instance.PlaySound(AudioManager.Instance.drawCardClip);
     }
 
     private void UpdateCardPosition(Transform cardTransform, int index, bool isPlaced)

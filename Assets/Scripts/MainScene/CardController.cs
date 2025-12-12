@@ -620,6 +620,9 @@ public class CardController : MonoBehaviour
     {
         self.isPlaced = true;
 
+        if (AudioManager.Instance != null) 
+            AudioManager.Instance.PlayPlaceCard();
+
         int targetIndex = 0;
         if (linkedNetwork != null)
             targetIndex = linkedNetwork.fieldIndex.Value;

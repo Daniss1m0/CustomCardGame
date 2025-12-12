@@ -56,7 +56,7 @@ public class DropPlace : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoi
         int dropIndex = -1;
         bool foundTemp = false;
         foreach (Transform child in transform)
-            if (child.name == "CardTemp")
+            if (child.name == "Card Temp")
             {
                 dropIndex = child.GetSiblingIndex();
                 foundTemp = true;

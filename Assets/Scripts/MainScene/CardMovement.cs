@@ -35,7 +35,7 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
         if (rootCanvas != null)
             canvasRect = rootCanvas.GetComponent<RectTransform>();
 
-        cardTemp = GameObject.Find("CardTemp");
+        cardTemp = GameObject.Find("Card Temp");
     }
 
     public void OnBeginDrag(PointerEventData eventData)
@@ -238,11 +238,11 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
         if (cardTemp != null)
             return;
 
-        cardTemp = GameObject.Find("CardTemp");
+        cardTemp = GameObject.Find("Card Temp");
         if (cardTemp != null)
             return;
 
-        cardTemp = new GameObject("CardTemp", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+        cardTemp = new GameObject("Card Temp", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
         var img = cardTemp.GetComponent<Image>();
         img.color = new Color(0f, 0f, 0f, 0f);
         img.raycastTarget = false;

@@ -9,7 +9,7 @@ public class CardInfo : MonoBehaviour
     [SerializeField] private Color normalColor, targetColor, spellTargetColor;
     [SerializeField] private TextMeshProUGUI nameTxt, attackTxt, healthTxt, manaCostTxt, descriptionTxt;
     [SerializeField] private Image logo;
-    [SerializeField] private GameObject hideState, highlightState;
+    [SerializeField] private GameObject hideState, highlightState, descriptionBackground;
 
     private Image background;
     private CanvasGroup canvasGroup;
@@ -140,6 +140,12 @@ public class CardInfo : MonoBehaviour
         }
 
         descriptionTxt.text = finalText;
+
+        if (descriptionBackground != null)
+        {
+            bool hasContent = !string.IsNullOrEmpty(finalText);
+            descriptionBackground.SetActive(hasContent);
+        }
     }
 
     public void SetHighlight(bool highlight)

@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 4354062971506532051}
   - component: {fileID: 7446846580272235323}
   m_Layer: 5
-  m_Name: Image
+  m_Name: Background
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -87,7 +87,7 @@ GameObject:
   - component: {fileID: 2812789146418893367}
   - component: {fileID: 683196542191810641}
   m_Layer: 5
-  m_Name: TempCard
+  m_Name: Card Temp
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -108,10 +108,10 @@ RectTransform:
   - {fileID: 1696530236076246909}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 2325, y: 880}
-  m_SizeDelta: {x: 175, y: 225}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 175, y: 230}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2812789146418893367
 CanvasRenderer:
@@ -134,7 +134,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0.52201253, b: 0.014675031, a: 1}
+  m_Color: {r: 0, g: 0.6603774, b: 0.108133286, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1

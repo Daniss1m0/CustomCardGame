@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
@@ -26,7 +24,6 @@ public class UIManager : MonoBehaviour
 
     public void StartGame()
     {
-        endTurnBtn.interactable = true;
         result.SetActive(false);
         UpdateHPAndMana();
     }
@@ -50,7 +47,7 @@ public class UIManager : MonoBehaviour
 
     public void UpdateTurnTime(int time)
     {
-        turnTimeTxt.text = time.ToString();
+        turnTimeTxt.text = time > 0 ? time.ToString() : "-";
     }
 
     public void DisableTurnBtn()
@@ -66,5 +63,11 @@ public class UIManager : MonoBehaviour
     public void LoadDeckSelection()
     {
         SceneManager.LoadScene("DeckSelection");
+    }
+
+    public void SetEndTurnInteractable(bool state)
+    {
+        if (endTurnBtn != null)
+            endTurnBtn.interactable = state;
     }
 }

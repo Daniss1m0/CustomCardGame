@@ -5,24 +5,30 @@ using UnityEngine.UI;
 public class AttackedHero : MonoBehaviour, IDropHandler
 {
     public Color normalCol, highlightCol;
-    
-    public enum HeroType
-    {
-        Player,
-        Enemy
+
+    public enum HeroType 
+    { 
+        Player, 
+        Enemy 
     }
 
     public HeroType type;
 
     public void OnDrop(PointerEventData eventData)
     {
-        if (!GameManager.Instance.IsPlayerTurn)
+        if (!GameManager.Instance.IsMyTurn)
             return;
 
         CardController card = eventData.pointerDrag.GetComponent<CardController>();
 
         if (card && card.self.canAttack && type == HeroType.Enemy && !GameManager.Instance.enemyFieldCards.Exists(x => x.self.IsProvocation))
-                GameManager.Instance.DamageHero(card, true);
+            if (card.Network != null)
+            {
+                card.Network.RequestAttackHeroServerRpc(true);
+
+                card.self.canAttack = false;
+                card.Info.SetHighlight(false);
+            }
     }
 
     public void HighlightAsTarget(bool highlight)

@@ -12,10 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 395b7b7ae31a2704b99c2de0177f0838, type: 3}
   m_Name: Sesja
   m_EditorClassIdentifier: Assembly-CSharp::CardData
+  cardId: 19
   cardName: Sesja
   manaCost: 2
   logo: {fileID: -1420537352192691650, guid: 84ed7cb670804f743a606bed3422fedb, type: 3}
   isSpell: 1
+  description: Gives a taunt to your card
   attack: 0
   health: 0
   abilities: 

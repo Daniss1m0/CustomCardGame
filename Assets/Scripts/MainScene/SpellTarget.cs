@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -7,7 +5,7 @@ public class SpellTarget : MonoBehaviour, IDropHandler
 {
     public void OnDrop(PointerEventData eventData)
     {
-        if (!GameManager.Instance.IsPlayerTurn)
+        if (!GameManager.Instance.IsMyTurn)
             return;
 
         var dragObj = eventData.pointerDrag;
@@ -16,6 +14,16 @@ public class SpellTarget : MonoBehaviour, IDropHandler
 
         var spell = dragObj.GetComponent<CardController>();
         var target = GetComponent<CardController>();
+
+        if (spell != null && !spell.self.isSpell && !spell.self.isPlaced)
+        {
+            var dropPlace = GetComponentInParent<DropPlace>();
+            if (dropPlace != null)
+                dropPlace.OnDrop(eventData);
+
+            return;
+        }
+
         if (spell == null || !spell.self.isSpell || !spell.isPlayerCard)
             return;
 
@@ -29,7 +37,6 @@ public class SpellTarget : MonoBehaviour, IDropHandler
                 return;
 
             Transform fieldTransform = null;
-
             if (target != null && target.transform.parent != null)
                 fieldTransform = target.transform.parent;
             else
@@ -47,8 +54,20 @@ public class SpellTarget : MonoBehaviour, IDropHandler
         if (target == null || !target.self.isPlaced)
             return;
 
-        if ((spellCard.spellTarget == TargetType.AllyCard && target.isPlayerCard) ||
-            (spellCard.spellTarget == TargetType.EnemyCard && !target.isPlayerCard))
+        bool isValidTarget = false;
+
+        if (spellCard.spellTarget == TargetType.AllyCard)
+        {
+            if (target.isPlayerCard) 
+                isValidTarget = true;
+        }
+        else if (spellCard.spellTarget == TargetType.EnemyCard)
+        {
+            if (!target.isPlayerCard) 
+                isValidTarget = true;
+        }
+
+        if (isValidTarget)
             GameManager.Instance.CastSpell(spell, target, true);
     }
 }

@@ -12,10 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 395b7b7ae31a2704b99c2de0177f0838, type: 3}
   m_Name: Uczen
   m_EditorClassIdentifier: Assembly-CSharp::CardData
+  cardId: 9
   cardName: Uczen
   manaCost: 1
   logo: {fileID: -643460706143854965, guid: 66991938ff3eb5e4492f2b8563e074d6, type: 3}
   isSpell: 0
+  description: 
   attack: 1
   health: 2
   abilities: 01000000

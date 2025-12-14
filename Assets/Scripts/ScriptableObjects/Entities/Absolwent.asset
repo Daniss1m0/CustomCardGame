@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 395b7b7ae31a2704b99c2de0177f0838, type: 3}
   m_Name: Absolwent
   m_EditorClassIdentifier: Assembly-CSharp::CardData
+  cardId: 1
   cardName: Absolwent
   manaCost: 6
   logo: {fileID: -6370853324505340399, guid: b106bc54945f98047902264c0a0beb7c, type: 3}

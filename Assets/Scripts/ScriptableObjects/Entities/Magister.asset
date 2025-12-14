@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 395b7b7ae31a2704b99c2de0177f0838, type: 3}
   m_Name: Magister
   m_EditorClassIdentifier: Assembly-CSharp::CardData
+  cardId: 6
   cardName: Magister
   manaCost: 5
   logo: {fileID: 7043740384229649278, guid: a57d9995466983d4da270bb7c1b47406, type: 3}

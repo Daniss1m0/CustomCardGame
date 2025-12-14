@@ -12,10 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 395b7b7ae31a2704b99c2de0177f0838, type: 3}
   m_Name: Projekt
   m_EditorClassIdentifier: Assembly-CSharp::CardData
+  cardId: 18
   cardName: Projekt
   manaCost: 2
   logo: {fileID: 5276808485251192155, guid: 73553456be55dac45952894b113ae7d8, type: 3}
   isSpell: 1
+  description: Gives a shield to your card
   attack: 0
   health: 0
   abilities: 

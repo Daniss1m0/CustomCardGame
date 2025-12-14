@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 395b7b7ae31a2704b99c2de0177f0838, type: 3}
   m_Name: Biblioteka
   m_EditorClassIdentifier: Assembly-CSharp::CardData
+  cardId: 3
   cardName: Biblioteka
   manaCost: 4
   logo: {fileID: -8794971274792873424, guid: 2a11f2acf55f5614f9cb1f82fe8ff308, type: 3}

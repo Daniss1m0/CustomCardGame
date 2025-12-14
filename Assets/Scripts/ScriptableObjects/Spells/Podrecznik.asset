@@ -12,10 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 395b7b7ae31a2704b99c2de0177f0838, type: 3}
   m_Name: Podrecznik
   m_EditorClassIdentifier: Assembly-CSharp::CardData
+  cardId: 17
   cardName: Podrecznik
   manaCost: 3
   logo: {fileID: -4305618294791597071, guid: 3d05ef544b9ff194eb8dfc6674d18e7e, type: 3}
   isSpell: 1
+  description: Heal your field {0} HP
   attack: 0
   health: 0
   abilities: 

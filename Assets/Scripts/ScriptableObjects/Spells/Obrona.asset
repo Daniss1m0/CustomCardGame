@@ -12,10 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 395b7b7ae31a2704b99c2de0177f0838, type: 3}
   m_Name: Obrona
   m_EditorClassIdentifier: Assembly-CSharp::CardData
+  cardId: 16
   cardName: Obrona
   manaCost: 1
   logo: {fileID: -7142683556670487921, guid: d1acc16ec1a362643af8373ab119b83d, type: 3}
   isSpell: 1
+  description: Heal your card {0} HP
   attack: 0
   health: 0
   abilities: 

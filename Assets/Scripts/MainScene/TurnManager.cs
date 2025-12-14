@@ -1,66 +1,205 @@
-using UnityEngine;
 using System.Collections;
+using UnityEngine;
+using Unity.Netcode;
 
-public class TurnManager : MonoBehaviour
+[RequireComponent(typeof(NetworkObject))]
+public class TurnManager : NetworkBehaviour
 {
     public int turnTimeDefault = 30;
-    private Coroutine turnCoroutine;
 
-    public void StartTurnLoop()
+    public NetworkVariable<ulong> CurrentTurnOwner = new NetworkVariable<ulong>(
+        0UL,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server);
+
+    public NetworkVariable<int> TurnTimeRemaining = new NetworkVariable<int>(
+        0,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server);
+
+    public NetworkVariable<int> PlayerMana = new NetworkVariable<int>(
+        0,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server);
+
+    public NetworkVariable<int> EnemyMana = new NetworkVariable<int>(
+        0,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server);
+
+    public NetworkVariable<int> PlayerHP = new NetworkVariable<int>(
+        30,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server);
+
+    public NetworkVariable<int> EnemyHP = new NetworkVariable<int>(
+        30,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server);
+
+    public NetworkVariable<ulong> PlayerOwner = new NetworkVariable<ulong>(
+        0UL,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server);
+
+    private Coroutine serverTurnCoroutine;
+
+    public override void OnNetworkSpawn()
     {
-        if (turnCoroutine != null) 
-            StopCoroutine(turnCoroutine);
+        base.OnNetworkSpawn();
 
-        turnCoroutine = StartCoroutine(TurnFunc());
+        if (IsServer)
+            TurnTimeRemaining.Value = 0;
+
+        TurnTimeRemaining.OnValueChanged += OnTurnTimeRemainingChanged;
+        PlayerMana.OnValueChanged += OnPlayerManaChanged;
+        EnemyMana.OnValueChanged += OnEnemyManaChanged;
+        PlayerOwner.OnValueChanged += OnPlayerOwnerChanged;
+
+        PlayerHP.OnValueChanged += (oldV, newV) => { };
+        EnemyHP.OnValueChanged += (oldV, newV) => { };
     }
 
-    public void StopTurnLoop()
+    public override void OnNetworkDespawn()
     {
-        if (turnCoroutine != null) 
-            StopCoroutine(turnCoroutine);
-        
-        turnCoroutine = null;
+        TurnTimeRemaining.OnValueChanged -= OnTurnTimeRemainingChanged;
+        PlayerMana.OnValueChanged -= OnPlayerManaChanged;
+        EnemyMana.OnValueChanged -= OnEnemyManaChanged;
+        PlayerOwner.OnValueChanged -= OnPlayerOwnerChanged;
+
+        base.OnNetworkDespawn();
     }
 
-    private IEnumerator TurnFunc()
+    private void OnTurnTimeRemainingChanged(int oldV, int newV) { }
+    private void OnPlayerManaChanged(int oldV, int newV) { }
+    private void OnEnemyManaChanged(int oldV, int newV) { }
+    private void OnPlayerOwnerChanged(ulong oldV, ulong newV) { }
+
+    public void SetCurrentTurnOwner(ulong ownerClientId)
     {
-        int turnTime = turnTimeDefault;
-        UIManager.Instance.UpdateTurnTime(turnTime);
+        if (!IsServer) 
+            return;
 
-        UIManager.Instance.DisableTurnBtn();
+        CurrentTurnOwner.Value = ownerClientId;
+    }
 
-        foreach (var card in GameManager.Instance.playerFieldCards)
-            card.Info.SetHighlight(false);
+    public void SetPlayerManaServer(int value)
+    {
+        if (!IsServer) 
+            return;
 
-        GameManager.Instance.CheckCardsForManaAvailability();
+        PlayerMana.Value = value;
+    }
 
-        if (GameManager.Instance.IsPlayerTurn)
-            foreach (var card in GameManager.Instance.playerFieldCards)
-            {
-                card.self.canAttack = true;
-                card.Info.SetHighlight(true);
-                card.Ability.OnNewTurn(card.self, card.Info);
-            }
-        else
-            foreach (var card in GameManager.Instance.enemyFieldCards)
-            {
-                card.self.canAttack = true;
-                card.Ability.OnNewTurn(card.self, card.Info);
-            }
+    public void SetEnemyManaServer(int value)
+    {
+        if (!IsServer) 
+            return;
 
-        IPlayerController controller = GameManager.Instance.IsPlayerTurn ? GameManager.Instance.PlayerController : GameManager.Instance.OpponentController;
-        if (controller != null)
-            StartCoroutine(controller.PerformTurn());
-        else
-            Debug.LogWarning("Ñontroller not assigned for current side.");
+        EnemyMana.Value = value;
+    }
 
-        while (turnTime > 0)
+    public void SetPlayerHPServer(int value)
+    {
+        if (!IsServer) 
+            return;
+
+        PlayerHP.Value = value;
+    }
+
+    public void SetEnemyHPServer(int value)
+    {
+        if (!IsServer) 
+            return;
+
+        EnemyHP.Value = value;
+    }
+
+    public void SetPlayerOwnerServer(ulong ownerClientId)
+    {
+        if (!IsServer) 
+            return;
+
+        PlayerOwner.Value = ownerClientId;
+    }
+
+    public void StartServerTurnLoop()
+    {
+        if (!IsServer) 
+            return;
+
+        if (serverTurnCoroutine != null) 
+            StopCoroutine(serverTurnCoroutine);
+
+        serverTurnCoroutine = StartCoroutine(ServerTurnLoop());
+    }
+
+    public void StopServerTurnLoop()
+    {
+        if (!IsServer) 
+            return;
+
+        if (serverTurnCoroutine != null)
         {
-            yield return new WaitForSeconds(1f);
-            turnTime--;
-            UIManager.Instance.UpdateTurnTime(turnTime);
+            StopCoroutine(serverTurnCoroutine);
+            serverTurnCoroutine = null;
         }
+        TurnTimeRemaining.Value = 0;
+    }
 
-        GameManager.Instance.ChangeTurn();
+    private IEnumerator ServerTurnLoop()
+    {
+        while (true)
+        {
+            TurnTimeRemaining.Value = Mathf.Max(0, turnTimeDefault);
+            while (TurnTimeRemaining.Value > 0)
+            {
+                yield return new WaitForSeconds(1f);
+                TurnTimeRemaining.Value = Mathf.Max(0, TurnTimeRemaining.Value - 1);
+            }
+
+            if (GameManager.Instance != null)
+                GameManager.Instance.ChangeTurn();
+
+            yield return null;
+        }
+    }
+
+    public ulong GetOtherClientIdOrServerFallback()
+    {
+        if (NetworkManager.Singleton == null) 
+            return NetworkManager.ServerClientId;
+
+        foreach (var kv in NetworkManager.Singleton.ConnectedClients)
+        {
+            var clientId = kv.Key;
+            if (clientId != NetworkManager.ServerClientId) 
+                return clientId;
+        }
+        return NetworkManager.ServerClientId;
+    }
+
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    public void RequestEndTurnServerRpc(RpcParams rpcParams = default)
+    {
+        if (!IsServer) 
+            return;
+
+        ulong sender = rpcParams.Receive.SenderClientId;
+        if (sender != CurrentTurnOwner.Value) 
+            return;
+
+        if (GameManager.Instance != null) 
+            GameManager.Instance.ChangeTurn();
+    }
+
+    [ClientRpc]
+    public void NotifyClientsOwnerClientRpc(ulong ownerClientId, ClientRpcParams clientRpcParams = default)
+    {
+        bool amOwner = NetworkManager.Singleton != null && NetworkManager.Singleton.LocalClientId == ownerClientId;
+        if (UIManager.Instance != null)
+            UIManager.Instance.SetEndTurnInteractable(amOwner);
+
+        GameManager.Instance?.CheckCardsForManaAvailability();
     }
 }

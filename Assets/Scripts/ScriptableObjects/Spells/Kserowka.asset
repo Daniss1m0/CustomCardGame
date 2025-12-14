@@ -12,10 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 395b7b7ae31a2704b99c2de0177f0838, type: 3}
   m_Name: Kserowka
   m_EditorClassIdentifier: Assembly-CSharp::CardData
+  cardId: 15
   cardName: Kserowka
   manaCost: 1
-  logo: {fileID: 5350717596340596694, guid: c8419a5227e14b34baa866a683825643, type: 3}
+  logo: {fileID: -8320628319385822967, guid: 5755387cddce1c84994be14deb0116a4, type: 3}
   isSpell: 1
+  description: Deals enemy hero {0} HP
   attack: 0
   health: 0
   abilities: 

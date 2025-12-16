@@ -9,24 +9,15 @@ public class CardInfo : MonoBehaviour
     [SerializeField] private Color normalColor, targetColor, spellTargetColor;
     [SerializeField] private TextMeshProUGUI nameTxt, attackTxt, healthTxt, manaCostTxt, descriptionTxt;
     [SerializeField] private Image logo;
-    [SerializeField] private GameObject hideState, highlightState, descriptionBackground;
+    [SerializeField] private GameObject hideState, highlightState, descriptionBackground, manaGem;
 
     private Image background;
     private CanvasGroup canvasGroup;
-    private Vector2 logoInitialSize;
 
     private void Awake()
     {
         background = GetComponent<Image>();
         canvasGroup = GetComponent<CanvasGroup>();
-        if (logo != null)
-        {
-            var rt = logo.GetComponent<RectTransform>();
-            if (rt != null)
-                logoInitialSize = rt.sizeDelta;
-            else
-                logoInitialSize = Vector2.zero;
-        }
     }
 
     public void ShowCard(Card card)
@@ -34,8 +25,10 @@ public class CardInfo : MonoBehaviour
         if (hideState != null)
             hideState.SetActive(false);
 
+        if (manaGem != null)
+            manaGem.SetActive(true);
+
         if (logo != null)
-        {
             if (card != null && card.logo != null)
             {
                 logo.enabled = true;
@@ -46,7 +39,6 @@ public class CardInfo : MonoBehaviour
                 logo.enabled = false;
                 logo.sprite = null;
             }
-        }
 
         if (nameTxt != null) 
             nameTxt.text = card != null ? card.name : "";
@@ -67,6 +59,10 @@ public class CardInfo : MonoBehaviour
     {
         if (hideState != null)
             hideState.SetActive(true);
+
+        if (manaGem != null)
+            manaGem.SetActive(false);
+
         if (nameTxt != null)
             nameTxt.text = "";
         if (attackTxt != null)
@@ -125,7 +121,6 @@ public class CardInfo : MonoBehaviour
             string rawDescription = card.description;
 
             if (card is SpellCard spellCard)
-            {
                 try
                 {
                     rawDescription = string.Format(rawDescription, spellCard.spellPower);
@@ -134,7 +129,6 @@ public class CardInfo : MonoBehaviour
                 {
                     Debug.LogWarning($"Description format error.");
                 }
-            }
 
             finalText += rawDescription;
         }
@@ -173,6 +167,7 @@ public class CardInfo : MonoBehaviour
                 canvasGroup.alpha = 0.5f;
                 canvasGroup.blocksRaycasts = false;
             }
+
             if (highlightState != null)
                 highlightState.SetActive(false);
 

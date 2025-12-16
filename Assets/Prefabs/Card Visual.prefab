@@ -288,6 +288,7 @@ MonoBehaviour:
   hideState: {fileID: 6265578838841928748}
   highlightState: {fileID: 6244740830932838734}
   descriptionBackground: {fileID: 3555026918107320436}
+  manaGem: {fileID: 646756674717231504}
 --- !u!114 &2815972047722565428
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1632,7 +1633,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 8952985764670273750, guid: 7b5e23d8b938552408fb40fe20a4a85f, type: 3}
+  m_Sprite: {fileID: -8246103488371625927, guid: 191747681f3673e4f9b72eb6b28d41bd, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1

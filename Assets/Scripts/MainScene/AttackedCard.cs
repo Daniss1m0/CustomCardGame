@@ -16,6 +16,9 @@ public class AttackedCard : MonoBehaviour, IDropHandler
 
         if (attacker.self.isPlaced && attacker.self.canAttack && defender.self.isPlaced)
         {
+            if (attacker.isPlayerCard == defender.isPlayerCard)
+                return;
+
             if (GameManager.Instance.enemyFieldCards.Exists(x => x.self.IsProvocation) && !defender.self.IsProvocation)
                 return;
 

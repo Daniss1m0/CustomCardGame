@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 21503b69b6ffdb24292bae3208147a31
+guid: 4209f719fe8e7174b9a49b35b0fcaefc
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 6039783915491752452
-    second: overlay_taunt_0
+      213: 5128114703819817128
+    second: overlay_taunt_shield_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: overlay_taunt_0
+      name: overlay_taunt_shield_0
       rect:
         serializedVersion: 2
         x: 77
         y: 77
         width: 422
-        height: 620
+        height: 614
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 40af003987f91d350800000000000000
-      internalID: 6039783915491752452
+      spriteID: 8a043a83729ba2740800000000000000
+      internalID: 5128114703819817128
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      overlay_taunt_0: 6039783915491752452
+      overlay_taunt_shield_0: 5128114703819817128
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

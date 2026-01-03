@@ -34,8 +34,8 @@ public class CardNetwork : NetworkBehaviour
     private NetworkVariable<int>.OnValueChangedDelegate manaChangedHandler;
     private NetworkVariable<bool>.OnValueChangedDelegate isPlacedChangedHandler;
     private NetworkVariable<bool>.OnValueChangedDelegate canAttackChangedHandler;
-    private NetworkVariable<int>.OnValueChangedDelegate cardDataIndexChangedHandler;
     private NetworkVariable<ulong>.OnValueChangedDelegate ownerChangedHandler;
+    private NetworkVariable<int>.OnValueChangedDelegate cardDataIndexChangedHandler;
     private NetworkVariable<int>.OnValueChangedDelegate spellTypeChangedHandler;
     private NetworkVariable<int>.OnValueChangedDelegate spellTargetChangedHandler;
     private NetworkVariable<int>.OnValueChangedDelegate spellPowerChangedHandler;
@@ -213,7 +213,7 @@ public class CardNetwork : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void ForceCanAttackSyncClientRpc(bool state, ClientRpcParams clientRpcParams = default)
+    public void ForceCanAttackSyncClientRpc(bool state)
     {
         onCanAttackForceUpdate?.Invoke(state);
     }
@@ -248,7 +248,9 @@ public class CardNetwork : NetworkBehaviour
                 if (rtRoot.sizeDelta == Vector2.zero) rtRoot.sizeDelta = new Vector2(175f, 230f);
                 rtRoot.anchoredPosition = Vector2.zero; rtRoot.localScale = Vector3.one;
             }
-            CardController cloneController = uiClone.GetComponent<CardController>() ?? uiClone.GetComponentInChildren<CardController>(true);
+            if (!uiClone.TryGetComponent<CardController>(out var cloneController)) 
+                cloneController = uiClone.GetComponentInChildren<CardController>(true);
+
             bool isOwner = NetworkManager.Singleton != null && ownerClientId == NetworkManager.Singleton.LocalClientId;
             if (cloneController != null)
             {
@@ -270,7 +272,10 @@ public class CardNetwork : NetworkBehaviour
 
                 var cloneMove = uiClone.GetComponentInChildren<CardMovement>(true);
                 if (cloneMove != null) { cloneController.SetMovement(cloneMove); cloneMove.defaultParent = hand; cloneMove.tempParent = hand; cloneMove.enabled = isOwner; }
-                CanvasGroup canvasGroup = uiClone.GetComponent<CanvasGroup>() ?? uiClone.AddComponent<CanvasGroup>();
+
+                if (!uiClone.TryGetComponent<CanvasGroup>(out var canvasGroup)) 
+                    canvasGroup = uiClone.AddComponent<CanvasGroup>();
+
                 canvasGroup.blocksRaycasts = isOwner; canvasGroup.interactable = isOwner;
                 cloneController.self.canAttack = canAttack.Value; cloneController.SetCanAttackVisual(canAttack.Value);
                 if (!isOwner)
@@ -342,7 +347,7 @@ public class CardNetwork : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RemoveLocalCloneClientRpc(ClientRpcParams clientRpcParams = default)
+    public void RemoveLocalCloneClientRpc()
     {
         StartCoroutine(RemoveLocalCloneRoutine());
     }
@@ -387,7 +392,7 @@ public class CardNetwork : NetworkBehaviour
     }
 
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
-    public void RequestPlaceCardServerRpc(bool isPlayerSide, int targetSlotIndex, RpcParams rpcParams = default)
+    public void RequestPlaceCardServerRpc(int targetSlotIndex, RpcParams rpcParams = default)
     {
         if (!IsServer) return;
         ulong sender = rpcParams.Receive.SenderClientId; if (ownerClientIdNet.Value != sender) return;
@@ -511,7 +516,7 @@ public class CardNetwork : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void AnimateAttackClientRpc(ulong attackerId, bool targetIsHero, bool isEnemyHeroTarget, ulong targetCardId, ClientRpcParams clientRpcParams = default)
+    public void AnimateAttackClientRpc(ulong attackerId, bool targetIsHero, bool isEnemyHeroTarget, ulong targetCardId)
     {
         var attackerVisual = FindVisualCardByNetId(attackerId);
         if (attackerVisual == null) return;
@@ -527,7 +532,8 @@ public class CardNetwork : NetworkBehaviour
             }
             else { var targetVisual = FindVisualCardByNetId(targetCardId); if (targetVisual != null) targetTransform = targetVisual.transform; }
         }
-        if (targetTransform != null && attackerVisual.Movement != null) StartCoroutine(WaitAndAnimateRoutine(attackerVisual, attackerVisual.Movement, targetTransform));
+        if (targetTransform != null && attackerVisual.Movement != null) 
+            StartCoroutine(WaitAndAnimateRoutine(attackerVisual, attackerVisual.Movement, targetTransform));
     }
 
     private IEnumerator WaitAndAnimateRoutine(CardController controller, CardMovement movement, Transform target)

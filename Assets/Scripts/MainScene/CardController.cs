@@ -172,7 +172,7 @@ public class CardController : MonoBehaviour
             {
                 info.SetHighlight(false);
                 int targetIdx = slotIndex == -1 ? 999 : slotIndex;
-                linkedNetwork.RequestPlaceCardServerRpc(isPlayerCard, targetIdx);
+                linkedNetwork.RequestPlaceCardServerRpc(targetIdx);
             }
         }
     }

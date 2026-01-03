@@ -179,7 +179,7 @@ public class TurnManager : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void NotifyClientsOwnerClientRpc(ulong ownerClientId, ClientRpcParams clientRpcParams = default)
+    public void NotifyClientsOwnerClientRpc(ulong ownerClientId)
     {
         bool amOwner = NetworkManager.Singleton != null && NetworkManager.Singleton.LocalClientId == ownerClientId;
         if (UIManager.Instance != null)

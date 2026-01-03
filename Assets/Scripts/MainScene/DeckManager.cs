@@ -265,7 +265,8 @@ public class DeckManager : MonoBehaviour
         {
             uiClone = Instantiate(visualCardPrefab, hand, false);
             uiClone.SetActive(false);
-            StartCoroutine(FinishLocalCloneRoutine(uiClone, hand, card, cardDataIndex, actualOwner, netInstance, innerVisualOnNet, cn));
+            // Wywołanie poprawione - usunięto netInstance
+            StartCoroutine(FinishLocalCloneRoutine(uiClone, hand, card, cardDataIndex, actualOwner, innerVisualOnNet, cn));
         }
         catch
         {
@@ -309,7 +310,7 @@ public class DeckManager : MonoBehaviour
         }
     }
 
-    private IEnumerator FinishLocalCloneRoutine(GameObject uiClone, Transform hand, Card card, int cardDataIndex, ulong ownerClientId, GameObject netInstance, CardController innerVisualOnNet, CardNetwork cn)
+    private IEnumerator FinishLocalCloneRoutine(GameObject uiClone, Transform hand, Card card, int cardDataIndex, ulong ownerClientId, CardController innerVisualOnNet, CardNetwork cn)
     {
         yield return null;
 
@@ -327,13 +328,15 @@ public class DeckManager : MonoBehaviour
                 rtRoot.pivot = new Vector2(0.5f, 0.5f);
                 rtRoot.anchorMin = new Vector2(0.5f, 0.5f);
                 rtRoot.anchorMax = new Vector2(0.5f, 0.5f);
-                if (rtRoot.sizeDelta == Vector2.zero) 
+                if (rtRoot.sizeDelta == Vector2.zero)
                     rtRoot.sizeDelta = new Vector2(175f, 230f);
 
                 rtRoot.anchoredPosition = Vector2.zero;
                 rtRoot.localScale = Vector3.one;
             }
-            CardController cloneController = uiClone.GetComponent<CardController>() ?? uiClone.GetComponentInChildren<CardController>();
+            if (!uiClone.TryGetComponent<CardController>(out var cloneController))
+                cloneController = uiClone.GetComponentInChildren<CardController>(true);
+
             bool isOwner = NetworkManager.Singleton != null && ownerClientId == NetworkManager.Singleton.LocalClientId;
             if (cloneController != null)
             {
@@ -359,7 +362,7 @@ public class DeckManager : MonoBehaviour
                         cloneController.Info.UpdateDescription(cloneController.self);
                 }
                 catch { }
-                
+
                 cloneController.LinkNetwork(cn);
 
                 var cloneMove = uiClone.GetComponentInChildren<CardMovement>(true);
@@ -377,10 +380,12 @@ public class DeckManager : MonoBehaviour
                     img.color = new Color(0f, 0f, 0f, 0f);
                     img.raycastTarget = true;
                 }
-                else 
+                else
                     rootGraphic.raycastTarget = true;
 
-                CanvasGroup canvasGroup = uiClone.GetComponent<CanvasGroup>() ?? uiClone.AddComponent<CanvasGroup>();
+                if (!uiClone.TryGetComponent<CanvasGroup>(out var canvasGroup))
+                    canvasGroup = uiClone.AddComponent<CanvasGroup>();
+
                 canvasGroup.blocksRaycasts = isOwner;
                 canvasGroup.interactable = isOwner;
                 if (!isOwner)
@@ -401,10 +406,10 @@ public class DeckManager : MonoBehaviour
             {
                 Canvas.ForceUpdateCanvases();
                 LayoutRebuilder.ForceRebuildLayoutImmediate(handRect);
-                try 
-                { 
-                    uiClone.transform.SetSiblingIndex(Mathf.Clamp(hand.childCount - 1, 0, hand.childCount)); 
-                } 
+                try
+                {
+                    uiClone.transform.SetSiblingIndex(Mathf.Clamp(hand.childCount - 1, 0, hand.childCount));
+                }
                 catch { }
             }
 
@@ -415,7 +420,7 @@ public class DeckManager : MonoBehaviour
                 else gm.enemyHandCards.Add(cloneController);
                 try { gm.CheckCardsForManaAvailability(); UIManager.Instance.UpdateHPAndMana(); } catch { }
             }
-            if (innerVisualOnNet != null) 
+            if (innerVisualOnNet != null)
                 innerVisualOnNet.gameObject.SetActive(false);
 
             if (cn != null && cloneController != null)
@@ -462,18 +467,18 @@ public class DeckManager : MonoBehaviour
                         {
                             if (ownerClientId == (NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0UL))
                             {
-                                if (gm2.playerHandCards.Contains(cloneController)) 
+                                if (gm2.playerHandCards.Contains(cloneController))
                                     gm2.playerHandCards.Remove(cloneController);
 
-                                if (!gm2.playerFieldCards.Contains(cloneController)) 
+                                if (!gm2.playerFieldCards.Contains(cloneController))
                                     gm2.playerFieldCards.Add(cloneController);
                             }
                             else
                             {
-                                if (gm2.enemyHandCards.Contains(cloneController)) 
+                                if (gm2.enemyHandCards.Contains(cloneController))
                                     gm2.enemyHandCards.Remove(cloneController);
 
-                                if (!gm2.enemyFieldCards.Contains(cloneController)) 
+                                if (!gm2.enemyFieldCards.Contains(cloneController))
                                     gm2.enemyFieldCards.Add(cloneController);
                             }
                         }
@@ -502,9 +507,10 @@ public class DeckManager : MonoBehaviour
                     cloneController.UpdateAbilitiesFromMask(cn.abilitiesNet.Value);
             }
         }
-        catch { 
-            if (uiClone != null) 
-                Destroy(uiClone); 
+        catch
+        {
+            if (uiClone != null)
+                Destroy(uiClone);
         }
     }
     public SpecialCardEntry GetSpecialCardEntry(string id) { if (string.IsNullOrEmpty(id)) return null; foreach (var e in specialCards) if (e != null && e.id == id) return e; return null; }

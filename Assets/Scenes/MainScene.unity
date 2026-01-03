@@ -1222,6 +1222,7 @@ GameObject:
   - component: {fileID: 409414249}
   - component: {fileID: 409414251}
   - component: {fileID: 409414250}
+  - component: {fileID: 409414252}
   m_Layer: 5
   m_Name: Enemy Deck Slot
   m_TagString: Untagged
@@ -1287,6 +1288,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 409414248}
   m_CullTransparentMesh: 1
+--- !u!114 &409414252
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 409414248}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 11c4af64cd8e63c4ba204d665c6f482e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DeckSlotHover
+  counterObject: {fileID: 1780593166}
 --- !u!1 &437836523
 GameObject:
   m_ObjectHideFlags: 0
@@ -4492,6 +4506,7 @@ GameObject:
   - component: {fileID: 1051805765}
   - component: {fileID: 1051805767}
   - component: {fileID: 1051805766}
+  - component: {fileID: 1051805768}
   m_Layer: 5
   m_Name: Player Deck Slot
   m_TagString: Untagged
@@ -4557,6 +4572,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1051805764}
   m_CullTransparentMesh: 1
+--- !u!114 &1051805768
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1051805764}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 11c4af64cd8e63c4ba204d665c6f482e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DeckSlotHover
+  counterObject: {fileID: 1767940046}
 --- !u!1 &1082041105
 GameObject:
   m_ObjectHideFlags: 0
@@ -4775,6 +4803,10 @@ MonoBehaviour:
   EnemyHP:
     m_InternalValue: 30
   PlayerOwner:
+    m_InternalValue: 0
+  PlayerDeckCount:
+    m_InternalValue: 0
+  EnemyDeckCount:
     m_InternalValue: 0
 --- !u!1 &1140106805
 GameObject:

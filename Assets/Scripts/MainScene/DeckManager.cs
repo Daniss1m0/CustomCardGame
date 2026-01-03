@@ -13,9 +13,6 @@ public class DeckManager : MonoBehaviour
     [SerializeField] private GameObject networkCardPrefab, visualCardPrefab;
     [SerializeField] private TextMeshProUGUI playerDeckText, enemyDeckText;
 
-    private List<Card> playerDeck = new();
-    private List<Card> enemyDeck = new();
-
     [System.Serializable]
     public class SpecialCardEntry
     {
@@ -33,17 +30,55 @@ public class DeckManager : MonoBehaviour
 
     private void Shuffle<T>(List<T> list) { int n = list.Count; for (int i = n - 1; i > 0; i--) { int j = Random.Range(0, i + 1); (list[i], list[j]) = (list[j], list[i]); } }
     private int GetCardDataIndex(Card card) { if (card == null || CardDatabase.AllCards == null) return -1; for (int i = 0; i < CardDatabase.AllCards.Count; i++) { object entryObj = CardDatabase.AllCards[i]; if (entryObj == null) continue; CardData cd = entryObj as CardData; if (cd != null) { if (!string.IsNullOrEmpty(cd.cardName) && cd.cardName == card.name) return i; continue; } Card existingCard = entryObj as Card; if (existingCard != null) if (!string.IsNullOrEmpty(existingCard.name) && existingCard.name == card.name) return i; } return -1; }
-    private void DrawCards(List<Card> deck, Transform hand, ulong ownerClientId, int count = 1) { if (deck == null || hand == null || count <= 0) return; for (int i = 0; i < count; i++) { if (deck.Count == 0) break; var card = deck[0]; int currentHandCount = hand.childCount; var gm = GameManager.Instance; if (gm != null) { if (hand == playerHand) currentHandCount = gm.playerHandCards != null ? gm.playerHandCards.Count : hand.childCount; else if (hand == enemyHand) currentHandCount = gm.enemyHandCards != null ? gm.enemyHandCards.Count : hand.childCount; } if (currentHandCount >= MAX_HAND_SIZE) { deck.RemoveAt(0); continue; } SpawnAndRegisterCard(card, hand, ownerClientId, GetCardDataIndex(card)); deck.RemoveAt(0); } }
+    private void DrawCards(List<Card> deck, Transform hand, ulong ownerClientId, int count = 1)
+    {
+        if (deck == null || hand == null || count <= 0) return;
+
+        for (int i = 0; i < count; i++)
+        {
+            if (deck.Count == 0) break;
+            var card = deck[0];
+
+            int currentHandCount = hand.childCount;
+            var gm = GameManager.Instance;
+            if (gm != null)
+            {
+                if (hand == playerHand) currentHandCount = gm.playerHandCards != null ? gm.playerHandCards.Count : hand.childCount;
+                else if (hand == enemyHand) currentHandCount = gm.enemyHandCards != null ? gm.enemyHandCards.Count : hand.childCount;
+            }
+
+            if (currentHandCount >= MAX_HAND_SIZE)
+            {
+                deck.RemoveAt(0);
+                continue;
+            }
+
+            SpawnAndRegisterCard(card, hand, ownerClientId, GetCardDataIndex(card));
+            deck.RemoveAt(0);
+        }
+
+        if (NetworkManager.Singleton.IsServer && GameManager.Instance != null && GameManager.Instance.currentGame != null)
+        {
+            var tm = FindFirstObjectByType<TurnManager>();
+            if (tm != null)
+            {
+                tm.SetDeckCounts(
+                    GameManager.Instance.currentGame.playerDeck.Count,
+                    GameManager.Instance.currentGame.enemyDeck.Count
+                );
+            }
+        }
+    }
     public void GiveNewCards(Game currentGame, ulong newTurnOwnerClientId) { if (currentGame == null) return; if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer) return; ulong playerOwnerClientId = NetworkManager.ServerClientId; var tm = FindFirstObjectByType<TurnManager>(); if (tm != null && tm.PlayerOwner.Value != 0UL) playerOwnerClientId = tm.PlayerOwner.Value; if (newTurnOwnerClientId == playerOwnerClientId) DrawCards(currentGame.playerDeck, playerHand, newTurnOwnerClientId, 1); else DrawCards(currentGame.enemyDeck, enemyHand, newTurnOwnerClientId, 1); }
     public bool GiveInitialHands(Game currentGame, ulong playerOwnerClientId, ulong otherClientId, bool randomStart = true) { Shuffle(currentGame.playerDeck); Shuffle(currentGame.enemyDeck); bool playerStarts = randomStart ? (Random.value < 0.5f) : true; int playerCount = playerStarts ? startPlayerHand : startEnemyHand; int enemyCount = playerStarts ? startEnemyHand : startPlayerHand; if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer) { DrawCards(currentGame.playerDeck, playerHand, playerOwnerClientId, playerCount); DrawCards(currentGame.enemyDeck, enemyHand, otherClientId, enemyCount); CardData coinData = GetSpecialCardData("coin"); int coinIndex = -1; if (coinData != null && CardDatabase.AllCards != null) { for (int i = 0; i < CardDatabase.AllCards.Count; i++) { object entryObj = CardDatabase.AllCards[i]; if (entryObj == null) continue; CardData cd = entryObj as CardData; if (cd != null) { if (cd == coinData || (!string.IsNullOrEmpty(cd.cardName) && cd.cardName == coinData.cardName)) { coinIndex = i; break; } continue; } Card existingCard = entryObj as Card; if (existingCard != null) if (!string.IsNullOrEmpty(existingCard.name) && existingCard.name == coinData.cardName) { coinIndex = i; break; } } if (coinIndex == -1 && CardDatabase.AllCards != null) { try { Card cardToAdd = coinData.isSpell ? (Card)new SpellCard(coinData) : new Card(coinData); CardDatabase.AllCards.Add(cardToAdd); coinIndex = CardDatabase.AllCards.Count - 1; } catch { } } } if (coinData != null) { Card coinCardInstance = coinData.isSpell ? (Card)new SpellCard(coinData) : new Card(coinData); if (playerStarts) SpawnAndRegisterCard(coinCardInstance, enemyHand, otherClientId, coinIndex); else SpawnAndRegisterCard(coinCardInstance, playerHand, playerOwnerClientId, coinIndex); } } return playerStarts; }
 
-    public void UpdateDeckVisuals()
+    public void UpdateDeckVisualsFromNetwork(int playerCount, int enemyCount)
     {
         if (playerDeckText != null)
-            playerDeckText.text = playerDeck.Count.ToString();
+            playerDeckText.text = playerCount.ToString();
 
         if (enemyDeckText != null)
-            enemyDeckText.text = enemyDeck.Count.ToString();
+            enemyDeckText.text = enemyCount.ToString();
     }
 
     private void SpawnAndRegisterCard(Card card, Transform hand, ulong ownerClientId, int cardDataIndex = -1)

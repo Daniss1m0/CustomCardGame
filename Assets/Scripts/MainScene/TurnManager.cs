@@ -7,40 +7,15 @@ public class TurnManager : NetworkBehaviour
 {
     public int turnTimeDefault = 30;
 
-    public NetworkVariable<ulong> CurrentTurnOwner = new NetworkVariable<ulong>(
-        0UL,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server);
-
-    public NetworkVariable<int> TurnTimeRemaining = new NetworkVariable<int>(
-        0,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server);
-
-    public NetworkVariable<int> PlayerMana = new NetworkVariable<int>(
-        0,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server);
-
-    public NetworkVariable<int> EnemyMana = new NetworkVariable<int>(
-        0,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server);
-
-    public NetworkVariable<int> PlayerHP = new NetworkVariable<int>(
-        30,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server);
-
-    public NetworkVariable<int> EnemyHP = new NetworkVariable<int>(
-        30,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server);
-
-    public NetworkVariable<ulong> PlayerOwner = new NetworkVariable<ulong>(
-        0UL,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server);
+    public NetworkVariable<ulong> CurrentTurnOwner = new(0UL, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    public NetworkVariable<int> TurnTimeRemaining = new(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    public NetworkVariable<int> PlayerMana = new(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    public NetworkVariable<int> EnemyMana = new(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    public NetworkVariable<int> PlayerHP = new(30, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    public NetworkVariable<int> EnemyHP = new(30, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    public NetworkVariable<ulong> PlayerOwner = new(0UL, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    public NetworkVariable<int> PlayerDeckCount = new(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    public NetworkVariable<int> EnemyDeckCount = new(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
     private Coroutine serverTurnCoroutine;
 
@@ -58,6 +33,9 @@ public class TurnManager : NetworkBehaviour
 
         PlayerHP.OnValueChanged += (oldV, newV) => { };
         EnemyHP.OnValueChanged += (oldV, newV) => { };
+
+        PlayerDeckCount.OnValueChanged += (oldV, newV) => UpdateDeckVisuals();
+        EnemyDeckCount.OnValueChanged += (oldV, newV) => UpdateDeckVisuals();
     }
 
     public override void OnNetworkDespawn()
@@ -67,6 +45,9 @@ public class TurnManager : NetworkBehaviour
         EnemyMana.OnValueChanged -= OnEnemyManaChanged;
         PlayerOwner.OnValueChanged -= OnPlayerOwnerChanged;
 
+        PlayerDeckCount.OnValueChanged -= (oldV, newV) => UpdateDeckVisuals();
+        EnemyDeckCount.OnValueChanged -= (oldV, newV) => UpdateDeckVisuals();
+
         base.OnNetworkDespawn();
     }
 
@@ -74,6 +55,24 @@ public class TurnManager : NetworkBehaviour
     private void OnPlayerManaChanged(int oldV, int newV) { }
     private void OnEnemyManaChanged(int oldV, int newV) { }
     private void OnPlayerOwnerChanged(ulong oldV, ulong newV) { }
+
+    private void UpdateDeckVisuals()
+    {
+        var dm = FindFirstObjectByType<DeckManager>();
+        if (dm != null)
+            dm.UpdateDeckVisualsFromNetwork(PlayerDeckCount.Value, EnemyDeckCount.Value);
+    }
+
+    public void SetDeckCounts(int playerCount, int enemyCount)
+    {
+        if (!IsServer)
+            return;
+
+        PlayerDeckCount.Value = playerCount;
+        EnemyDeckCount.Value = enemyCount;
+
+        UpdateDeckVisuals();
+    }
 
     public void SetCurrentTurnOwner(ulong ownerClientId)
     {
@@ -93,7 +92,7 @@ public class TurnManager : NetworkBehaviour
 
     public void SetEnemyManaServer(int value)
     {
-        if (!IsServer) 
+        if (!IsServer)
             return;
 
         EnemyMana.Value = value;
@@ -165,20 +164,6 @@ public class TurnManager : NetworkBehaviour
         }
     }
 
-    public ulong GetOtherClientIdOrServerFallback()
-    {
-        if (NetworkManager.Singleton == null) 
-            return NetworkManager.ServerClientId;
-
-        foreach (var kv in NetworkManager.Singleton.ConnectedClients)
-        {
-            var clientId = kv.Key;
-            if (clientId != NetworkManager.ServerClientId) 
-                return clientId;
-        }
-        return NetworkManager.ServerClientId;
-    }
-
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     public void RequestEndTurnServerRpc(RpcParams rpcParams = default)
     {
@@ -200,6 +185,6 @@ public class TurnManager : NetworkBehaviour
         if (UIManager.Instance != null)
             UIManager.Instance.SetEndTurnInteractable(amOwner);
 
-        GameManager.Instance?.CheckCardsForManaAvailability();
+        GameManager.Instance.CheckCardsForManaAvailability();
     }
 }

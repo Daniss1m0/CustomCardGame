@@ -185,7 +185,6 @@ public class GameManager : MonoBehaviour
             }
 
             UIManager.Instance.UpdateHPAndMana();
-            deckManager.UpdateDeckVisuals();
             UpdateStateNetworkIfServer();
         }
 

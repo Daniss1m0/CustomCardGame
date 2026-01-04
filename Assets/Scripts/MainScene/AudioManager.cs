@@ -4,7 +4,6 @@ public class AudioManager : MonoBehaviour
 {
     public static AudioManager Instance;
 
-    [Header("Audio Source")]
     [SerializeField] private AudioSource sfxSource;
 
     [Header("Clips")]

@@ -4,7 +4,7 @@ using UnityEngine;
 public static class CardDatabase
 {
     public static List<Card> AllCards = new();
-    public static Dictionary<string, CardData> CardDataById = new Dictionary<string, CardData>();
+    public static Dictionary<string, CardData> CardDataById = new();
 }
 
 public class CardManager : MonoBehaviour

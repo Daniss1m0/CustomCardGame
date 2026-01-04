@@ -96,7 +96,7 @@ public class CardInfo : MonoBehaviour
 
         string finalText = "";
 
-        List<string> keywords = new List<string>();
+        List<string> keywords = new();
         if (card.abilities != null)
         {
             foreach (var ab in card.abilities)

@@ -161,8 +161,7 @@ public class CardController : MonoBehaviour
                     movement.OnEndDrag(null); 
                     movement.enabled = false; 
                 }
-                var cg = GetComponent<CanvasGroup>();
-                if (cg != null) 
+                if (TryGetComponent<CanvasGroup>(out var cg)) 
                 { 
                     cg.interactable = false; 
                     cg.blocksRaycasts = false; 
@@ -236,14 +235,13 @@ public class CardController : MonoBehaviour
             movement.enabled = false;
         }
 
-        var cg = GetComponent<CanvasGroup>();
-        if (cg != null)
+        if (TryGetComponent<CanvasGroup>(out var cg))
         {
             cg.interactable = false;
             cg.blocksRaycasts = false;
         }
 
-        Info?.SetHighlight(false);
+        Info.SetHighlight(false);
 
         if (AnimationManager.Instance != null)
         {
@@ -297,8 +295,7 @@ public class CardController : MonoBehaviour
 
     public void UseSpell(CardController target)
     {
-        var spellCard = self as SpellCard;
-        if (spellCard == null)
+        if (self is not SpellCard spellCard)
         {
             DestroyCard();
             return;
@@ -321,8 +318,7 @@ public class CardController : MonoBehaviour
                 movement.OnEndDrag(null);
                 movement.enabled = false;
             }
-            var cg = GetComponent<CanvasGroup>();
-            if (cg != null)
+            if (TryGetComponent<CanvasGroup>(out var cg))
             {
                 cg.interactable = false;
                 cg.blocksRaycasts = false;
@@ -513,14 +509,13 @@ public class CardController : MonoBehaviour
             var all = CardDatabase.AllCards;
             if (cardDataIndex >= 0 && all != null && cardDataIndex < all.Count)
             {
-                object entryObj = (object)all[cardDataIndex];
+                object entryObj = all[cardDataIndex];
                 CardData cd = entryObj as CardData;
                 if (cd != null)
                     dataToUse = cd;
                 else
                 {
-                    Card existing = entryObj as Card;
-                    if (existing != null)
+                    if (entryObj is Card existing)
                     {
                         var tmp = ScriptableObject.CreateInstance<CardData>();
                         try { tmp.cardName = existing.name; } catch { tmp.cardName = "NetCard"; }
@@ -565,11 +560,11 @@ public class CardController : MonoBehaviour
 
         UpdateAbilitiesFromMask(abilitiesMask);
 
-        Info?.UpdateStats(self);
-        Info?.UpdateDescription(self);
+        Info.UpdateStats(self);
+        Info.UpdateDescription(self);
 
         bool isMine = NetworkManager.Singleton != null && ownerClientId == NetworkManager.Singleton.LocalClientId;
-        if (!self.isPlaced) { bool showForNonOwnerCoin = false; if (!isMine && !string.IsNullOrEmpty(self.name)) { var n = self.name.ToLower(); if (n == "coin" || n.Contains("coin")) showForNonOwnerCoin = true; } if (isMine || showForNonOwnerCoin) Info?.ShowCard(self); else Info?.HideCard(); } else Info?.ShowCard(self);
+        if (!self.isPlaced) { bool showForNonOwnerCoin = false; if (!isMine && !string.IsNullOrEmpty(self.name)) { var n = self.name.ToLower(); if (n == "coin" || n.Contains("coin")) showForNonOwnerCoin = true; } if (isMine || showForNonOwnerCoin) Info.ShowCard(self); else Info.HideCard(); } else Info.ShowCard(self);
         isPlayerCard = isMine;
     }
 
@@ -577,28 +572,30 @@ public class CardController : MonoBehaviour
     {
         if (Movement != null)
             Movement.enabled = isOwner;
-        var cg = GetComponent<CanvasGroup>();
-        if (cg != null)
+
+        if (TryGetComponent<CanvasGroup>(out var cg))
             cg.blocksRaycasts = isOwner;
-        var attacked = GetComponent<AttackedCard>();
-        if (attacked != null)
+
+        if (TryGetComponent<AttackedCard>(out var attacked))
             attacked.enabled = isOwner;
 
         if (!self.isPlaced)
         {
             if (isOwner)
-                Info?.ShowCard(self);
+                Info.ShowCard(self);
             else
-                Info?.HideCard();
+                Info.HideCard();
         }
         else
-            Info?.ShowCard(self);
+            Info.ShowCard(self);
 
         if (isOwner && pendingServerAction)
         {
             pendingServerAction = false;
+
             if (movement != null)
                 movement.enabled = true;
+
             if (cg != null)
             {
                 cg.interactable = true;
@@ -611,11 +608,11 @@ public class CardController : MonoBehaviour
     {
         if (!isPlayerCard)
         {
-            Info?.SetHighlight(false);
+            Info.SetHighlight(false);
             return;
         }
 
-        Info?.SetHighlight(canAttack);
+        Info.SetHighlight(canAttack);
     }
 
     public void OnPlacedNetworkSide(ulong ownerClientId)
@@ -664,7 +661,7 @@ public class CardController : MonoBehaviour
             }
 
             ResetVisualState();
-            Info?.ShowCard(self);
+            Info.ShowCard(self);
         }
 
         if (ability != null)
@@ -681,8 +678,7 @@ public class CardController : MonoBehaviour
 
     private void ResetVisualState()
     {
-        var cg = GetComponent<CanvasGroup>();
-        if (cg != null)
+        if (TryGetComponent<CanvasGroup>(out var cg))
         {
             cg.alpha = 1f;
             cg.blocksRaycasts = true;
@@ -703,9 +699,9 @@ public class CardController : MonoBehaviour
 
         bool isMine = NetworkManager.Singleton != null && ownerClientId == NetworkManager.Singleton.LocalClientId;
         if (isMine)
-            Info?.ShowCard(self);
+            Info.ShowCard(self);
         else
-            Info?.HideCard();
+            Info.HideCard();
     }
 
     public void LinkNetwork(CardNetwork cn)

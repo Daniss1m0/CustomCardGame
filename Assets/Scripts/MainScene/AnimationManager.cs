@@ -8,13 +8,13 @@ public class AnimationManager : MonoBehaviour
     public static AnimationManager Instance;
 
     private bool _isQueueProcessing = false;
-    private Queue<System.Action> _visualQueue = new Queue<System.Action>();
+    private Queue<System.Action> visualQueue = new();
 
     public int GlobalBusyCount { get; private set; } = 0;
 
     public void EnqueueVisual(System.Action action)
     {
-        _visualQueue.Enqueue(action);
+        visualQueue.Enqueue(action);
 
         if (!_isQueueProcessing)
             StartCoroutine(ProcessQueueRoutine());
@@ -24,12 +24,12 @@ public class AnimationManager : MonoBehaviour
     {
         _isQueueProcessing = true;
 
-        while (_visualQueue.Count > 0)
+        while (visualQueue.Count > 0)
         {
             while (GlobalBusyCount > 0)
                 yield return null;
 
-            var action = _visualQueue.Dequeue();
+            var action = visualQueue.Dequeue();
 
             action?.Invoke();
 
@@ -62,11 +62,10 @@ public class AnimationManager : MonoBehaviour
         Transform showcaseParent = rootCanvas != null ? rootCanvas.transform : card.transform.root;
         card.transform.SetParent(showcaseParent, true);
 
-        card.Info?.ShowCard(card.self);
+        card.Info.ShowCard(card.self);
         ResetVisualState(card);
 
-        RectTransform rt = card.GetComponent<RectTransform>();
-        if (rt != null)
+        if (card.TryGetComponent<RectTransform>(out var rt))
         {
             rt.anchorMin = new Vector2(0.5f, 0.5f);
             rt.anchorMax = new Vector2(0.5f, 0.5f);
@@ -107,9 +106,7 @@ public class AnimationManager : MonoBehaviour
                 }
 
                 card.transform.localScale = Vector3.one;
-                card.transform.localRotation = Quaternion.identity;
-                card.transform.localPosition = Vector3.zero;
-
+                card.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
                 card.IsAnimating = false;
                 DecrementBusyCount();
             });
@@ -135,11 +132,10 @@ public class AnimationManager : MonoBehaviour
         Transform showcaseParent = rootCanvas != null ? rootCanvas.transform : card.transform.root;
         card.transform.SetParent(showcaseParent, true);
 
-        card.Info?.ShowCard(card.self);
+        card.Info.ShowCard(card.self);
         ResetVisualState(card);
 
-        RectTransform rt = card.GetComponent<RectTransform>();
-        if (rt == null)
+        if (!card.TryGetComponent<RectTransform>(out var rt))
         {
             Destroy(card.gameObject);
             DecrementBusyCount();
@@ -166,8 +162,7 @@ public class AnimationManager : MonoBehaviour
         sequence.Join(rt.DORotate(Vector3.zero, 0.3f));
         sequence.AppendInterval(0.8f);
 
-        CanvasGroup cg = card.GetComponent<CanvasGroup>();
-        if (cg == null) 
+        if (!card.TryGetComponent<CanvasGroup>(out var cg)) 
             cg = card.gameObject.AddComponent<CanvasGroup>();
 
         sequence.Append(rt.DOScale(originalScale * 2f, 0.4f));
@@ -185,14 +180,13 @@ public class AnimationManager : MonoBehaviour
         if (attackerTransform == null)
             return;
 
-        var controller = attackerTransform.GetComponent<CardController>();
-        if (controller != null)
+        if (attackerTransform.TryGetComponent<CardController>(out var controller))
             controller.IsAnimating = true;
 
         Transform originalParent = attackerTransform.parent;
         int originalIndex = attackerTransform.GetSiblingIndex();
 
-        GameObject attackPlaceholder = new GameObject("AttackPlaceholder", typeof(RectTransform));
+        GameObject attackPlaceholder = new("AttackPlaceholder", typeof(RectTransform));
         attackPlaceholder.transform.SetParent(originalParent, false);
         attackPlaceholder.transform.SetSiblingIndex(originalIndex);
 
@@ -253,8 +247,7 @@ public class AnimationManager : MonoBehaviour
             {
                 attackerTransform.SetParent(originalParent, true);
                 attackerTransform.SetSiblingIndex(originalIndex);
-                attackerTransform.localPosition = Vector3.zero;
-                attackerTransform.localRotation = Quaternion.identity;
+                attackerTransform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
                 attackerTransform.localScale = Vector3.one;
 
                 LayoutRebuilder.ForceRebuildLayoutImmediate(originalParent as RectTransform);
@@ -270,8 +263,7 @@ public class AnimationManager : MonoBehaviour
         if (cardTransform == null) 
             return;
 
-        var le = cardTransform.GetComponent<LayoutElement>();
-        if (le == null) 
+        if (!cardTransform.TryGetComponent<LayoutElement>(out var le)) 
             le = cardTransform.gameObject.AddComponent<LayoutElement>();
 
         le.ignoreLayout = true;
@@ -319,8 +311,7 @@ public class AnimationManager : MonoBehaviour
 
     private void ResetVisualState(CardController card)
     {
-        var cg = card.GetComponent<CanvasGroup>();
-        if (cg != null)
+        if (card.TryGetComponent<CanvasGroup>(out var cg))
         {
             cg.alpha = 1f;
             cg.blocksRaycasts = true;

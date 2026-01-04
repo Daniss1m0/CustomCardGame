@@ -7,8 +7,8 @@ public class UIManager : MonoBehaviour
 {
     public static UIManager Instance;
 
-    public TextMeshProUGUI playerManaTxt, enemyManaTxt, playerHPTxt, enemyHPTxt, resultTxt, turnTimeTxt;
-    public Button endTurnBtn;
+    public TextMeshProUGUI playerManaTxt, enemyManaTxt, playerHPTxt, enemyHPTxt, resultTxt, turnTimeTxt, restartBtnText;
+    public Button endTurnBtn, restartBtn;
     public GameObject result, optionsPanel;
 
     private void Awake()
@@ -25,11 +25,18 @@ public class UIManager : MonoBehaviour
     public void StartGame()
     {
         result.SetActive(false);
+        if (restartBtn != null) 
+            restartBtn.interactable = true;
+
+        if (restartBtnText != null) 
+            restartBtnText.text = "RESTART?";
+
         UpdateHPAndMana();
     }
 
     public void UpdateHPAndMana()
     {
+        if (GameManager.Instance == null || GameManager.Instance.currentGame == null) return;
         playerManaTxt.text = GameManager.Instance.currentGame.player.mana.ToString();
         enemyManaTxt.text = GameManager.Instance.currentGame.enemy.mana.ToString();
         playerHPTxt.text = GameManager.Instance.currentGame.player.hp.ToString();
@@ -39,10 +46,21 @@ public class UIManager : MonoBehaviour
     public void ShowResult()
     {
         result.SetActive(true);
-        if (GameManager.Instance.currentGame.enemy.hp == 0)
+        if (GameManager.Instance.currentGame.enemy.hp <= 0)
             resultTxt.text = "WIN";
         else
             resultTxt.text = "LOSE";
+    }
+
+    public void UpdateRestartText(int votes)
+    {
+        if (restartBtnText != null)
+        {
+            if (votes == 0)
+                restartBtnText.text = "RESTART?";
+            else
+                restartBtnText.text = $"RESTART: {votes}/2";
+        }
     }
 
     public void UpdateTurnTime(int time)
@@ -58,6 +76,14 @@ public class UIManager : MonoBehaviour
     public void OnOptionsButton()
     {
         optionsPanel.SetActive(!optionsPanel.activeSelf);
+    }
+
+    public void OnRestartButton()
+    {
+        if (restartBtn != null)
+            restartBtn.interactable = false;
+
+        GameManager.Instance.SendRestartVote();
     }
 
     public void LoadDeckSelection()

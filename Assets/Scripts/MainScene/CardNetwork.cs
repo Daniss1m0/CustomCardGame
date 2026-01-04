@@ -491,7 +491,7 @@ public class CardNetwork : NetworkBehaviour
 
         ulong playerOwnerClientId = NetworkManager.ServerClientId;
         var tm = FindFirstObjectByType<TurnManager>();
-        if (tm != null && tm.PlayerOwner.Value != 0UL) playerOwnerClientId = tm.PlayerOwner.Value;
+        if (tm != null && tm.playerOwner.Value != 0UL) playerOwnerClientId = tm.playerOwner.Value;
         bool isPlayerSide = ownerClientIdNet.Value == playerOwnerClientId;
 
         switch (st)

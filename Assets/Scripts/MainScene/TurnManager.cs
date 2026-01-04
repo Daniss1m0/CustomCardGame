@@ -7,15 +7,16 @@ public class TurnManager : NetworkBehaviour
 {
     public int turnTimeDefault = 30;
 
-    public NetworkVariable<ulong> CurrentTurnOwner = new(0UL, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
-    public NetworkVariable<int> TurnTimeRemaining = new(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
-    public NetworkVariable<int> PlayerMana = new(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
-    public NetworkVariable<int> EnemyMana = new(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
-    public NetworkVariable<int> PlayerHP = new(30, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
-    public NetworkVariable<int> EnemyHP = new(30, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
-    public NetworkVariable<ulong> PlayerOwner = new(0UL, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
-    public NetworkVariable<int> PlayerDeckCount = new(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
-    public NetworkVariable<int> EnemyDeckCount = new(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    public NetworkVariable<ulong> currentTurnOwner = new(0UL, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    public NetworkVariable<int> turnTimeRemaining = new(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    public NetworkVariable<int> playerMana = new(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    public NetworkVariable<int> enemyMana = new(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    public NetworkVariable<int> playerHP = new(30, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    public NetworkVariable<int> enemyHP = new(30, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    public NetworkVariable<ulong> playerOwner = new(0UL, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    public NetworkVariable<int> playerDeckCount = new(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    public NetworkVariable<int> enemyDeckCount = new(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    public NetworkVariable<int> restartVotes = new(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
     private Coroutine serverTurnCoroutine;
 
@@ -24,31 +25,70 @@ public class TurnManager : NetworkBehaviour
         base.OnNetworkSpawn();
 
         if (IsServer)
-            TurnTimeRemaining.Value = 0;
+            turnTimeRemaining.Value = 0;
 
-        TurnTimeRemaining.OnValueChanged += OnTurnTimeRemainingChanged;
-        PlayerMana.OnValueChanged += OnPlayerManaChanged;
-        EnemyMana.OnValueChanged += OnEnemyManaChanged;
-        PlayerOwner.OnValueChanged += OnPlayerOwnerChanged;
+        turnTimeRemaining.OnValueChanged += OnTurnTimeRemainingChanged;
+        playerMana.OnValueChanged += OnPlayerManaChanged;
+        enemyMana.OnValueChanged += OnEnemyManaChanged;
+        playerOwner.OnValueChanged += OnPlayerOwnerChanged;
 
-        PlayerHP.OnValueChanged += (oldV, newV) => { };
-        EnemyHP.OnValueChanged += (oldV, newV) => { };
+        playerHP.OnValueChanged += (oldV, newV) => { };
+        enemyHP.OnValueChanged += (oldV, newV) => { };
 
-        PlayerDeckCount.OnValueChanged += (oldV, newV) => UpdateDeckVisuals();
-        EnemyDeckCount.OnValueChanged += (oldV, newV) => UpdateDeckVisuals();
+        playerDeckCount.OnValueChanged += (oldV, newV) => UpdateDeckVisuals();
+        enemyDeckCount.OnValueChanged += (oldV, newV) => UpdateDeckVisuals();
+
+        restartVotes.OnValueChanged += (oldV, newV) =>
+        {
+            if (UIManager.Instance != null)
+                UIManager.Instance.UpdateRestartText(newV);
+        };
+
+        if (UIManager.Instance != null)
+            UIManager.Instance.UpdateRestartText(restartVotes.Value);
     }
 
     public override void OnNetworkDespawn()
     {
-        TurnTimeRemaining.OnValueChanged -= OnTurnTimeRemainingChanged;
-        PlayerMana.OnValueChanged -= OnPlayerManaChanged;
-        EnemyMana.OnValueChanged -= OnEnemyManaChanged;
-        PlayerOwner.OnValueChanged -= OnPlayerOwnerChanged;
+        turnTimeRemaining.OnValueChanged -= OnTurnTimeRemainingChanged;
+        playerMana.OnValueChanged -= OnPlayerManaChanged;
+        enemyMana.OnValueChanged -= OnEnemyManaChanged;
+        playerOwner.OnValueChanged -= OnPlayerOwnerChanged;
 
-        PlayerDeckCount.OnValueChanged -= (oldV, newV) => UpdateDeckVisuals();
-        EnemyDeckCount.OnValueChanged -= (oldV, newV) => UpdateDeckVisuals();
+        playerDeckCount.OnValueChanged -= (oldV, newV) => UpdateDeckVisuals();
+        enemyDeckCount.OnValueChanged -= (oldV, newV) => UpdateDeckVisuals();
 
         base.OnNetworkDespawn();
+    }
+
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    public void RequestRestartVoteServerRpc()
+    {
+        restartVotes.Value++;
+
+        if (restartVotes.Value >= 2)
+            PerformFullRestart();
+    }
+
+    private void PerformFullRestart()
+    {
+        restartVotes.Value = 0;
+        StopServerTurnLoop();
+
+        if (GameManager.Instance != null)
+            GameManager.Instance.CleanupNetworkCards();
+
+        TriggerRestartClientRpc();
+
+        if (GameManager.Instance != null)
+            GameManager.Instance.StartGame();
+    }
+
+    [ClientRpc]
+    private void TriggerRestartClientRpc()
+    {
+        if (GameManager.Instance != null)
+            GameManager.Instance.ResetClientState();
     }
 
     private void OnTurnTimeRemainingChanged(int oldV, int newV) { }
@@ -60,67 +100,25 @@ public class TurnManager : NetworkBehaviour
     {
         var dm = FindFirstObjectByType<DeckManager>();
         if (dm != null)
-            dm.UpdateDeckVisualsFromNetwork(PlayerDeckCount.Value, EnemyDeckCount.Value);
+            dm.UpdateDeckVisualsFromNetwork(playerDeckCount.Value, enemyDeckCount.Value);
     }
 
     public void SetDeckCounts(int playerCount, int enemyCount)
     {
-        if (!IsServer)
+        if (!IsServer) 
             return;
 
-        PlayerDeckCount.Value = playerCount;
-        EnemyDeckCount.Value = enemyCount;
-
+        playerDeckCount.Value = playerCount;
+        enemyDeckCount.Value = enemyCount;
         UpdateDeckVisuals();
     }
 
-    public void SetCurrentTurnOwner(ulong ownerClientId)
-    {
-        if (!IsServer) 
-            return;
-
-        CurrentTurnOwner.Value = ownerClientId;
-    }
-
-    public void SetPlayerManaServer(int value)
-    {
-        if (!IsServer) 
-            return;
-
-        PlayerMana.Value = value;
-    }
-
-    public void SetEnemyManaServer(int value)
-    {
-        if (!IsServer)
-            return;
-
-        EnemyMana.Value = value;
-    }
-
-    public void SetPlayerHPServer(int value)
-    {
-        if (!IsServer) 
-            return;
-
-        PlayerHP.Value = value;
-    }
-
-    public void SetEnemyHPServer(int value)
-    {
-        if (!IsServer) 
-            return;
-
-        EnemyHP.Value = value;
-    }
-
-    public void SetPlayerOwnerServer(ulong ownerClientId)
-    {
-        if (!IsServer) 
-            return;
-
-        PlayerOwner.Value = ownerClientId;
-    }
+    public void SetCurrentTurnOwner(ulong ownerClientId) { if (!IsServer) return; currentTurnOwner.Value = ownerClientId; }
+    public void SetPlayerManaServer(int value) { if (!IsServer) return; playerMana.Value = value; }
+    public void SetEnemyManaServer(int value) { if (!IsServer) return; enemyMana.Value = value; }
+    public void SetPlayerHPServer(int value) { if (!IsServer) return; playerHP.Value = value; }
+    public void SetEnemyHPServer(int value) { if (!IsServer) return; enemyHP.Value = value; }
+    public void SetPlayerOwnerServer(ulong ownerClientId) { if (!IsServer) return; playerOwner.Value = ownerClientId; }
 
     public void StartServerTurnLoop()
     {
@@ -143,21 +141,20 @@ public class TurnManager : NetworkBehaviour
             StopCoroutine(serverTurnCoroutine);
             serverTurnCoroutine = null;
         }
-        TurnTimeRemaining.Value = 0;
+        turnTimeRemaining.Value = 0;
     }
 
     private IEnumerator ServerTurnLoop()
     {
         while (true)
         {
-            TurnTimeRemaining.Value = Mathf.Max(0, turnTimeDefault);
-            while (TurnTimeRemaining.Value > 0)
+            turnTimeRemaining.Value = Mathf.Max(0, turnTimeDefault);
+            while (turnTimeRemaining.Value > 0)
             {
                 yield return new WaitForSeconds(1f);
-                TurnTimeRemaining.Value = Mathf.Max(0, TurnTimeRemaining.Value - 1);
+                turnTimeRemaining.Value = Mathf.Max(0, turnTimeRemaining.Value - 1);
             }
-
-            if (GameManager.Instance != null)
+            if (GameManager.Instance != null) 
                 GameManager.Instance.ChangeTurn();
 
             yield return null;
@@ -171,20 +168,19 @@ public class TurnManager : NetworkBehaviour
             return;
 
         ulong sender = rpcParams.Receive.SenderClientId;
-        if (sender != CurrentTurnOwner.Value) 
+        if (sender != currentTurnOwner.Value) 
             return;
 
-        if (GameManager.Instance != null) 
-            GameManager.Instance.ChangeTurn();
+        if (GameManager.Instance != null) GameManager.Instance.ChangeTurn();
     }
 
     [ClientRpc]
     public void NotifyClientsOwnerClientRpc(ulong ownerClientId)
     {
         bool amOwner = NetworkManager.Singleton != null && NetworkManager.Singleton.LocalClientId == ownerClientId;
-        if (UIManager.Instance != null)
+        if (UIManager.Instance != null) 
             UIManager.Instance.SetEndTurnInteractable(amOwner);
 
-        GameManager.Instance.CheckCardsForManaAvailability();
+        GameManager.Instance?.CheckCardsForManaAvailability();
     }
 }

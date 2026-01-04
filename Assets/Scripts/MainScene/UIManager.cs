@@ -22,21 +22,23 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    private void Start()
+    {
+        if (result != null) 
+            result.SetActive(false);
+    }
+
     public void StartGame()
     {
         result.SetActive(false);
-        if (restartBtn != null) 
-            restartBtn.interactable = true;
-
-        if (restartBtnText != null) 
-            restartBtnText.text = "RESTART?";
-
         UpdateHPAndMana();
     }
 
     public void UpdateHPAndMana()
     {
-        if (GameManager.Instance == null || GameManager.Instance.currentGame == null) return;
+        if (GameManager.Instance == null || GameManager.Instance.currentGame == null) 
+            return;
+
         playerManaTxt.text = GameManager.Instance.currentGame.player.mana.ToString();
         enemyManaTxt.text = GameManager.Instance.currentGame.enemy.mana.ToString();
         playerHPTxt.text = GameManager.Instance.currentGame.player.hp.ToString();
@@ -46,10 +48,20 @@ public class UIManager : MonoBehaviour
     public void ShowResult()
     {
         result.SetActive(true);
-        if (GameManager.Instance.currentGame.enemy.hp <= 0)
-            resultTxt.text = "WIN";
-        else
-            resultTxt.text = "LOSE";
+
+        if (GameManager.Instance != null && GameManager.Instance.currentGame != null)
+        {
+            if (GameManager.Instance.currentGame.enemy.hp <= 0)
+                resultTxt.text = "WIN";
+            else
+                resultTxt.text = "LOSE";
+        }
+
+        if (restartBtn != null)
+            restartBtn.interactable = true;
+
+        if (restartBtnText != null)
+            restartBtnText.text = "RESTART?";
     }
 
     public void UpdateRestartText(int votes)
@@ -83,7 +95,8 @@ public class UIManager : MonoBehaviour
         if (restartBtn != null)
             restartBtn.interactable = false;
 
-        GameManager.Instance.SendRestartVote();
+        if (GameManager.Instance != null)
+            GameManager.Instance.SendRestartVote();
     }
 
     public void LoadDeckSelection()

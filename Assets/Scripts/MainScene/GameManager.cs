@@ -18,7 +18,7 @@ public class GameManager : MonoBehaviour
 
     private int turn;
     private float lastChangeTime = -10f;
-    private bool localIsOwnerTurn = false;
+    private bool localIsOwnerTurn = false, pendingRestartSync = false;
 
     public int CurrentTurn => turn;
     public bool IsPlayerTurn => turn % 2 == 0;
@@ -104,6 +104,22 @@ public class GameManager : MonoBehaviour
 
         if (turnManager != null)
             turnManager.NotifyClientsOwnerClientRpc(turnManager.currentTurnOwner.Value);
+    }
+
+    public void ResetClientState()
+    {
+        if (UIManager.Instance != null)
+            UIManager.Instance.StartGame();
+
+        currentGame = new Game();
+
+        pendingRestartSync = true;
+
+        if (deckManager != null)
+            deckManager.ClearAll();
+
+        if (UIManager.Instance != null)
+            UIManager.Instance.UpdateHPAndMana();
     }
 
     public void ChangeTurn()
@@ -212,13 +228,13 @@ public class GameManager : MonoBehaviour
     {
         SanitizeLists();
 
-        if (card == null)
+        if (card == null) 
             return false;
 
-        if (isPlayerSide != IsPlayerTurn)
+        if (isPlayerSide != IsPlayerTurn) 
             return false;
 
-        if (card.self.isPlaced)
+        if (card.self.isPlaced) 
             return false;
 
         var fieldCount = isPlayerSide ? playerFieldCards.Count : enemyFieldCards.Count;
@@ -237,14 +253,14 @@ public class GameManager : MonoBehaviour
 
     public void CastSpell(CardController spell, CardController target, bool isPlayerSide)
     {
-        if (spell == null)
+        if (spell == null) 
             return;
 
-        if (isPlayerSide != IsPlayerTurn)
+        if (isPlayerSide != IsPlayerTurn) 
             return;
 
         int currentMana = isPlayerSide ? currentGame.player.mana : currentGame.enemy.mana;
-        if (currentMana < spell.self.manaCost)
+        if (currentMana < spell.self.manaCost) 
             return;
 
         if (isPlayerSide)
@@ -275,13 +291,13 @@ public class GameManager : MonoBehaviour
 
     public void Attack(CardController attacker, CardController defender)
     {
-        if (attacker == null || defender == null)
+        if (attacker == null || defender == null) 
             return;
 
-        if (!attacker.self.canAttack)
+        if (!attacker.self.canAttack) 
             return;
 
-        if (!defender.self.isPlaced)
+        if (!defender.self.isPlaced) 
             return;
 
         if (attacker.isPlayerCard)
@@ -295,15 +311,15 @@ public class GameManager : MonoBehaviour
 
     public void AttackHero(CardController attacker, bool targetIsEnemyHero)
     {
-        if (attacker == null)
+        if (attacker == null) 
             return;
 
-        if (!attacker.self.canAttack)
+        if (!attacker.self.canAttack) 
             return;
 
         if (targetIsEnemyHero)
         {
-            if (enemyFieldCards.Exists(x => x.self.IsProvocation))
+            if (enemyFieldCards.Exists(x => x.self.IsProvocation)) 
                 return;
 
             DamageHero(attacker, true);
@@ -492,15 +508,6 @@ public class GameManager : MonoBehaviour
         SanitizeLists();
     }
 
-    public void ResetClientState()
-    {
-        if (UIManager.Instance != null)
-            UIManager.Instance.StartGame();
-
-        if (deckManager != null)
-            deckManager.ClearAll();
-    }
-
     public void SanitizeLists()
     {
         playerHandCards.RemoveAll(x => x == null || x.gameObject == null);
@@ -644,6 +651,14 @@ public class GameManager : MonoBehaviour
             int pHP = turnManager.playerHP.Value;
             int eHP = turnManager.enemyHP.Value;
 
+            if (pendingRestartSync)
+            {
+                if (pHP > 0 && eHP > 0)
+                    pendingRestartSync = false;
+                else
+                    return;
+            }
+
             if (localIsPlayerOwner)
             {
                 currentGame.player.mana = pMana;
@@ -678,7 +693,7 @@ public class GameManager : MonoBehaviour
         foreach (var kv in NetworkManager.Singleton.ConnectedClients)
         {
             var id = kv.Key;
-            if (id != clientId)
+            if (id != NetworkManager.ServerClientId)
                 return id;
         }
         return NetworkManager.ServerClientId;

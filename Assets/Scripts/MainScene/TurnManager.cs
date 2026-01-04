@@ -43,9 +43,6 @@ public class TurnManager : NetworkBehaviour
             if (UIManager.Instance != null)
                 UIManager.Instance.UpdateRestartText(newV);
         };
-
-        if (UIManager.Instance != null)
-            UIManager.Instance.UpdateRestartText(restartVotes.Value);
     }
 
     public override void OnNetworkDespawn()
@@ -171,7 +168,8 @@ public class TurnManager : NetworkBehaviour
         if (sender != currentTurnOwner.Value) 
             return;
 
-        if (GameManager.Instance != null) GameManager.Instance.ChangeTurn();
+        if (GameManager.Instance != null) 
+            GameManager.Instance.ChangeTurn();
     }
 
     [ClientRpc]

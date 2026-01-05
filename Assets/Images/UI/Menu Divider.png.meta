@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: cecbe7b63a2e5ab499e1f87ab0350ec9
+guid: 75adbe43d2aa1b245b9f299fdae9299a
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 1677137843095257268
-    second: menu_divider_hd (2)_0
+      213: 5989872882246985475
+    second: menu_divider_hd_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,7 +100,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: menu_divider_hd (2)_0
+      name: menu_divider_hd_0
       rect:
         serializedVersion: 2
         x: 96
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 4b0ce018bf3664710800000000000000
-      internalID: 1677137843095257268
+      spriteID: 307a31496ad402350800000000000000
+      internalID: 5989872882246985475
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      menu_divider_hd (2)_0: 1677137843095257268
+      menu_divider_hd_0: 5989872882246985475
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

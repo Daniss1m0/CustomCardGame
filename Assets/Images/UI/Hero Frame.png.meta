@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: b0e7f380233d5f74c8936b4c2d18a57e
+guid: 67c2e61dc6ab69e448da7f6dfdf74753
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -1129954139881843478
-    second: Collection Background_0
+      213: 4050633737203568878
+    second: Hero Frame_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Collection Background_0
+      name: Hero Frame_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 1440
-        height: 810
+        width: 600
+        height: 900
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: ae45cdf42b89150f0800000000000000
-      internalID: -1129954139881843478
+      spriteID: ee05b3d3cedb63830800000000000000
+      internalID: 4050633737203568878
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Collection Background_0: -1129954139881843478
+      Hero Frame_0: 4050633737203568878
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

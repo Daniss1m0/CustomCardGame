@@ -4,20 +4,12 @@ using UnityEngine.UI;
 
 public class HeroSelectionUI : MonoBehaviour
 {
-    public GameObject optionsPanel;
     public Image heroImage;
-    public Sprite[] deckSprites;
-
-    private int currentDeckIndex = 0;
+    public Sprite[] heroSprites;
 
     public void OnPlayButton()
     {
         SceneManager.LoadScene("MainScene");
-    }
-
-    public void OnOptionsButton()
-    {
-        optionsPanel.SetActive(!optionsPanel.activeSelf);
     }
 
     public void LoadMainMenu()
@@ -27,10 +19,7 @@ public class HeroSelectionUI : MonoBehaviour
 
     public void SelectDeck(int index)
     {
-        if (index >= 0 && index < deckSprites.Length)
-        {
-            currentDeckIndex = index;
-            heroImage.sprite = deckSprites[index];
-        }
+        if (index >= 0 && index < heroSprites.Length)
+            heroImage.sprite = heroSprites[index];
     }
 }

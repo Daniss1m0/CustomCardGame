@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: b4b9d0a1a8b408941a9ae7fa1ea95beb
+guid: b4fa0e7a63168554ca3e927028498ce7
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -7538777208600443483
-    second: 20240707dragonHeaderA-export_0
+      213: 2383328412670291365
+    second: List Hero_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -96,30 +96,17 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 4
-    buildTarget: WebGL
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    ignorePlatformSupport: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: 20240707dragonHeaderA-export_0
+      name: List Hero_0
       rect:
         serializedVersion: 2
         x: 0
-        y: 0
-        width: 94
-        height: 28
+        y: 1
+        width: 768
+        height: 245
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -128,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 5a54f882212e06790800000000000000
-      internalID: -7538777208600443483
+      spriteID: 5adee4c5098431120800000000000000
+      internalID: 2383328412670291365
       vertices: []
       indices: 
       edges: []
@@ -148,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      20240707dragonHeaderA-export_0: -7538777208600443483
+      List Hero_0: 2383328412670291365
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

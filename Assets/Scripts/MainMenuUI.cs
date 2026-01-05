@@ -7,7 +7,7 @@ public class MainMenuUI : MonoBehaviour
 
     public void OnPlayButton()
     {
-        SceneManager.LoadScene("DeckSelection");
+        SceneManager.LoadScene("HeroSelection");
     }
 
     public void OnCollectionButton()

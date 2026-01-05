@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: e571fbde4bfddb34b8d28f9b76764645
+guid: 66097febefdff414cbd8cc1beae28038
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 7233590688616471848
-    second: 20240709dragonBarA-export_0
+      213: 3632145661140911371
+    second: Page_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -96,30 +96,17 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 4
-    buildTarget: WebGL
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    ignorePlatformSupport: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: 20240709dragonBarA-export_0
+      name: Page_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 0
-        width: 200
-        height: 31
+        x: 47
+        y: 47
+        width: 194
+        height: 194
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -128,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 82dde85f760e26460800000000000000
-      internalID: 7233590688616471848
+      spriteID: b05c7c02c39f76230800000000000000
+      internalID: 3632145661140911371
       vertices: []
       indices: 
       edges: []
@@ -148,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      20240709dragonBarA-export_0: 7233590688616471848
+      Page_0: 3632145661140911371
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

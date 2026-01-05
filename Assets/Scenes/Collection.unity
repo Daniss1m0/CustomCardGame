@@ -542,7 +542,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1156293714}
+      - m_Target: {fileID: 519420033}
         m_TargetAssemblyTypeName: CollectionManager, Assembly-CSharp
         m_MethodName: LoadMainMenu
         m_Mode: 1
@@ -604,6 +604,7 @@ GameObject:
   - component: {fileID: 519420031}
   - component: {fileID: 519420029}
   - component: {fileID: 519420030}
+  - component: {fileID: 519420033}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -729,6 +730,28 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &519420033
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 519420028}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0274032c080320746a4aa22906afb294, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CollectionManager
+  cardsPerPage: 8
+  cardPrefab: {fileID: 979882027150900141, guid: a26a0db67b713d549a10ed908a8a3b8f, type: 3}
+  cardGrid: {fileID: 1156293710}
+  pageButtons:
+  - {fileID: 727461330}
+  - {fileID: 1512727766}
+  - {fileID: 1021331779}
+  - {fileID: 520527625}
+  - {fileID: 1157256422}
+  - {fileID: 930566907}
 --- !u!1 &520527623
 GameObject:
   m_ObjectHideFlags: 0
@@ -1870,7 +1893,6 @@ GameObject:
   - component: {fileID: 1156293713}
   - component: {fileID: 1156293712}
   - component: {fileID: 1156293711}
-  - component: {fileID: 1156293714}
   m_Layer: 5
   m_Name: Cards Panel
   m_TagString: Untagged
@@ -1959,28 +1981,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1156293709}
   m_CullTransparentMesh: 1
---- !u!114 &1156293714
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1156293709}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0274032c080320746a4aa22906afb294, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CollectionManager
-  "\u0441ardsPerPage": 8
-  "\u0441ardPrefab": {fileID: 979882027150900141, guid: a26a0db67b713d549a10ed908a8a3b8f, type: 3}
-  "\u0441ardGrid": {fileID: 1156293710}
-  pageButtons:
-  - {fileID: 727461330}
-  - {fileID: 1512727766}
-  - {fileID: 1021331779}
-  - {fileID: 520527625}
-  - {fileID: 1157256422}
-  - {fileID: 930566907}
 --- !u!1 &1157256420
 GameObject:
   m_ObjectHideFlags: 0
@@ -2554,7 +2554,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -2938016563279666172, guid: 3ea7823fdc7cf5b48abf212537d1e354, type: 3}
+  m_Sprite: {fileID: -1129954139881843478, guid: b0e7f380233d5f74c8936b4c2d18a57e, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1

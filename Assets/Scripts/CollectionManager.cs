@@ -5,9 +5,9 @@ using Unity.Netcode;
 
 public class CollectionManager : MonoBehaviour
 {
-    public int ñardsPerPage;
-    public GameObject ñardPrefab;
-    public Transform ñardGrid;
+    public int cardsPerPage;
+    public GameObject cardPrefab;
+    public Transform cardGrid;
     public List<Button> pageButtons;
 
     private int currentPage = 0;
@@ -16,9 +16,9 @@ public class CollectionManager : MonoBehaviour
 
     void Start()
     {
-        if (ñardGrid != null)
-            for (int i = ñardGrid.childCount - 1; i >= 0; i--)
-                DestroyImmediate(ñardGrid.GetChild(i).gameObject);
+        if (cardGrid != null)
+            for (int i = cardGrid.childCount - 1; i >= 0; i--)
+                DestroyImmediate(cardGrid.GetChild(i).gameObject);
 
         if (CardDatabase.AllCards == null || CardDatabase.AllCards.Count == 0)
         {
@@ -59,19 +59,16 @@ public class CollectionManager : MonoBehaviour
         if (allCards == null || allCards.Count == 0) 
             return;
 
-        int start = pageIndex * ñardsPerPage;
-        int end = Mathf.Min(start + ñardsPerPage, allCards.Count);
+        int start = pageIndex * cardsPerPage;
+        int end = Mathf.Min(start + cardsPerPage, allCards.Count);
 
         for (int i = start; i < end; i++)
         {
-            GameObject cardGO = Instantiate(ñardPrefab, ñardGrid, false);
+            GameObject cardGO = Instantiate(cardPrefab, cardGrid, false);
 
             cardGO.transform.localScale = Vector3.one;
-            cardGO.transform.localPosition = Vector3.zero;
-            cardGO.transform.localRotation = Quaternion.identity;
-
-            var rt = cardGO.GetComponent<RectTransform>();
-            if (rt != null)
+            cardGO.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
+            if (cardGO.TryGetComponent<RectTransform>(out var rt))
             {
                 rt.anchoredPosition = Vector2.zero;
                 rt.anchoredPosition3D = Vector3.zero;
@@ -88,8 +85,7 @@ public class CollectionManager : MonoBehaviour
     {
         for (int i = 0; i < pageButtons.Count; i++)
         {
-            var canvasGroup = pageButtons[i].GetComponent<CanvasGroup>();
-            if (canvasGroup == null)
+            if (!pageButtons[i].TryGetComponent<CanvasGroup>(out var canvasGroup))
                 canvasGroup = pageButtons[i].gameObject.AddComponent<CanvasGroup>();
 
             pageButtons[i].gameObject.SetActive(true);
@@ -103,16 +99,14 @@ public class CollectionManager : MonoBehaviour
 
     void SetupCardUI(GameObject cardGO, Card card)
     {
-        var netScript = cardGO.GetComponent<CardNetwork>();
-        if (netScript != null) 
+        if (cardGO.TryGetComponent<CardNetwork>(out var netScript)) 
             DestroyImmediate(netScript);
 
-        var netObj = cardGO.GetComponent<NetworkObject>();
-        if (netObj != null) 
+        if (cardGO.TryGetComponent<NetworkObject>(out var netObj)) 
             DestroyImmediate(netObj);
 
         CardController controller = cardGO.GetComponent<CardController>();
-        CardInfo info = null;
+        CardInfo info;
 
         if (controller != null)
         {
@@ -135,8 +129,7 @@ public class CollectionManager : MonoBehaviour
             info.SetAvailability(true, false);
             info.SetHighlight(false);
 
-            var cg = cardGO.GetComponent<CanvasGroup>();
-            if (cg != null)
+            if (cardGO.TryGetComponent<CanvasGroup>(out var cg))
             {
                 cg.blocksRaycasts = false;
                 cg.alpha = 1f;

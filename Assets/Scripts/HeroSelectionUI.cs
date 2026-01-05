@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-public class DeckSelectionUI : MonoBehaviour
+public class HeroSelectionUI : MonoBehaviour
 {
     public GameObject optionsPanel;
     public Image heroImage;

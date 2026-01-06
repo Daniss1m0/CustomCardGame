@@ -4,6 +4,8 @@ using UnityEngine.UI;
 
 public class HeroSelectionUI : MonoBehaviour
 {
+    public static int SelectedHeroIndexStatic = -1;
+
     public Image heroImage;
     public Sprite[] heroSprites;
 
@@ -19,6 +21,8 @@ public class HeroSelectionUI : MonoBehaviour
     {
         PlayerPrefs.SetInt("SelectedHeroIndex", currentHeroIndex);
         PlayerPrefs.Save();
+
+        SelectedHeroIndexStatic = currentHeroIndex;
 
         SceneManager.LoadScene("MainScene");
     }

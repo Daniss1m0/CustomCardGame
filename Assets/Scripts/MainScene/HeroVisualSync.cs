@@ -14,9 +14,12 @@ public class HeroVisualSync : NetworkBehaviour
         hostHeroIndex.OnValueChanged += (oldV, newV) => UpdateUI();
         clientHeroIndex.OnValueChanged += (oldV, newV) => UpdateUI();
 
-        int mySavedIndex = PlayerPrefs.GetInt("SelectedHeroIndex", 0);
+        int myIndexToSend = HeroSelectionUI.SelectedHeroIndexStatic;
 
-        SubmitHeroIndexServerRpc(mySavedIndex);
+        if (myIndexToSend == -1)
+            myIndexToSend = PlayerPrefs.GetInt("SelectedHeroIndex", 0);
+
+        SubmitHeroIndexServerRpc(myIndexToSend);
 
         UpdateUI();
     }
@@ -41,7 +44,7 @@ public class HeroVisualSync : NetworkBehaviour
 
     private void UpdateUI()
     {
-        if (allHeroSprites == null || allHeroSprites.Length == 0) 
+        if (allHeroSprites == null || allHeroSprites.Length == 0)
             return;
 
         Sprite hostSprite = GetSpriteSafe(hostHeroIndex.Value);
@@ -49,18 +52,18 @@ public class HeroVisualSync : NetworkBehaviour
 
         if (IsServer)
         {
-            if (bottomHeroImage) 
+            if (bottomHeroImage)
                 bottomHeroImage.sprite = hostSprite;
 
-            if (topHeroImage) 
+            if (topHeroImage)
                 topHeroImage.sprite = clientSprite;
         }
         else
         {
-            if (bottomHeroImage) 
+            if (bottomHeroImage)
                 bottomHeroImage.sprite = clientSprite;
 
-            if (topHeroImage) 
+            if (topHeroImage)
                 topHeroImage.sprite = hostSprite;
         }
     }

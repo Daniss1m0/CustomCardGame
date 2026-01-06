@@ -74,7 +74,7 @@ public class HeroVisualSync : NetworkBehaviour
             targetImage.sprite = GetSpriteSafe(heroIndex);
 
             var c = targetImage.color;
-            c.a = 0.5f;
+            c.a = 1f;
             targetImage.color = c;
         }
     }

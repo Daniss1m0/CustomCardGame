@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using UnityEngine;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using Unity.Services.Authentication;
@@ -9,7 +10,6 @@ using Unity.Services.Lobbies;
 using Unity.Services.Lobbies.Models;
 using Unity.Services.Relay;
 using Unity.Services.Relay.Models;
-using UnityEngine;
 
 public class MatchmakingManager : MonoBehaviour
 {
@@ -30,7 +30,15 @@ public class MatchmakingManager : MonoBehaviour
 
     private async void Start()
     {
-        await UnityServices.InitializeAsync();
+        InitializationOptions options = new();
+
+#if UNITY_EDITOR
+        options.SetProfile("Editor_Profile");
+#else
+        options.SetProfile("Build_Profile_" + Random.Range(0, 10000));
+#endif
+
+        await UnityServices.InitializeAsync(options);
 
         if (!AuthenticationService.Instance.IsSignedIn)
             await AuthenticationService.Instance.SignInAnonymouslyAsync();

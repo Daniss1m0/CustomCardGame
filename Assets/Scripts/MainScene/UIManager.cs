@@ -24,7 +24,7 @@ public class UIManager : MonoBehaviour
 
     private void Start()
     {
-        if (result != null) 
+        if (result != null)
             result.SetActive(false);
     }
 
@@ -36,7 +36,7 @@ public class UIManager : MonoBehaviour
 
     public void UpdateHPAndMana()
     {
-        if (GameManager.Instance == null || GameManager.Instance.currentGame == null) 
+        if (GameManager.Instance == null || GameManager.Instance.currentGame == null)
             return;
 
         playerManaTxt.text = GameManager.Instance.currentGame.player.mana.ToString();
@@ -82,7 +82,34 @@ public class UIManager : MonoBehaviour
 
     public void DisableTurnBtn()
     {
-        endTurnBtn.interactable = GameManager.Instance.IsPlayerTurn;
+        bool isMyTurn = GameManager.Instance.IsPlayerTurn;
+
+        if (endTurnBtn != null)
+        {
+            endTurnBtn.interactable = isMyTurn;
+            UpdateEndTurnTextAlpha(isMyTurn);
+        }
+    }
+
+    public void SetEndTurnInteractable(bool state)
+    {
+        if (endTurnBtn != null)
+        {
+            endTurnBtn.interactable = state;
+            UpdateEndTurnTextAlpha(state);
+        }
+    }
+
+    private void UpdateEndTurnTextAlpha(bool interactable)
+    {
+        if (endTurnBtn == null) 
+            return;
+
+        var txt = endTurnBtn.GetComponentInChildren<TextMeshProUGUI>();
+        if (txt != null)
+        {
+            txt.alpha = interactable ? 1f : 0.1f;
+        }
     }
 
     public void OnOptionsButton()
@@ -99,14 +126,8 @@ public class UIManager : MonoBehaviour
             GameManager.Instance.SendRestartVote();
     }
 
-    public void LoadDeckSelection()
+    public void LoadMainMenu()
     {
-        SceneManager.LoadScene("DeckSelection");
-    }
-
-    public void SetEndTurnInteractable(bool state)
-    {
-        if (endTurnBtn != null)
-            endTurnBtn.interactable = state;
+        SceneManager.LoadScene("MainMenu");
     }
 }

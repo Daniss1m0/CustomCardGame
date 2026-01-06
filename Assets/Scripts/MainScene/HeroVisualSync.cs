@@ -6,8 +6,9 @@ public class HeroVisualSync : NetworkBehaviour
 {
     public Sprite[] allHeroSprites;
     public Image bottomHeroImage, topHeroImage;
-    public NetworkVariable<int> hostHeroIndex = new(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
-    public NetworkVariable<int> clientHeroIndex = new(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+
+    public NetworkVariable<int> hostHeroIndex = new(-1, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    public NetworkVariable<int> clientHeroIndex = new(-1, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
     public override void OnNetworkSpawn()
     {
@@ -15,7 +16,6 @@ public class HeroVisualSync : NetworkBehaviour
         clientHeroIndex.OnValueChanged += (oldV, newV) => UpdateUI();
 
         int myIndexToSend = HeroSelectionUI.SelectedHeroIndexStatic;
-
         if (myIndexToSend == -1)
             myIndexToSend = PlayerPrefs.GetInt("SelectedHeroIndex", 0);
 
@@ -44,35 +44,49 @@ public class HeroVisualSync : NetworkBehaviour
 
     private void UpdateUI()
     {
-        if (allHeroSprites == null || allHeroSprites.Length == 0)
-            return;
-
-        Sprite hostSprite = GetSpriteSafe(hostHeroIndex.Value);
-        Sprite clientSprite = GetSpriteSafe(clientHeroIndex.Value);
-
         if (IsServer)
         {
-            if (bottomHeroImage)
-                bottomHeroImage.sprite = hostSprite;
-
-            if (topHeroImage)
-                topHeroImage.sprite = clientSprite;
+            UpdateAvatarVisuals(bottomHeroImage, hostHeroIndex.Value);
+            UpdateAvatarVisuals(topHeroImage, clientHeroIndex.Value);
         }
         else
         {
-            if (bottomHeroImage)
-                bottomHeroImage.sprite = clientSprite;
+            UpdateAvatarVisuals(bottomHeroImage, clientHeroIndex.Value);
+            UpdateAvatarVisuals(topHeroImage, hostHeroIndex.Value);
+        }
+    }
 
-            if (topHeroImage)
-                topHeroImage.sprite = hostSprite;
+    private void UpdateAvatarVisuals(Image targetImage, int heroIndex)
+    {
+        if (targetImage == null) 
+            return;
+
+        if (heroIndex < 0)
+        {
+            targetImage.sprite = null;
+
+            var c = targetImage.color;
+            c.a = 0.5f;
+            targetImage.color = c;
+        }
+        else
+        {
+            targetImage.sprite = GetSpriteSafe(heroIndex);
+
+            var c = targetImage.color;
+            c.a = 0.5f;
+            targetImage.color = c;
         }
     }
 
     private Sprite GetSpriteSafe(int index)
     {
+        if (allHeroSprites == null || allHeroSprites.Length == 0) 
+            return null;
+
         if (index >= 0 && index < allHeroSprites.Length)
             return allHeroSprites[index];
 
-        return allHeroSprites.Length > 0 ? allHeroSprites[0] : null;
+        return allHeroSprites[0];
     }
 }

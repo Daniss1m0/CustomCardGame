@@ -25,9 +25,7 @@ public class MatchmakingManager : MonoBehaviour
             DontDestroyOnLoad(gameObject);
         }
         else
-        {
             Destroy(gameObject);
-        }
     }
 
     private async void Start()
@@ -35,9 +33,7 @@ public class MatchmakingManager : MonoBehaviour
         await UnityServices.InitializeAsync();
 
         if (!AuthenticationService.Instance.IsSignedIn)
-        {
             await AuthenticationService.Instance.SignInAnonymouslyAsync();
-        }
     }
 
     public async void FindMatch()
@@ -46,7 +42,7 @@ public class MatchmakingManager : MonoBehaviour
 
         try
         {
-            QuickJoinLobbyOptions options = new QuickJoinLobbyOptions();
+            QuickJoinLobbyOptions options = new();
 
             Lobby lobby = await LobbyService.Instance.QuickJoinLobbyAsync(options);
 
@@ -80,10 +76,12 @@ public class MatchmakingManager : MonoBehaviour
 
             NetworkManager.Singleton.StartHost();
 
-            CreateLobbyOptions options = new CreateLobbyOptions();
-            options.Data = new Dictionary<string, DataObject>
+            CreateLobbyOptions options = new()
             {
-                { JOIN_CODE_KEY, new DataObject(DataObject.VisibilityOptions.Member, joinCode) }
+                Data = new Dictionary<string, DataObject>
+                {
+                    { JOIN_CODE_KEY, new DataObject(DataObject.VisibilityOptions.Member, joinCode) }
+                }
             };
 
             Lobby lobby = await LobbyService.Instance.CreateLobbyAsync("My Card Game", 2, options);

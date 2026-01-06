@@ -42,11 +42,53 @@ public class GameManager : MonoBehaviour
             Instance = this;
         else
             Destroy(gameObject);
+
+        if (CardDatabase.AllCards != null && CardDatabase.AllCards.Count > 0)
+            currentGame ??= new Game();
     }
 
     private void Start()
     {
+        currentGame ??= new Game();
+
         StartCoroutine(SubscribeToTurnNetworkVars());
+
+        StartCoroutine(ServerWaitForPlayersAndStart());
+    }
+
+    private IEnumerator ServerWaitForPlayersAndStart()
+    {
+        while (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsListening)
+            yield return null;
+
+        if (NetworkManager.Singleton.IsServer)
+        {
+            Debug.Log("Server started. Waiting for opponent...");
+
+            while (NetworkManager.Singleton.ConnectedClientsList.Count < 2)
+                yield return new WaitForSeconds(0.5f);
+
+            Debug.Log("Opponent connected!");
+
+            if (turnManager == null)
+                turnManager = FindFirstObjectByType<TurnManager>();
+
+            if (turnManager != null)
+            {
+                var no = turnManager.GetComponent<NetworkObject>();
+                if (no != null && !no.IsSpawned)
+                    try
+                    {
+                        no.Spawn();
+                        Debug.Log("TurnManager Spawned.");
+                    }
+                    catch (System.Exception e) { Debug.LogWarning($"Failed to spawn TurnManager: {e}"); }
+            }
+
+            yield return new WaitForSeconds(0.5f);
+
+            StartGame();
+        }
     }
 
     public void StartGame()
@@ -55,6 +97,9 @@ public class GameManager : MonoBehaviour
 
         if (deckManager == null)
             deckManager = FindAnyObjectByType<DeckManager>();
+
+        if (turnManager == null)
+            turnManager = FindFirstObjectByType<TurnManager>();
 
         if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer)
         {
@@ -149,7 +194,9 @@ public class GameManager : MonoBehaviour
                 continue;
 
             c.self.canAttack = false;
+
             c.Info.SetHighlight(false);
+
             if (c.Network != null && NetworkManager.Singleton.IsServer)
                 c.Network.canAttack.Value = false;
         }
@@ -301,12 +348,14 @@ public class GameManager : MonoBehaviour
             return;
 
         if (attacker.isPlayerCard)
+        {
             if (enemyFieldCards.Exists(x => x.self.IsProvocation) && !defender.self.IsProvocation)
                 return;
             else if (playerFieldCards.Exists(x => x.self.IsProvocation) && !defender.self.IsProvocation)
                 return;
+        }
 
-        CardsFight(attacker, defender);
+    CardsFight(attacker, defender);
     }
 
     public void AttackHero(CardController attacker, bool targetIsEnemyHero)
@@ -321,14 +370,12 @@ public class GameManager : MonoBehaviour
         {
             if (enemyFieldCards.Exists(x => x.self.IsProvocation)) 
                 return;
-
             DamageHero(attacker, true);
         }
         else
         {
-            if (playerFieldCards.Exists(x => x.self.IsProvocation))
+            if (playerFieldCards.Exists(x => x.self.IsProvocation)) 
                 return;
-
             DamageHero(attacker, false);
         }
     }

@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using Unity.Services.Authentication;
@@ -16,6 +17,8 @@ public class MatchmakingManager : MonoBehaviour
     public static MatchmakingManager Instance;
 
     private const string JOIN_CODE_KEY = "j";
+
+    private Coroutine heartbeatCoroutine;
 
     private void Awake()
     {
@@ -47,17 +50,11 @@ public class MatchmakingManager : MonoBehaviour
     public async void FindMatch()
     {
         Debug.Log("Looking for a lobby...");
-
         try
         {
             QuickJoinLobbyOptions options = new();
-
             Lobby lobby = await LobbyService.Instance.QuickJoinLobbyAsync(options);
-
-            Debug.Log($"Joined Lobby: {lobby.Id}");
-
             string joinCode = lobby.Data[JOIN_CODE_KEY].Value;
-
             await StartClientWithRelay(joinCode);
         }
         catch (LobbyServiceException)
@@ -93,10 +90,7 @@ public class MatchmakingManager : MonoBehaviour
             };
 
             Lobby lobby = await LobbyService.Instance.CreateLobbyAsync("My Card Game", 2, options);
-
-            Debug.Log($"Created Lobby: {lobby.Id} with Join Code: {joinCode}");
-
-            StartCoroutine(HeartbeatLobbyCoroutine(lobby.Id, 15));
+            heartbeatCoroutine = StartCoroutine(HeartbeatLobbyCoroutine(lobby.Id, 15));
         }
         catch (System.Exception e)
         {
@@ -135,5 +129,27 @@ public class MatchmakingManager : MonoBehaviour
             LobbyService.Instance.SendHeartbeatPingAsync(lobbyId);
             yield return delay;
         }
+    }
+
+    public void DisconnectAndReturnToMenu()
+    {
+        StartCoroutine(DisconnectSequence());
+    }
+
+    private IEnumerator DisconnectSequence()
+    {
+        if (heartbeatCoroutine != null)
+        {
+            StopCoroutine(heartbeatCoroutine);
+            heartbeatCoroutine = null;
+        }
+
+        if (NetworkManager.Singleton != null)
+        {
+            NetworkManager.Singleton.Shutdown();
+            yield return new WaitForSeconds(0.5f);
+        }
+
+        SceneManager.LoadScene("MainMenu");
     }
 }

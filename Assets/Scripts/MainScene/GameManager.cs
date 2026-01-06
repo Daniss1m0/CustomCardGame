@@ -745,4 +745,16 @@ public class GameManager : MonoBehaviour
         }
         return NetworkManager.ServerClientId;
     }
+
+    private void OnDestroy()
+    {
+        if (turnManager != null)
+        {
+            turnManager.currentTurnOwner.OnValueChanged -= OnCurrentTurnOwnerChanged;
+            turnManager.turnTimeRemaining.OnValueChanged -= OnTurnTimeChanged;
+        }
+
+        if (Instance == this)
+            Instance = null;
+    }
 }

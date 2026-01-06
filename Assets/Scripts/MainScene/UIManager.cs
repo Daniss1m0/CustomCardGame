@@ -107,9 +107,7 @@ public class UIManager : MonoBehaviour
 
         var txt = endTurnBtn.GetComponentInChildren<TextMeshProUGUI>();
         if (txt != null)
-        {
             txt.alpha = interactable ? 1f : 0.1f;
-        }
     }
 
     public void OnOptionsButton()
@@ -126,8 +124,9 @@ public class UIManager : MonoBehaviour
             GameManager.Instance.SendRestartVote();
     }
 
-    public void LoadMainMenu()
+    public void OnBackToMenuButton()
     {
-        SceneManager.LoadScene("MainMenu");
+        if (MatchmakingManager.Instance != null)
+            MatchmakingManager.Instance.DisconnectAndReturnToMenu();
     }
 }

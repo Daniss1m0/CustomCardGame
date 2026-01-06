@@ -337,8 +337,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 932104545}
-        m_TargetAssemblyTypeName: DeckSelectionUI, Assembly-CSharp
-        m_MethodName: SelectDeck
+        m_TargetAssemblyTypeName: HeroSelectionUI, Assembly-CSharp
+        m_MethodName: SelectHero
         m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -621,8 +621,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 932104545}
-        m_TargetAssemblyTypeName: DeckSelectionUI, Assembly-CSharp
-        m_MethodName: SelectDeck
+        m_TargetAssemblyTypeName: HeroSelectionUI, Assembly-CSharp
+        m_MethodName: SelectHero
         m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1554,8 +1554,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 932104545}
-        m_TargetAssemblyTypeName: DeckSelectionUI, Assembly-CSharp
-        m_MethodName: SelectDeck
+        m_TargetAssemblyTypeName: HeroSelectionUI, Assembly-CSharp
+        m_MethodName: SelectHero
         m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -2322,8 +2322,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 932104545}
-        m_TargetAssemblyTypeName: DeckSelectionUI, Assembly-CSharp
-        m_MethodName: SelectDeck
+        m_TargetAssemblyTypeName: HeroSelectionUI, Assembly-CSharp
+        m_MethodName: SelectHero
         m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -2966,8 +2966,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 932104545}
-        m_TargetAssemblyTypeName: DeckSelectionUI, Assembly-CSharp
-        m_MethodName: SelectDeck
+        m_TargetAssemblyTypeName: HeroSelectionUI, Assembly-CSharp
+        m_MethodName: SelectHero
         m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -3503,8 +3503,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 932104545}
-        m_TargetAssemblyTypeName: DeckSelectionUI, Assembly-CSharp
-        m_MethodName: SelectDeck
+        m_TargetAssemblyTypeName: HeroSelectionUI, Assembly-CSharp
+        m_MethodName: SelectHero
         m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

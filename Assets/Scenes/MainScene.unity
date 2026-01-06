@@ -7562,10 +7562,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HeroVisualSync
   ShowTopMostFoldoutHeaderGroup: 1
-  hostAvatarSprite: {fileID: -6803223489722007895, guid: 8ad08bf0c7a61154798555c72485e378, type: 3}
-  clientAvatarSprite: {fileID: 1343106029614499668, guid: da17412e12c3e7b45aeee60795f63c73, type: 3}
+  allHeroSprites:
+  - {fileID: -6803223489722007895, guid: 8ad08bf0c7a61154798555c72485e378, type: 3}
+  - {fileID: 4312126842197289597, guid: 2a0b65d8b64832d40b5d1af79e04fcde, type: 3}
+  - {fileID: 2087544068632207014, guid: 50b5e0dda8a85684e907c4673f2c18fa, type: 3}
+  - {fileID: 1343106029614499668, guid: da17412e12c3e7b45aeee60795f63c73, type: 3}
+  - {fileID: 7043740384229649278, guid: a57d9995466983d4da270bb7c1b47406, type: 3}
+  - {fileID: -643460706143854965, guid: 66991938ff3eb5e4492f2b8563e074d6, type: 3}
   bottomHeroImage: {fileID: 228459498}
   topHeroImage: {fileID: 856375456}
+  hostHeroIndex:
+    m_InternalValue: 0
+  clientHeroIndex:
+    m_InternalValue: 0
 --- !u!4 &1782222968
 Transform:
   m_ObjectHideFlags: 0

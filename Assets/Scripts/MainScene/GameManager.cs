@@ -60,11 +60,16 @@ public class GameManager : MonoBehaviour
     private IEnumerator ServerWaitForPlayersAndStart()
     {
         while (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsListening)
+        {
+            if (MatchmakingManager.Instance == null) 
+                yield break;
+
             yield return null;
+        }
 
         if (NetworkManager.Singleton.IsServer)
         {
-            while (NetworkManager.Singleton != null && NetworkManager.Singleton.ConnectedClientsList.Count < 2)
+            while (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening && NetworkManager.Singleton.ConnectedClientsList.Count < 2)
                 yield return new WaitForSeconds(0.5f);
 
             if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsListening)
@@ -77,11 +82,10 @@ public class GameManager : MonoBehaviour
             {
                 var no = turnManager.GetComponent<NetworkObject>();
                 if (no != null && !no.IsSpawned)
-                    try
-                    {
+                    try 
+                    { 
                         no.Spawn();
-                    }
-                    catch { }
+                    } catch { }
             }
         }
     }

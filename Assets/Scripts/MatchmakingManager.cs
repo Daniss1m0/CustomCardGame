@@ -18,6 +18,7 @@ public class MatchmakingManager : MonoBehaviour
 
     private const string JOIN_CODE_KEY = "j";
 
+    private bool isBusy = false;
     private Coroutine heartbeatCoroutine;
     private Lobby currentLobby;
 
@@ -34,15 +35,16 @@ public class MatchmakingManager : MonoBehaviour
 
     private async void Start()
     {
-        InitializationOptions options = new();
-
+        if (UnityServices.State == ServicesInitializationState.Uninitialized)
+        {
+            InitializationOptions options = new();
 #if UNITY_EDITOR
-        options.SetProfile("Editor_Profile");
+            options.SetProfile("Editor_Profile_" + GetHashCode());
 #else
-        options.SetProfile("Build_Profile_" + Random.Range(0, 10000));
+            options.SetProfile("Build_Profile_" + Random.Range(0, 10000));
 #endif
-
-        await UnityServices.InitializeAsync(options);
+            await UnityServices.InitializeAsync(options);
+        }
 
         if (!AuthenticationService.Instance.IsSignedIn)
             await AuthenticationService.Instance.SignInAnonymouslyAsync();
@@ -59,28 +61,28 @@ public class MatchmakingManager : MonoBehaviour
 
     private async void OnClientDisconnect(ulong clientId)
     {
-        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer && clientId != NetworkManager.ServerClientId)
+        if (NetworkManager.Singleton.IsServer && clientId != NetworkManager.ServerClientId)
         {
             if (currentLobby != null)
             {
+                Debug.Log($"[Host] Client {clientId} disconnected. Removing from Lobby...");
                 try
                 {
                     currentLobby = await LobbyService.Instance.GetLobbyAsync(currentLobby.Id);
 
                     string myPlayerId = AuthenticationService.Instance.PlayerId;
-
                     foreach (var player in currentLobby.Players)
                     {
                         if (player.Id != myPlayerId)
                         {
-                            Debug.Log($"[Host] Kicking disconnected player {player.Id} from lobby.");
                             await LobbyService.Instance.RemovePlayerAsync(currentLobby.Id, player.Id);
+                            Debug.Log($"[Host] Kicked player {player.Id} from Lobby.");
                         }
                     }
                 }
                 catch (System.Exception e)
                 {
-                    Debug.LogWarning($"Failed to cleanup lobby on disconnect: {e.Message}");
+                    Debug.LogWarning($"[Host] Failed to remove player from lobby: {e.Message}");
                 }
             }
         }
@@ -88,22 +90,18 @@ public class MatchmakingManager : MonoBehaviour
 
     public async void FindMatch()
     {
+        if (isBusy) 
+            return;
+
+        isBusy = true;
+
+        Debug.Log("Resetting network before search...");
+        await ResetNetworkState();
+
         Debug.Log("Looking for a lobby...");
-
-        // FIX: Перед началом убеждаемся, что старый NetworkManager выключен
-        if (NetworkManager.Singleton.IsListening)
-        {
-            Debug.LogWarning("NetworkManager was still running. Shutting down...");
-            NetworkManager.Singleton.Shutdown();
-            // Ждем, пока он реально выключится
-            while (NetworkManager.Singleton.IsListening)
-                await Task.Yield();
-        }
-
         try
         {
             QuickJoinLobbyOptions options = new();
-
             currentLobby = await LobbyService.Instance.QuickJoinLobbyAsync(options);
 
             Debug.Log("Joined lobby: " + currentLobby.Id);
@@ -114,11 +112,22 @@ public class MatchmakingManager : MonoBehaviour
         catch (LobbyServiceException)
         {
             Debug.Log("No lobbies found. Creating a new one...");
-            CreateMatch();
+            await CreateMatch();
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"Matchmaking Error: {e.Message}");
+            isBusy = false;
         }
     }
 
-    private async void CreateMatch()
+    public void DisconnectAndReturnToMenu()
+    {
+        if (isBusy) return;
+        StartCoroutine(DisconnectSequence());
+    }
+
+    private async Task CreateMatch()
     {
         try
         {
@@ -133,11 +142,14 @@ public class MatchmakingManager : MonoBehaviour
                 allocation.ConnectionData
             );
 
-            // FIX: Дополнительная проверка перед стартом хоста
-            if (NetworkManager.Singleton.IsListening)
-                NetworkManager.Singleton.Shutdown();
-
-            NetworkManager.Singleton.StartHost();
+            if (NetworkManager.Singleton.StartHost())
+                Debug.Log("Host started via Relay.");
+            else
+            {
+                Debug.LogError("Failed to StartHost (NetworkManager refused).");
+                isBusy = false;
+                return;
+            }
 
             CreateLobbyOptions options = new()
             {
@@ -148,14 +160,18 @@ public class MatchmakingManager : MonoBehaviour
             };
 
             currentLobby = await LobbyService.Instance.CreateLobbyAsync("My Card Game", 2, options);
-
             Debug.Log("Created lobby: " + currentLobby.Id);
 
+            if (heartbeatCoroutine != null) StopCoroutine(heartbeatCoroutine);
             heartbeatCoroutine = StartCoroutine(HeartbeatLobbyCoroutine(currentLobby.Id, 15));
+
+            isBusy = false;
         }
         catch (System.Exception e)
         {
-            Debug.LogError($"Failed to create match: {e.Message}");
+            Debug.LogError($"CreateMatch failed: {e.Message}");
+            await ResetNetworkState();
+            isBusy = false;
         }
     }
 
@@ -174,29 +190,22 @@ public class MatchmakingManager : MonoBehaviour
                 joinAllocation.HostConnectionData
             );
 
-            // FIX: Дополнительная проверка перед стартом клиента
-            if (NetworkManager.Singleton.IsListening)
-                NetworkManager.Singleton.Shutdown();
+            if (NetworkManager.Singleton.StartClient())
+                Debug.Log("Client started via Relay.");
+            else
+                Debug.LogError("Failed to StartClient.");
 
-            NetworkManager.Singleton.StartClient();
+            isBusy = false;
         }
         catch (System.Exception e)
         {
-            Debug.LogError($"Failed to join match: {e.Message}");
+            Debug.LogError($"StartClient failed: {e.Message}");
+            await ResetNetworkState();
+            isBusy = false;
         }
     }
 
-    private IEnumerator HeartbeatLobbyCoroutine(string lobbyId, float waitTimeSeconds)
-    {
-        var delay = new WaitForSecondsRealtime(waitTimeSeconds);
-        while (true)
-        {
-            LobbyService.Instance.SendHeartbeatPingAsync(lobbyId);
-            yield return delay;
-        }
-    }
-
-    private async void LeaveLobby()
+    private async Task ResetNetworkState()
     {
         if (currentLobby != null)
         {
@@ -209,41 +218,45 @@ public class MatchmakingManager : MonoBehaviour
                 }
 
                 string playerId = AuthenticationService.Instance.PlayerId;
-
                 await LobbyService.Instance.RemovePlayerAsync(currentLobby.Id, playerId);
-                Debug.Log("Left lobby successfully.");
             }
-            catch (System.Exception e)
+            catch {}
+            currentLobby = null;
+        }
+
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
+        {
+            Debug.Log("Shutting down NetworkManager...");
+            NetworkManager.Singleton.Shutdown();
+
+            float timeout = 1f;
+            float timer = 0f;
+            while (NetworkManager.Singleton.IsListening && timer < timeout)
             {
-                Debug.LogWarning($"Error leaving lobby: {e.Message}");
-            }
-            finally
-            {
-                currentLobby = null;
+                timer += Time.unscaledDeltaTime;
+                await Task.Yield();
             }
         }
-    }
-
-    public void DisconnectAndReturnToMenu()
-    {
-        LeaveLobby();
-        StartCoroutine(DisconnectSequence());
     }
 
     private IEnumerator DisconnectSequence()
     {
-        if (heartbeatCoroutine != null)
-        {
-            StopCoroutine(heartbeatCoroutine);
-            heartbeatCoroutine = null;
-        }
+        isBusy = true;
 
-        if (NetworkManager.Singleton != null)
-        {
-            NetworkManager.Singleton.Shutdown();
-            yield return new WaitForSeconds(0.5f);
-        }
+        Task resetTask = ResetNetworkState();
+        yield return new WaitUntil(() => resetTask.IsCompleted);
 
         SceneManager.LoadScene("MainMenu");
+        isBusy = false;
+    }
+
+    private IEnumerator HeartbeatLobbyCoroutine(string lobbyId, float waitTimeSeconds)
+    {
+        var delay = new WaitForSecondsRealtime(waitTimeSeconds);
+        while (true)
+        {
+            LobbyService.Instance.SendHeartbeatPingAsync(lobbyId);
+            yield return delay;
+        }
     }
 }

@@ -44,6 +44,9 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
         if (controller == null)
             return;
 
+        if (GameManager.Instance.IsGameOver)
+            return;
+
         if (defaultParent == null)
             defaultParent = transform.parent;
         if (tempParent == null)

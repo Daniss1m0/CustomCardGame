@@ -22,6 +22,7 @@ public class GameManager : MonoBehaviour
 
     public int CurrentTurn => turn;
     public bool IsPlayerTurn => turn % 2 == 0;
+    public bool IsGameOver { get; private set; } = false;
     public AttackedHero PlayerHero => playerHero;
     public AttackedHero EnemyHero => enemyHero;
 
@@ -93,6 +94,8 @@ public class GameManager : MonoBehaviour
 
     public void StartGame()
     {
+        IsGameOver = false;
+
         currentGame = new Game();
 
         if (deckManager == null)
@@ -153,6 +156,8 @@ public class GameManager : MonoBehaviour
 
     public void ResetClientState()
     {
+        IsGameOver = false;
+
         if (UIManager.Instance != null)
             UIManager.Instance.StartGame();
 
@@ -473,15 +478,30 @@ public class GameManager : MonoBehaviour
 
     public void CheckForResult()
     {
-        if (currentGame == null)
+        if (currentGame == null || IsGameOver)
             return;
 
-        if (currentGame.enemy.hp == 0 || currentGame.player.hp == 0)
+        if (currentGame.enemy.hp <= 0 || currentGame.player.hp <= 0)
         {
+            IsGameOver = true;
+
             if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
                 turnManager.StopServerTurnLoop();
 
-            UIManager.Instance.ShowResult();
+            Transform deadHeroTransform = null;
+
+            if (currentGame.player.hp <= 0 && playerHero != null)
+                deadHeroTransform = playerHero.transform;
+            else if (currentGame.enemy.hp <= 0 && enemyHero != null)
+                deadHeroTransform = enemyHero.transform;
+
+            if (AnimationManager.Instance != null && deadHeroTransform != null)
+                AnimationManager.Instance.PlayHeroDeath(deadHeroTransform, () =>
+                {
+                    UIManager.Instance.ShowResult();
+                });
+            else
+                UIManager.Instance.ShowResult();
         }
     }
 

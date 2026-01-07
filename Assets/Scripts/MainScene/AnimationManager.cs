@@ -333,11 +333,6 @@ public class AnimationManager : MonoBehaviour
 
         seq.Append(heroTransform.DOShakePosition(0.5f, 30, 50, 90, false, true));
 
-        if (heroTransform.TryGetComponent<Image>(out var img))
-            seq.Join(img.DOColor(Color.gray, 0.5f));
-
-        seq.Append(heroTransform.DOScale(Vector3.zero, 0.2f).SetEase(Ease.InBack));
-
         seq.OnComplete(() =>
         {
             GlobalBusyCount--;

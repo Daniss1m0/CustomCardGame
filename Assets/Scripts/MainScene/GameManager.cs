@@ -488,17 +488,23 @@ public class GameManager : MonoBehaviour
             if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
                 turnManager.StopServerTurnLoop();
 
-            Transform deadHeroTransform = null;
-
-            if (currentGame.player.hp <= 0 && playerHero != null)
-                deadHeroTransform = playerHero.transform;
-            else if (currentGame.enemy.hp <= 0 && enemyHero != null)
-                deadHeroTransform = enemyHero.transform;
-
-            if (AnimationManager.Instance != null && deadHeroTransform != null)
-                AnimationManager.Instance.PlayHeroDeath(deadHeroTransform, () =>
+            if (AnimationManager.Instance != null)
+                AnimationManager.Instance.EnqueueVisual(() =>
                 {
-                    UIManager.Instance.ShowResult();
+                    Transform deadHeroTransform = null;
+
+                    if (currentGame.player.hp <= 0 && playerHero != null)
+                        deadHeroTransform = playerHero.transform;
+                    else if (currentGame.enemy.hp <= 0 && enemyHero != null)
+                        deadHeroTransform = enemyHero.transform;
+
+                    if (deadHeroTransform != null)
+                        AnimationManager.Instance.PlayHeroDeath(deadHeroTransform, () =>
+                        {
+                            UIManager.Instance.ShowResult();
+                        });
+                    else
+                        UIManager.Instance.ShowResult();
                 });
             else
                 UIManager.Instance.ShowResult();

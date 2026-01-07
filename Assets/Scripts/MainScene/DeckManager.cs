@@ -1,9 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using TMPro;
-using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
+using Unity.Netcode;
 
 public class DeckManager : MonoBehaviour
 {
@@ -29,7 +29,26 @@ public class DeckManager : MonoBehaviour
     public GameObject VisualCardPrefab => visualCardPrefab;
 
     private void Shuffle<T>(List<T> list) { int n = list.Count; for (int i = n - 1; i > 0; i--) { int j = Random.Range(0, i + 1); (list[i], list[j]) = (list[j], list[i]); } }
-    private int GetCardDataIndex(Card card) { if (card == null || CardDatabase.AllCards == null) return -1; for (int i = 0; i < CardDatabase.AllCards.Count; i++) { object entryObj = CardDatabase.AllCards[i]; if (entryObj == null) continue; CardData cd = entryObj as CardData; if (cd != null) { if (!string.IsNullOrEmpty(cd.cardName) && cd.cardName == card.name) return i; continue; } if (entryObj is Card existingCard) if (!string.IsNullOrEmpty(existingCard.name) && existingCard.name == card.name) return i; } return -1; }
+
+    private int GetCardDataIndex(Card card)
+    {
+        if (card == null || CardDatabase.AllCards == null) return -1;
+        for (int i = 0; i < CardDatabase.AllCards.Count; i++)
+        {
+            object entryObj = CardDatabase.AllCards[i];
+            if (entryObj == null) continue;
+            CardData cd = entryObj as CardData;
+            if (cd != null)
+            {
+                if (!string.IsNullOrEmpty(cd.cardName) && cd.cardName == card.name) return i;
+                continue;
+            }
+            if (entryObj is Card existingCard)
+                if (!string.IsNullOrEmpty(existingCard.name) && existingCard.name == card.name) return i;
+        }
+        return -1;
+    }
+
     private void DrawCards(List<Card> deck, Transform hand, ulong ownerClientId, int count = 1)
     {
         if (deck == null || hand == null || count <= 0) return;
@@ -69,8 +88,46 @@ public class DeckManager : MonoBehaviour
             }
         }
     }
-    public void GiveNewCards(Game currentGame, ulong newTurnOwnerClientId) { if (currentGame == null) return; if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer) return; ulong playerOwnerClientId = NetworkManager.ServerClientId; var tm = FindFirstObjectByType<TurnManager>(); if (tm != null && tm.playerOwner.Value != 0UL) playerOwnerClientId = tm.playerOwner.Value; if (newTurnOwnerClientId == playerOwnerClientId) DrawCards(currentGame.playerDeck, playerHand, newTurnOwnerClientId, 1); else DrawCards(currentGame.enemyDeck, enemyHand, newTurnOwnerClientId, 1); }
-    public bool GiveInitialHands(Game currentGame, ulong playerOwnerClientId, ulong otherClientId, bool randomStart = true) { Shuffle(currentGame.playerDeck); Shuffle(currentGame.enemyDeck); bool playerStarts = !randomStart || (Random.value < 0.5f); int playerCount = playerStarts ? startPlayerHand : startEnemyHand; int enemyCount = playerStarts ? startEnemyHand : startPlayerHand; if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer) { DrawCards(currentGame.playerDeck, playerHand, playerOwnerClientId, playerCount); DrawCards(currentGame.enemyDeck, enemyHand, otherClientId, enemyCount); CardData coinData = GetSpecialCardData("coin"); int coinIndex = -1; if (coinData != null && CardDatabase.AllCards != null) { for (int i = 0; i < CardDatabase.AllCards.Count; i++) { object entryObj = CardDatabase.AllCards[i]; if (entryObj == null) continue; CardData cd = entryObj as CardData; if (cd != null) { if (cd == coinData || (!string.IsNullOrEmpty(cd.cardName) && cd.cardName == coinData.cardName)) { coinIndex = i; break; } continue; } if (entryObj is Card existingCard) if (!string.IsNullOrEmpty(existingCard.name) && existingCard.name == coinData.cardName) { coinIndex = i; break; } } if (coinIndex == -1 && CardDatabase.AllCards != null) { try { Card cardToAdd = coinData.isSpell ? (Card)new SpellCard(coinData) : new Card(coinData); CardDatabase.AllCards.Add(cardToAdd); coinIndex = CardDatabase.AllCards.Count - 1; } catch { } } } if (coinData != null) { Card coinCardInstance = coinData.isSpell ? (Card)new SpellCard(coinData) : new Card(coinData); if (playerStarts) SpawnAndRegisterCard(coinCardInstance, enemyHand, otherClientId, coinIndex); else SpawnAndRegisterCard(coinCardInstance, playerHand, playerOwnerClientId, coinIndex); } } return playerStarts; }
+
+    public void GiveNewCards(Game currentGame, ulong newTurnOwnerClientId)
+    {
+        if (currentGame == null) return;
+        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer) return;
+        ulong playerOwnerClientId = NetworkManager.ServerClientId;
+        var tm = FindFirstObjectByType<TurnManager>();
+        if (tm != null && tm.playerOwner.Value != 0UL) playerOwnerClientId = tm.playerOwner.Value;
+        if (newTurnOwnerClientId == playerOwnerClientId) DrawCards(currentGame.playerDeck, playerHand, newTurnOwnerClientId, 1);
+        else DrawCards(currentGame.enemyDeck, enemyHand, newTurnOwnerClientId, 1);
+    }
+
+    public bool GiveInitialHands(Game currentGame, ulong playerOwnerClientId, ulong otherClientId, bool randomStart = true)
+    {
+        Shuffle(currentGame.playerDeck);
+        Shuffle(currentGame.enemyDeck);
+        bool playerStarts = !randomStart || (Random.value < 0.5f);
+        int playerCount = playerStarts ? startPlayerHand : startEnemyHand;
+        int enemyCount = playerStarts ? startEnemyHand : startPlayerHand;
+
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
+        {
+            DrawCards(currentGame.playerDeck, playerHand, playerOwnerClientId, playerCount);
+            DrawCards(currentGame.enemyDeck, enemyHand, otherClientId, enemyCount);
+
+            SpecialCardEntry coinEntry = GetSpecialCardEntry("coin");
+            if (coinEntry != null && coinEntry.cardData != null)
+            {
+                CardData coinData = coinEntry.cardData;
+                Card coinCardInstance = coinData.isSpell ? (Card)new SpellCard(coinData) : new Card(coinData);
+                coinCardInstance.id = coinEntry.id;
+
+                if (playerStarts)
+                    SpawnAndRegisterCard(coinCardInstance, enemyHand, otherClientId, -1);
+                else
+                    SpawnAndRegisterCard(coinCardInstance, playerHand, playerOwnerClientId, -1);
+            }
+        }
+        return playerStarts;
+    }
 
     public void UpdateDeckVisualsFromNetwork(int playerCount, int enemyCount)
     {
@@ -265,7 +322,6 @@ public class DeckManager : MonoBehaviour
         {
             uiClone = Instantiate(visualCardPrefab, hand, false);
             uiClone.SetActive(false);
-            // Wywołanie poprawione - usunięto netInstance
             StartCoroutine(FinishLocalCloneRoutine(uiClone, hand, card, cardDataIndex, actualOwner, innerVisualOnNet, cn));
         }
         catch
@@ -340,29 +396,33 @@ public class DeckManager : MonoBehaviour
             bool isOwner = NetworkManager.Singleton != null && ownerClientId == NetworkManager.Singleton.LocalClientId;
             if (cloneController != null)
             {
-                cloneController.Init(card, isOwner);
                 cloneController.SetNetworkData(card.attack, card.health, card.manaCost, card.isSpell, cardDataIndex, ownerClientId, CardController.AbilitiesToInt(card.abilities));
 
-                if (card != null && !string.IsNullOrEmpty(card.description))
-                    cloneController.self.description = card.description;
-
-                try
+                if (card != null)
                 {
+                    bool typeMismatch = (card is SpellCard) != (cloneController.self is SpellCard);
+
+                    if (typeMismatch || cardDataIndex == -1 || card.name != cloneController.self.name)
+                        cloneController.self = card.GetCopy();
+
+                    if (!string.IsNullOrEmpty(card.name))
+                        cloneController.self.name = card.name;
+                    if (card.logo != null)
+                        cloneController.self.logo = card.logo;
+                    if (!string.IsNullOrEmpty(card.id))
+                        cloneController.self.id = card.id;
+                    if (!string.IsNullOrEmpty(card.description))
+                        cloneController.self.description = card.description;
+
                     if (card is SpellCard origSpell && cloneController.self is SpellCard visualSpell)
                     {
-                        bool needCopy = visualSpell.spell == SpellType.None;
                         visualSpell.spell = origSpell.spell;
                         visualSpell.spellTarget = origSpell.spellTarget;
                         visualSpell.spellPower = origSpell.spellPower;
-
-                        cloneController.Info.UpdateStats(visualSpell);
-                        cloneController.Info.UpdateDescription(visualSpell);
                     }
-                    else
-                        cloneController.Info.UpdateDescription(cloneController.self);
                 }
-                catch { }
 
+                cloneController.Init(cloneController.self, isOwner);
                 cloneController.LinkNetwork(cn);
 
                 var cloneMove = uiClone.GetComponentInChildren<CardMovement>(true);

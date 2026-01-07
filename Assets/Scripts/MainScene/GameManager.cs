@@ -64,12 +64,11 @@ public class GameManager : MonoBehaviour
 
         if (NetworkManager.Singleton.IsServer)
         {
-            Debug.Log("Server started. Waiting for opponent...");
-
-            while (NetworkManager.Singleton.ConnectedClientsList.Count < 2)
+            while (NetworkManager.Singleton != null && NetworkManager.Singleton.ConnectedClientsList.Count < 2)
                 yield return new WaitForSeconds(0.5f);
 
-            Debug.Log("Opponent connected!");
+            if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsListening)
+                yield break;
 
             if (turnManager == null)
                 turnManager = FindFirstObjectByType<TurnManager>();
@@ -81,14 +80,9 @@ public class GameManager : MonoBehaviour
                     try
                     {
                         no.Spawn();
-                        Debug.Log("TurnManager Spawned.");
                     }
-                    catch (System.Exception e) { Debug.LogWarning($"Failed to spawn TurnManager: {e}"); }
+                    catch { }
             }
-
-            yield return new WaitForSeconds(0.5f);
-
-            StartGame();
         }
     }
 
@@ -770,6 +764,15 @@ public class GameManager : MonoBehaviour
                 return id;
         }
         return NetworkManager.ServerClientId;
+    }
+
+    public void SendPlayerReady()
+    {
+        if (turnManager == null)
+            turnManager = FindFirstObjectByType<TurnManager>();
+
+        if (turnManager != null)
+            turnManager.PlayerReadyServerRpc();
     }
 
     private void OnDestroy()

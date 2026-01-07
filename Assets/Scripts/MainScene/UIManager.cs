@@ -7,9 +7,9 @@ public class UIManager : MonoBehaviour
 {
     public static UIManager Instance;
 
-    public TextMeshProUGUI playerManaTxt, enemyManaTxt, playerHPTxt, enemyHPTxt, resultTxt, turnTimeTxt, restartBtnText;
-    public Button endTurnBtn, restartBtn;
-    public GameObject result, optionsPanel;
+    public TextMeshProUGUI playerManaTxt, enemyManaTxt, playerHPTxt, enemyHPTxt, resultTxt, turnTimeTxt, readyStatusText, restartBtnText;
+    public Button endTurnBtn, readyButton, restartBtn;
+    public GameObject readyPanel, result, optionsPanel;
 
     private void Awake()
     {
@@ -26,10 +26,22 @@ public class UIManager : MonoBehaviour
     {
         if (result != null)
             result.SetActive(false);
+
+        if (readyPanel != null)
+        {
+            readyPanel.SetActive(true);
+            if (readyButton != null) 
+                readyButton.interactable = true;
+            if (readyStatusText != null) 
+                readyStatusText.text = "READY";
+        }
     }
 
     public void StartGame()
     {
+        if (readyPanel != null)
+            readyPanel.SetActive(false);
+
         result.SetActive(false);
         UpdateHPAndMana();
     }
@@ -113,6 +125,24 @@ public class UIManager : MonoBehaviour
     public void OnOptionsButton()
     {
         optionsPanel.SetActive(!optionsPanel.activeSelf);
+    }
+
+    public void OnReadyButton()
+    {
+        if (readyButton != null)
+            readyButton.interactable = false;
+
+        if (GameManager.Instance != null)
+            GameManager.Instance.SendPlayerReady();
+
+        if (readyStatusText != null)
+            readyStatusText.text = "READY...";
+    }
+
+    public void UpdateReadyStatus(int readyCount)
+    {
+        if (readyStatusText != null && readyPanel.activeSelf)
+            readyStatusText.text = $"READY ({readyCount}/2)";
     }
 
     public void OnRestartButton()

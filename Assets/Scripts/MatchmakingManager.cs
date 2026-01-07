@@ -19,6 +19,7 @@ public class MatchmakingManager : MonoBehaviour
     private const string JOIN_CODE_KEY = "j";
 
     private Coroutine heartbeatCoroutine;
+    private Lobby currentLobby;
 
     private void Awake()
     {
@@ -45,16 +46,69 @@ public class MatchmakingManager : MonoBehaviour
 
         if (!AuthenticationService.Instance.IsSignedIn)
             await AuthenticationService.Instance.SignInAnonymouslyAsync();
+
+        if (NetworkManager.Singleton != null)
+            NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnect;
+    }
+
+    private void OnDestroy()
+    {
+        if (NetworkManager.Singleton != null)
+            NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnect;
+    }
+
+    private async void OnClientDisconnect(ulong clientId)
+    {
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer && clientId != NetworkManager.ServerClientId)
+        {
+            if (currentLobby != null)
+            {
+                try
+                {
+                    currentLobby = await LobbyService.Instance.GetLobbyAsync(currentLobby.Id);
+
+                    string myPlayerId = AuthenticationService.Instance.PlayerId;
+
+                    foreach (var player in currentLobby.Players)
+                    {
+                        if (player.Id != myPlayerId)
+                        {
+                            Debug.Log($"[Host] Kicking disconnected player {player.Id} from lobby.");
+                            await LobbyService.Instance.RemovePlayerAsync(currentLobby.Id, player.Id);
+                        }
+                    }
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogWarning($"Failed to cleanup lobby on disconnect: {e.Message}");
+                }
+            }
+        }
     }
 
     public async void FindMatch()
     {
         Debug.Log("Looking for a lobby...");
+
+        // FIX: Перед началом убеждаемся, что старый NetworkManager выключен
+        if (NetworkManager.Singleton.IsListening)
+        {
+            Debug.LogWarning("NetworkManager was still running. Shutting down...");
+            NetworkManager.Singleton.Shutdown();
+            // Ждем, пока он реально выключится
+            while (NetworkManager.Singleton.IsListening)
+                await Task.Yield();
+        }
+
         try
         {
             QuickJoinLobbyOptions options = new();
-            Lobby lobby = await LobbyService.Instance.QuickJoinLobbyAsync(options);
-            string joinCode = lobby.Data[JOIN_CODE_KEY].Value;
+
+            currentLobby = await LobbyService.Instance.QuickJoinLobbyAsync(options);
+
+            Debug.Log("Joined lobby: " + currentLobby.Id);
+
+            string joinCode = currentLobby.Data[JOIN_CODE_KEY].Value;
             await StartClientWithRelay(joinCode);
         }
         catch (LobbyServiceException)
@@ -79,6 +133,10 @@ public class MatchmakingManager : MonoBehaviour
                 allocation.ConnectionData
             );
 
+            // FIX: Дополнительная проверка перед стартом хоста
+            if (NetworkManager.Singleton.IsListening)
+                NetworkManager.Singleton.Shutdown();
+
             NetworkManager.Singleton.StartHost();
 
             CreateLobbyOptions options = new()
@@ -89,8 +147,11 @@ public class MatchmakingManager : MonoBehaviour
                 }
             };
 
-            Lobby lobby = await LobbyService.Instance.CreateLobbyAsync("My Card Game", 2, options);
-            heartbeatCoroutine = StartCoroutine(HeartbeatLobbyCoroutine(lobby.Id, 15));
+            currentLobby = await LobbyService.Instance.CreateLobbyAsync("My Card Game", 2, options);
+
+            Debug.Log("Created lobby: " + currentLobby.Id);
+
+            heartbeatCoroutine = StartCoroutine(HeartbeatLobbyCoroutine(currentLobby.Id, 15));
         }
         catch (System.Exception e)
         {
@@ -113,6 +174,10 @@ public class MatchmakingManager : MonoBehaviour
                 joinAllocation.HostConnectionData
             );
 
+            // FIX: Дополнительная проверка перед стартом клиента
+            if (NetworkManager.Singleton.IsListening)
+                NetworkManager.Singleton.Shutdown();
+
             NetworkManager.Singleton.StartClient();
         }
         catch (System.Exception e)
@@ -131,8 +196,37 @@ public class MatchmakingManager : MonoBehaviour
         }
     }
 
+    private async void LeaveLobby()
+    {
+        if (currentLobby != null)
+        {
+            try
+            {
+                if (heartbeatCoroutine != null)
+                {
+                    StopCoroutine(heartbeatCoroutine);
+                    heartbeatCoroutine = null;
+                }
+
+                string playerId = AuthenticationService.Instance.PlayerId;
+
+                await LobbyService.Instance.RemovePlayerAsync(currentLobby.Id, playerId);
+                Debug.Log("Left lobby successfully.");
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"Error leaving lobby: {e.Message}");
+            }
+            finally
+            {
+                currentLobby = null;
+            }
+        }
+    }
+
     public void DisconnectAndReturnToMenu()
     {
+        LeaveLobby();
         StartCoroutine(DisconnectSequence());
     }
 

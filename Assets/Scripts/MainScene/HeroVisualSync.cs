@@ -15,6 +15,9 @@ public class HeroVisualSync : NetworkBehaviour
         hostHeroIndex.OnValueChanged += (oldV, newV) => UpdateUI();
         clientHeroIndex.OnValueChanged += (oldV, newV) => UpdateUI();
 
+        if (IsServer)
+            NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnect;
+
         int myIndexToSend = HeroSelectionUI.SelectedHeroIndexStatic;
         if (myIndexToSend == -1)
             myIndexToSend = PlayerPrefs.GetInt("SelectedHeroIndex", 0);
@@ -28,7 +31,17 @@ public class HeroVisualSync : NetworkBehaviour
     {
         hostHeroIndex.OnValueChanged -= (oldV, newV) => UpdateUI();
         clientHeroIndex.OnValueChanged -= (oldV, newV) => UpdateUI();
+
+        if (IsServer && NetworkManager.Singleton != null)
+            NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnect;
+
         base.OnNetworkDespawn();
+    }
+
+    private void OnClientDisconnect(ulong clientId)
+    {
+        if (clientId != NetworkManager.ServerClientId)
+            clientHeroIndex.Value = -1;
     }
 
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]

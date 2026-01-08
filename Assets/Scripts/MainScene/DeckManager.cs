@@ -53,17 +53,37 @@ public class DeckManager : MonoBehaviour
     {
         if (deck == null || hand == null || count <= 0) return;
 
+        var gm = GameManager.Instance;
+
         for (int i = 0; i < count; i++)
         {
-            if (deck.Count == 0) break;
+            if (deck.Count == 0)
+            {
+                if (gm != null && gm.currentGame != null)
+                {
+                    Player targetPlayer = (deck == gm.currentGame.playerDeck) ? gm.currentGame.player : gm.currentGame.enemy;
+
+                    targetPlayer.fatigueDamage++;
+                    targetPlayer.GetDamage(targetPlayer.fatigueDamage);
+
+                    if (NetworkManager.Singleton.IsServer)
+                    {
+                        gm.UpdateStateNetworkIfServer();
+                        gm.CheckForResult();
+                    }
+                }
+                continue;
+            }
+
             var card = deck[0];
 
             int currentHandCount = hand.childCount;
-            var gm = GameManager.Instance;
             if (gm != null)
             {
-                if (hand == playerHand) currentHandCount = gm.playerHandCards != null ? gm.playerHandCards.Count : hand.childCount;
-                else if (hand == enemyHand) currentHandCount = gm.enemyHandCards != null ? gm.enemyHandCards.Count : hand.childCount;
+                if (hand == playerHand) 
+                    currentHandCount = gm.playerHandCards != null ? gm.playerHandCards.Count : hand.childCount;
+                else if (hand == enemyHand) 
+                    currentHandCount = gm.enemyHandCards != null ? gm.enemyHandCards.Count : hand.childCount;
             }
 
             if (currentHandCount >= MAX_HAND_SIZE)

@@ -167,9 +167,12 @@ public class GameManager : MonoBehaviour
         ulong otherClientId = GetAnyOtherClientId();
 
         bool playerStarts = deckManager.GiveInitialHands(currentGame, playerSideOwnerClientId, otherClientId, randomStart: true);
-        turn = playerStarts ? 0 : 1;
 
+        turn = playerStarts ? 0 : 1;
         ulong startingTurnOwner = playerStarts ? playerSideOwnerClientId : otherClientId;
+
+        if (turnManager != null)
+            turnManager.SetDeckCounts(currentGame.playerDeck.Count, currentGame.enemyDeck.Count);
 
         if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer && deckManager != null)
             deckManager.GiveNewCards(currentGame, startingTurnOwner);

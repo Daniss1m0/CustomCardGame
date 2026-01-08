@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 789566f9756b5124689a9339fecc602f
+guid: 0edaa5d916948c7479732486d3187e72
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 7465421964025451728
-    second: CheckBox06_0
+      213: -5344450659799097834
+    second: Toggle Switch Off_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -96,30 +96,17 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 4
-    buildTarget: WebGL
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    ignorePlatformSupport: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: CheckBox06_0
+      name: Toggle Switch Off_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 0
-        width: 100
-        height: 90
+        x: 47
+        y: 47
+        width: 122
+        height: 62
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -128,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 0d4d22809b18a9760800000000000000
-      internalID: 7465421964025451728
+      spriteID: 61e9217e072b4d5b0800000000000000
+      internalID: -5344450659799097834
       vertices: []
       indices: 
       edges: []
@@ -148,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      CheckBox06_0: 7465421964025451728
+      Toggle Switch Off_0: -5344450659799097834
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

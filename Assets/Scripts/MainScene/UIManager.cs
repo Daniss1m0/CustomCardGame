@@ -8,8 +8,8 @@ public class UIManager : MonoBehaviour
     public static UIManager Instance;
 
     public TextMeshProUGUI playerManaTxt, enemyManaTxt, playerHPTxt, enemyHPTxt, resultTxt, turnTimeTxt, readyStatusText, restartBtnText;
-    public Button endTurnBtn, readyButton, restartBtn;
-    public GameObject readyPanel, result, optionsPanel;
+    public Button endTurnBtn, readyButton, restartBtn, surrenderButton;
+    public GameObject readyPanel, result, surrenderPanel;
 
     private void Awake()
     {
@@ -34,6 +34,20 @@ public class UIManager : MonoBehaviour
                 readyButton.interactable = true;
             if (readyStatusText != null) 
                 readyStatusText.text = "READY";
+        }
+
+        if (surrenderButton != null)
+            surrenderButton.onClick.AddListener(OnSurrenderButton);
+    }
+
+    public void OnSurrenderButton()
+    {
+        if (GameManager.Instance != null && !GameManager.Instance.IsGameOver)
+        {
+            if (surrenderPanel != null)
+                surrenderPanel.SetActive(false);
+
+            GameManager.Instance.Surrender();
         }
     }
 
@@ -122,9 +136,9 @@ public class UIManager : MonoBehaviour
             txt.alpha = interactable ? 1f : 0.1f;
     }
 
-    public void OnOptionsButton()
+    public void OnSurrenderPanelButton()
     {
-        optionsPanel.SetActive(!optionsPanel.activeSelf);
+        surrenderPanel.SetActive(!surrenderPanel.activeSelf);
     }
 
     public void OnReadyButton()

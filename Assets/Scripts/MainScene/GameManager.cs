@@ -628,4 +628,25 @@ public class GameManager : MonoBehaviour
         if (Instance == this) 
             Instance = null;
     }
+
+    public void Surrender()
+    {
+        if (IsGameOver) 
+            return;
+
+        Debug.Log("Surrendering...");
+
+        if (NetworkManager.Singleton.IsServer)
+        {
+            currentGame.player.hp = 0;
+            UpdateStateNetworkIfServer();
+            UIManager.Instance.UpdateHPAndMana();
+            CheckForResult();
+        }
+        else
+        {
+            if (MatchmakingManager.Instance != null)
+                MatchmakingManager.Instance.DisconnectAndReturnToMenu();
+        }
+    }
 }

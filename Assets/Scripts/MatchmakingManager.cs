@@ -19,6 +19,7 @@ public class MatchmakingManager : MonoBehaviour
     private const string JOIN_CODE_KEY = "j";
 
     private bool isBusy = false;
+    private string lastLobbyId = "";
     private Coroutine heartbeatCoroutine;
     private Lobby currentLobby;
 
@@ -51,6 +52,8 @@ public class MatchmakingManager : MonoBehaviour
 
         if (NetworkManager.Singleton != null)
             NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnect;
+
+        await CleanupGhostLobbies();
     }
 
     private void OnDestroy()
@@ -59,30 +62,68 @@ public class MatchmakingManager : MonoBehaviour
             NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnect;
     }
 
+    private async Task CleanupGhostLobbies()
+    {
+        try
+        {
+            var joinedLobbyIds = await LobbyService.Instance.GetJoinedLobbiesAsync();
+
+            if (joinedLobbyIds != null && joinedLobbyIds.Count > 0)
+            {
+                Debug.Log($"[Matchmaking] Found {joinedLobbyIds.Count} ghost lobbies. Cleaning up...");
+
+                foreach (string lobbyId in joinedLobbyIds)
+                {
+                    try
+                    {
+                        Lobby lobby = await LobbyService.Instance.GetLobbyAsync(lobbyId);
+
+                        if (lobby.HostId == AuthenticationService.Instance.PlayerId)
+                            await LobbyService.Instance.DeleteLobbyAsync(lobbyId);
+                        else
+                            await LobbyService.Instance.RemovePlayerAsync(lobbyId, AuthenticationService.Instance.PlayerId);
+
+                        await Task.Delay(500);
+                    }
+                    catch (System.Exception)
+                    {
+                        try
+                        {
+                            await LobbyService.Instance.RemovePlayerAsync(lobbyId, AuthenticationService.Instance.PlayerId);
+                        }
+                        catch { }
+                        await Task.Delay(500);
+                    }
+                }
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogWarning($"Ghost cleanup error (harmless): {e.Message}");
+        }
+    }
+
     private async void OnClientDisconnect(ulong clientId)
     {
         if (NetworkManager.Singleton.IsServer && clientId != NetworkManager.ServerClientId)
         {
             if (currentLobby != null)
             {
-                Debug.Log($"[Host] Client {clientId} disconnected. Removing from Lobby...");
                 try
                 {
                     currentLobby = await LobbyService.Instance.GetLobbyAsync(currentLobby.Id);
 
                     string myPlayerId = AuthenticationService.Instance.PlayerId;
                     foreach (var player in currentLobby.Players)
-                    {
                         if (player.Id != myPlayerId)
                         {
+                            Debug.Log($"[Host] Kicking disconnected player {player.Id} from Lobby.");
                             await LobbyService.Instance.RemovePlayerAsync(currentLobby.Id, player.Id);
-                            Debug.Log($"[Host] Kicked player {player.Id} from Lobby.");
                         }
-                    }
                 }
                 catch (System.Exception e)
                 {
-                    Debug.LogWarning($"[Host] Failed to remove player from lobby: {e.Message}");
+                    Debug.LogWarning($"[Host] Failed to clean lobby: {e.Message}");
                 }
             }
         }
@@ -102,12 +143,33 @@ public class MatchmakingManager : MonoBehaviour
         try
         {
             QuickJoinLobbyOptions options = new();
-            currentLobby = await LobbyService.Instance.QuickJoinLobbyAsync(options);
+            
+            Lobby foundLobby = await LobbyService.Instance.QuickJoinLobbyAsync(options);
 
+            if (foundLobby.Id == lastLobbyId)
+            {
+                Debug.LogWarning("Found old ghost lobby (by ID). Creating new match.");
+                await CreateMatch();
+                return;
+            }
+
+            currentLobby = foundLobby;
             Debug.Log("Joined lobby: " + currentLobby.Id);
 
             string joinCode = currentLobby.Data[JOIN_CODE_KEY].Value;
-            await StartClientWithRelay(joinCode);
+
+            bool success = await StartClientWithRelay(joinCode);
+
+            if (!success)
+            {
+                Debug.LogWarning($"Lobby {currentLobby.Id} seems broken (Relay join failed). Leaving and creating new match.");
+
+                lastLobbyId = currentLobby.Id;
+
+                await LeaveLobby();
+
+                await CreateMatch();
+            }
         }
         catch (LobbyServiceException)
         {
@@ -123,7 +185,12 @@ public class MatchmakingManager : MonoBehaviour
 
     public void DisconnectAndReturnToMenu()
     {
-        if (isBusy) return;
+        if (isBusy) 
+            return;
+
+        if (currentLobby != null)
+            lastLobbyId = currentLobby.Id;
+
         StartCoroutine(DisconnectSequence());
     }
 
@@ -143,10 +210,12 @@ public class MatchmakingManager : MonoBehaviour
             );
 
             if (NetworkManager.Singleton.StartHost())
+            {
                 Debug.Log("Host started via Relay.");
+            }
             else
             {
-                Debug.LogError("Failed to StartHost (NetworkManager refused).");
+                Debug.LogError("Failed to StartHost.");
                 isBusy = false;
                 return;
             }
@@ -175,7 +244,7 @@ public class MatchmakingManager : MonoBehaviour
         }
     }
 
-    private async Task StartClientWithRelay(string joinCode)
+    private async Task<bool> StartClientWithRelay(string joinCode)
     {
         try
         {
@@ -191,24 +260,31 @@ public class MatchmakingManager : MonoBehaviour
             );
 
             if (NetworkManager.Singleton.StartClient())
+            {
                 Debug.Log("Client started via Relay.");
+                isBusy = false;
+                return true;
+            }
             else
-                Debug.LogError("Failed to StartClient.");
-
-            isBusy = false;
+            {
+                Debug.LogError("Failed to StartClient (Netcode refused).");
+                return false;
+            }
         }
         catch (System.Exception e)
         {
             Debug.LogError($"StartClient failed: {e.Message}");
-            await ResetNetworkState();
-            isBusy = false;
+            return false;
         }
     }
 
-    private async Task ResetNetworkState()
+    private async Task LeaveLobby()
     {
         if (currentLobby != null)
         {
+            string lobbyId = currentLobby.Id;
+            lastLobbyId = lobbyId;
+
             try
             {
                 if (heartbeatCoroutine != null)
@@ -218,11 +294,34 @@ public class MatchmakingManager : MonoBehaviour
                 }
 
                 string playerId = AuthenticationService.Instance.PlayerId;
-                await LobbyService.Instance.RemovePlayerAsync(currentLobby.Id, playerId);
+
+                if (currentLobby.HostId == playerId)
+                {
+                    Debug.Log($"[Matchmaking] Deleting lobby {lobbyId}...");
+                    await LobbyService.Instance.DeleteLobbyAsync(lobbyId);
+                }
+                else
+                {
+                    Debug.Log($"[Matchmaking] Leaving lobby {lobbyId}...");
+                    await LobbyService.Instance.RemovePlayerAsync(lobbyId, playerId);
+                }
             }
-            catch {}
-            currentLobby = null;
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"Error leaving/deleting lobby: {e.Message}");
+            }
+            finally
+            {
+                currentLobby = null;
+            }
         }
+    }
+
+    private async Task ResetNetworkState()
+    {
+        await LeaveLobby();
+        await CleanupGhostLobbies();
+        await Task.Delay(100);
 
         if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
         {

@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using Unity.Netcode;
 
@@ -44,6 +44,12 @@ public class HeroVisualSync : NetworkBehaviour
             clientHeroIndex.Value = -1;
     }
 
+    public void ResetClientVisuals()
+    {
+        if (IsServer)
+            clientHeroIndex.Value = -1;
+    }
+
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     private void SubmitHeroIndexServerRpc(int index, RpcParams rpcParams = default)
     {
@@ -71,7 +77,7 @@ public class HeroVisualSync : NetworkBehaviour
 
     private void UpdateAvatarVisuals(Image targetImage, int heroIndex)
     {
-        if (targetImage == null) 
+        if (targetImage == null)
             return;
 
         if (heroIndex < 0)
@@ -94,7 +100,7 @@ public class HeroVisualSync : NetworkBehaviour
 
     private Sprite GetSpriteSafe(int index)
     {
-        if (allHeroSprites == null || allHeroSprites.Length == 0) 
+        if (allHeroSprites == null || allHeroSprites.Length == 0)
             return null;
 
         if (index >= 0 && index < allHeroSprites.Length)

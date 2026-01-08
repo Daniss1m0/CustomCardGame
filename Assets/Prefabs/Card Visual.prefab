@@ -276,9 +276,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba12d265c9fafde4bb83bbb5043c02a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  targetImage: {fileID: 8010141085867091004}
   normalColor: {r: 0.63522005, g: 0.63522005, b: 0.63522005, a: 0}
-  targetColor: {r: 1, g: 0, b: 0, a: 0}
-  spellTargetColor: {r: 1, g: 0, b: 0.9191389, a: 0}
+  targetColor: {r: 1, g: 0.52156866, b: 0.52156866, a: 0}
+  spellTargetColor: {r: 1, g: 0.52156866, b: 0.52156866, a: 0}
   nameTxt: {fileID: 2580415682543168692}
   attackTxt: {fileID: 7161421386551249376}
   healthTxt: {fileID: 4148953900855694397}

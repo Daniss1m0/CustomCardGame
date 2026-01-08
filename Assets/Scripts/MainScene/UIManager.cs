@@ -7,9 +7,9 @@ public class UIManager : MonoBehaviour
 {
     public static UIManager Instance;
 
-    public TextMeshProUGUI playerManaTxt, enemyManaTxt, playerHPTxt, enemyHPTxt, resultTxt, turnTimeTxt, restartBtnText;
-    public Button endTurnBtn, restartBtn;
-    public GameObject result, optionsPanel;
+    public TextMeshProUGUI playerManaTxt, enemyManaTxt, playerHPTxt, enemyHPTxt, resultTxt, turnTimeTxt, readyStatusText, restartBtnText;
+    public Button endTurnBtn, readyButton, restartBtn;
+    public GameObject readyPanel, result, optionsPanel;
 
     private void Awake()
     {
@@ -24,19 +24,31 @@ public class UIManager : MonoBehaviour
 
     private void Start()
     {
-        if (result != null) 
+        if (result != null)
             result.SetActive(false);
+
+        if (readyPanel != null)
+        {
+            readyPanel.SetActive(true);
+            if (readyButton != null) 
+                readyButton.interactable = true;
+            if (readyStatusText != null) 
+                readyStatusText.text = "READY";
+        }
     }
 
     public void StartGame()
     {
+        if (readyPanel != null)
+            readyPanel.SetActive(false);
+
         result.SetActive(false);
         UpdateHPAndMana();
     }
 
     public void UpdateHPAndMana()
     {
-        if (GameManager.Instance == null || GameManager.Instance.currentGame == null) 
+        if (GameManager.Instance == null || GameManager.Instance.currentGame == null)
             return;
 
         playerManaTxt.text = GameManager.Instance.currentGame.player.mana.ToString();
@@ -82,12 +94,55 @@ public class UIManager : MonoBehaviour
 
     public void DisableTurnBtn()
     {
-        endTurnBtn.interactable = GameManager.Instance.IsPlayerTurn;
+        bool isMyTurn = GameManager.Instance.IsPlayerTurn;
+
+        if (endTurnBtn != null)
+        {
+            endTurnBtn.interactable = isMyTurn;
+            UpdateEndTurnTextAlpha(isMyTurn);
+        }
+    }
+
+    public void SetEndTurnInteractable(bool state)
+    {
+        if (endTurnBtn != null)
+        {
+            endTurnBtn.interactable = state;
+            UpdateEndTurnTextAlpha(state);
+        }
+    }
+
+    private void UpdateEndTurnTextAlpha(bool interactable)
+    {
+        if (endTurnBtn == null) 
+            return;
+
+        var txt = endTurnBtn.GetComponentInChildren<TextMeshProUGUI>();
+        if (txt != null)
+            txt.alpha = interactable ? 1f : 0.1f;
     }
 
     public void OnOptionsButton()
     {
         optionsPanel.SetActive(!optionsPanel.activeSelf);
+    }
+
+    public void OnReadyButton()
+    {
+        if (readyButton != null)
+            readyButton.interactable = false;
+
+        if (GameManager.Instance != null)
+            GameManager.Instance.SendPlayerReady();
+
+        if (readyStatusText != null)
+            readyStatusText.text = "READY...";
+    }
+
+    public void UpdateReadyStatus(int readyCount)
+    {
+        if (readyStatusText != null && readyPanel.activeSelf)
+            readyStatusText.text = $"READY ({readyCount}/2)";
     }
 
     public void OnRestartButton()
@@ -99,14 +154,9 @@ public class UIManager : MonoBehaviour
             GameManager.Instance.SendRestartVote();
     }
 
-    public void LoadDeckSelection()
+    public void OnBackToMenuButton()
     {
-        SceneManager.LoadScene("DeckSelection");
-    }
-
-    public void SetEndTurnInteractable(bool state)
-    {
-        if (endTurnBtn != null)
-            endTurnBtn.interactable = state;
+        if (MatchmakingManager.Instance != null)
+            MatchmakingManager.Instance.DisconnectAndReturnToMenu();
     }
 }

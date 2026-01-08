@@ -1,4 +1,5 @@
-using System.Collections;
+﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
 
@@ -17,7 +18,9 @@ public class TurnManager : NetworkBehaviour
     public NetworkVariable<int> playerDeckCount = new(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     public NetworkVariable<int> enemyDeckCount = new(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     public NetworkVariable<int> restartVotes = new(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    public NetworkVariable<int> readyPlayersCount = new(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
+    private HashSet<ulong> readyPlayerIds = new();
     private Coroutine serverTurnCoroutine;
 
     public override void OnNetworkSpawn()
@@ -25,7 +28,10 @@ public class TurnManager : NetworkBehaviour
         base.OnNetworkSpawn();
 
         if (IsServer)
+        {
             turnTimeRemaining.Value = 0;
+            NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnect;
+        }
 
         turnTimeRemaining.OnValueChanged += OnTurnTimeRemainingChanged;
         playerMana.OnValueChanged += OnPlayerManaChanged;
@@ -38,6 +44,16 @@ public class TurnManager : NetworkBehaviour
         playerDeckCount.OnValueChanged += (oldV, newV) => UpdateDeckVisuals();
         enemyDeckCount.OnValueChanged += (oldV, newV) => UpdateDeckVisuals();
 
+        readyPlayersCount.OnValueChanged += (oldV, newV) =>
+        {
+            if (newV >= 2)
+                if (GameManager.Instance != null)
+                    GameManager.Instance.StartGame();
+
+            if (UIManager.Instance != null)
+                UIManager.Instance.UpdateReadyStatus(newV);
+        };
+
         restartVotes.OnValueChanged += (oldV, newV) =>
         {
             if (UIManager.Instance != null)
@@ -47,6 +63,9 @@ public class TurnManager : NetworkBehaviour
 
     public override void OnNetworkDespawn()
     {
+        if (IsServer && NetworkManager.Singleton != null)
+            NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnect;
+
         turnTimeRemaining.OnValueChanged -= OnTurnTimeRemainingChanged;
         playerMana.OnValueChanged -= OnPlayerManaChanged;
         enemyMana.OnValueChanged -= OnEnemyManaChanged;
@@ -56,6 +75,35 @@ public class TurnManager : NetworkBehaviour
         enemyDeckCount.OnValueChanged -= (oldV, newV) => UpdateDeckVisuals();
 
         base.OnNetworkDespawn();
+    }
+
+    private void OnClientDisconnect(ulong clientId)
+    {
+        OnClientDisconnectPublic(clientId);
+    }
+
+    public void OnClientDisconnectPublic(ulong clientId)
+    {
+        if (!IsServer) 
+            return;
+
+        if (readyPlayerIds.Contains(clientId))
+        {
+            readyPlayerIds.Remove(clientId);
+            readyPlayersCount.Value = readyPlayerIds.Count;
+        }
+    }
+
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    public void PlayerReadyServerRpc(RpcParams rpcParams = default)
+    {
+        ulong senderId = rpcParams.Receive.SenderClientId;
+
+        if (!readyPlayerIds.Contains(senderId))
+        {
+            readyPlayerIds.Add(senderId);
+            readyPlayersCount.Value = readyPlayerIds.Count;
+        }
     }
 
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
@@ -70,6 +118,8 @@ public class TurnManager : NetworkBehaviour
     private void PerformFullRestart()
     {
         restartVotes.Value = 0;
+        readyPlayerIds.Clear();
+        readyPlayersCount.Value = 0;
         StopServerTurnLoop();
 
         if (GameManager.Instance != null)
@@ -102,7 +152,7 @@ public class TurnManager : NetworkBehaviour
 
     public void SetDeckCounts(int playerCount, int enemyCount)
     {
-        if (!IsServer) 
+        if (!IsServer)
             return;
 
         playerDeckCount.Value = playerCount;
@@ -119,10 +169,10 @@ public class TurnManager : NetworkBehaviour
 
     public void StartServerTurnLoop()
     {
-        if (!IsServer) 
+        if (!IsServer)
             return;
 
-        if (serverTurnCoroutine != null) 
+        if (serverTurnCoroutine != null)
             StopCoroutine(serverTurnCoroutine);
 
         serverTurnCoroutine = StartCoroutine(ServerTurnLoop());
@@ -130,7 +180,7 @@ public class TurnManager : NetworkBehaviour
 
     public void StopServerTurnLoop()
     {
-        if (!IsServer) 
+        if (!IsServer)
             return;
 
         if (serverTurnCoroutine != null)
@@ -151,7 +201,7 @@ public class TurnManager : NetworkBehaviour
                 yield return new WaitForSeconds(1f);
                 turnTimeRemaining.Value = Mathf.Max(0, turnTimeRemaining.Value - 1);
             }
-            if (GameManager.Instance != null) 
+            if (GameManager.Instance != null)
                 GameManager.Instance.ChangeTurn();
 
             yield return null;
@@ -161,14 +211,14 @@ public class TurnManager : NetworkBehaviour
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     public void RequestEndTurnServerRpc(RpcParams rpcParams = default)
     {
-        if (!IsServer) 
+        if (!IsServer)
             return;
 
         ulong sender = rpcParams.Receive.SenderClientId;
-        if (sender != currentTurnOwner.Value) 
+        if (sender != currentTurnOwner.Value)
             return;
 
-        if (GameManager.Instance != null) 
+        if (GameManager.Instance != null)
             GameManager.Instance.ChangeTurn();
     }
 
@@ -176,7 +226,7 @@ public class TurnManager : NetworkBehaviour
     public void NotifyClientsOwnerClientRpc(ulong ownerClientId)
     {
         bool amOwner = NetworkManager.Singleton != null && NetworkManager.Singleton.LocalClientId == ownerClientId;
-        if (UIManager.Instance != null) 
+        if (UIManager.Instance != null)
             UIManager.Instance.SetEndTurnInteractable(amOwner);
 
         GameManager.Instance?.CheckCardsForManaAvailability();

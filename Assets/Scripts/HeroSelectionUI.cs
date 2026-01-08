@@ -21,10 +21,22 @@ public class HeroSelectionUI : MonoBehaviour
     {
         PlayerPrefs.SetInt("SelectedHeroIndex", currentHeroIndex);
         PlayerPrefs.Save();
-
         SelectedHeroIndexStatic = currentHeroIndex;
 
         SceneManager.LoadScene("MainScene");
+
+        SceneManager.sceneLoaded += OnMainSceneLoaded;
+    }
+
+    private void OnMainSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (scene.name == "MainScene")
+        {
+            if (MatchmakingManager.Instance != null)
+                MatchmakingManager.Instance.FindMatch();
+
+            SceneManager.sceneLoaded -= OnMainSceneLoaded;
+        }
     }
 
     public void LoadMainMenu()

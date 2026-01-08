@@ -318,4 +318,25 @@ public class AnimationManager : MonoBehaviour
             cg.interactable = true;
         }
     }
+
+    public void PlayHeroDeath(Transform heroTransform, System.Action onComplete)
+    {
+        if (heroTransform == null)
+        {
+            onComplete?.Invoke();
+            return;
+        }
+
+        GlobalBusyCount++;
+
+        Sequence seq = DOTween.Sequence();
+
+        seq.Append(heroTransform.DOShakePosition(0.5f, 30, 50, 90, false, true));
+
+        seq.OnComplete(() =>
+        {
+            GlobalBusyCount--;
+            onComplete?.Invoke();
+        });
+    }
 }

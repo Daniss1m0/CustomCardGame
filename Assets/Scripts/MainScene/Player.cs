@@ -3,12 +3,12 @@ using UnityEngine;
 
 public class Player
 {
-    public int hp, mana, manaPool, tempMana;
+    public int hp, mana, manaPool, tempMana, fatigueDamage;
 
     public Player()
     {
         hp = 30;
-        mana = manaPool = tempMana = 0;
+        mana = manaPool = tempMana = fatigueDamage = 0;
     }
 
     public void IncreaseManaPool()

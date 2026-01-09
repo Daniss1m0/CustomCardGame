@@ -9,7 +9,7 @@ public enum AbilityType
     Taunt,
     Shield,
     Regeneration,
-    CounterAttack //?
+    CounterAttack //Or more
 }
 
 public class Card
@@ -37,7 +37,7 @@ public class Card
 
         canAttack = false;
         isPlaced = false;
-        abilities = new List<AbilityType>(data.abilities ?? new List<AbilityType>()); //??
+        abilities = new List<AbilityType>(data.abilities ?? new List<AbilityType>());
         timesDealedDamage = 0;
     }
 

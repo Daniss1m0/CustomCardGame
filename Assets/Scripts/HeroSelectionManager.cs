@@ -32,16 +32,6 @@ public class HeroSelectionManager : MonoBehaviour
             heroImg.sprite = heroS[currentHeroIdx];
     }
 
-    private void OnMainSceneLoaded(Scene scene, LoadSceneMode mode) //?
-    {
-        if (scene.name == "MainScene")
-        {
-            MatchmakingManager.Instance.FindMatch();
-
-            SceneManager.sceneLoaded -= OnMainSceneLoaded;
-        }
-    }
-
     public void OnPlayBtn()
     {
         PlayerPrefs.SetInt("SelectedHeroIdx", currentHeroIdx);
@@ -49,8 +39,6 @@ public class HeroSelectionManager : MonoBehaviour
         SelectedHeroIdx = currentHeroIdx;
 
         SceneManager.LoadScene("MainScene");
-
-        SceneManager.sceneLoaded += OnMainSceneLoaded;
     }
 
     public void OnBackBtn() => SceneManager.LoadScene("MainMenu");

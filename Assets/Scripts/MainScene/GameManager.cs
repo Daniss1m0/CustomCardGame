@@ -263,7 +263,7 @@ public class GameManager : MonoBehaviour
             if (turnManager != null && turnManager.playerOwner.Value != 0UL)
                 playerOwnerClientId = turnManager.playerOwner.Value;
 
-            ulong otherClientId = GetOtherClientOf(playerOwnerClientId);
+            ulong otherClientId = GetOtherClientOf();
             ulong newOwner = IsPlayerTurn ? playerOwnerClientId : otherClientId;
 
             if (turnManager != null)
@@ -617,7 +617,7 @@ public class GameManager : MonoBehaviour
             updateStatsAction();
     }
 
-    private ulong GetOtherClientOf(ulong clientId)
+    private ulong GetOtherClientOf()
     {
         if (NetworkManager.Singleton == null) 
             return NetworkManager.ServerClientId;

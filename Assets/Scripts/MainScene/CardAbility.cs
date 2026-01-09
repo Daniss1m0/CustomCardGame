@@ -35,10 +35,11 @@ public class CardAbility : MonoBehaviour
         }
     }
 
-    public void OnApplyEffect(Card card, bool isPlayerCard, CardInfo info = null)
+    public void OnApplyEffect(Card card)
     {
         if (shield) 
             shield.SetActive(false);
+
         if (taunt) 
             taunt.SetActive(false);
 

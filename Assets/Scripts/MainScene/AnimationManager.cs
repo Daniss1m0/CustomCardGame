@@ -7,37 +7,12 @@ public class AnimationManager : MonoBehaviour
 {
     public static AnimationManager Instance;
 
-    private bool _isQueueProcessing = false;
+    [SerializeField] private float drawDuration = 0.5f, attackDuration = 0.4f, deathDuration = 0.3f, cardScaleAmount = 1.5f, centerScreenYOffset = 250f;
+
+    private bool isQueueProcessing = false;
     private Queue<System.Action> visualQueue = new();
 
     public int GlobalBusyCount { get; private set; } = 0;
-
-    public void EnqueueVisual(System.Action action)
-    {
-        visualQueue.Enqueue(action);
-
-        if (!_isQueueProcessing)
-            StartCoroutine(ProcessQueueRoutine());
-    }
-
-    private System.Collections.IEnumerator ProcessQueueRoutine()
-    {
-        _isQueueProcessing = true;
-
-        while (visualQueue.Count > 0)
-        {
-            while (GlobalBusyCount > 0)
-                yield return null;
-
-            var action = visualQueue.Dequeue();
-
-            action?.Invoke();
-
-            yield return null;
-        }
-
-        _isQueueProcessing = false;
-    }
 
     private void Awake()
     {
@@ -47,7 +22,33 @@ public class AnimationManager : MonoBehaviour
             Destroy(gameObject);
     }
 
-    public void PlayOpponentDraw(CardController card, Transform targetParent, int fallbackIndex)
+    public void EnqueueVisual(System.Action action)
+    {
+        visualQueue.Enqueue(action);
+
+        if (!isQueueProcessing)
+            StartCoroutine(ProcessQueueRoutine());
+    }
+
+    private System.Collections.IEnumerator ProcessQueueRoutine()
+    {
+        isQueueProcessing = true;
+
+        while (visualQueue.Count > 0)
+        {
+            while (GlobalBusyCount > 0)
+                yield return null;
+
+            var action = visualQueue.Dequeue();
+            action?.Invoke();
+
+            yield return null;
+        }
+
+        isQueueProcessing = false;
+    }
+
+    public void PlayOpponentDraw(CardController card, Transform targetParent, int fallbackIdx)
     {
         if (card == null) 
             return;
@@ -75,15 +76,15 @@ public class AnimationManager : MonoBehaviour
             if (rootCanvas != null)
             {
                 RectTransform canvasRect = rootCanvas.GetComponent<RectTransform>();
-                startY = (canvasRect.rect.height / 2f) + 250f;
+                startY = (canvasRect.rect.height / 2f) + centerScreenYOffset;
             }
             rt.anchoredPosition = new Vector2(0, startY);
 
             Vector3 originalScale = Vector3.one;
             Sequence sequence = DOTween.Sequence();
 
-            sequence.Append(rt.DOAnchorPos(Vector2.zero, 0.5f).SetEase(Ease.OutBack));
-            sequence.Join(rt.DOScale(originalScale * 1.5f, 0.5f).SetEase(Ease.OutBack));
+            sequence.Append(rt.DOAnchorPos(Vector2.zero, drawDuration).SetEase(Ease.OutBack));
+            sequence.Join(rt.DOScale(originalScale * cardScaleAmount, drawDuration).SetEase(Ease.OutBack));
             sequence.Join(rt.DORotate(Vector3.zero, 0.3f));
             sequence.AppendInterval(0.6f);
             sequence.AppendCallback(() => { rt.DOScale(originalScale, 0.3f); });
@@ -97,7 +98,7 @@ public class AnimationManager : MonoBehaviour
                 {
                     card.transform.SetParent(targetParent, false);
 
-                    int finalIndex = fallbackIndex;
+                    int finalIndex = fallbackIdx;
                     if (card.Network != null)
                         finalIndex = card.Network.fieldIndex.Value;
 
@@ -150,15 +151,15 @@ public class AnimationManager : MonoBehaviour
         if (rootCanvas != null)
         {
             RectTransform canvasRect = rootCanvas.GetComponent<RectTransform>();
-            startY = (canvasRect.rect.height / 2f) + 250f;
+            startY = (canvasRect.rect.height / 2f) + centerScreenYOffset;
         }
         rt.anchoredPosition = new Vector2(0, startY);
 
         Vector3 originalScale = Vector3.one;
         Sequence sequence = DOTween.Sequence();
 
-        sequence.Append(rt.DOAnchorPos(Vector2.zero, 0.5f).SetEase(Ease.OutBack));
-        sequence.Join(rt.DOScale(originalScale * 1.6f, 0.5f).SetEase(Ease.OutBack));
+        sequence.Append(rt.DOAnchorPos(Vector2.zero, drawDuration).SetEase(Ease.OutBack));
+        sequence.Join(rt.DOScale(originalScale * cardScaleAmount, drawDuration).SetEase(Ease.OutBack));
         sequence.Join(rt.DORotate(Vector3.zero, 0.3f));
         sequence.AppendInterval(0.8f);
 
@@ -172,6 +173,27 @@ public class AnimationManager : MonoBehaviour
         {
             Destroy(card.gameObject);
             DecrementBusyCount();
+        });
+    }
+
+    public void PlayHeroDeath(Transform heroTransform, System.Action onComplete)
+    {
+        if (heroTransform == null)
+        {
+            onComplete?.Invoke();
+            return;
+        }
+
+        GlobalBusyCount++;
+
+        Sequence seq = DOTween.Sequence();
+
+        seq.Append(heroTransform.DOShakePosition(1f, 30, 50, 90, false, true));
+
+        seq.OnComplete(() =>
+        {
+            GlobalBusyCount--;
+            onComplete?.Invoke();
         });
     }
 
@@ -207,7 +229,7 @@ public class AnimationManager : MonoBehaviour
         Sequence seq = DOTween.Sequence();
         seq.SetLink(attackerTransform.gameObject);
 
-        seq.Append(attackerTransform.DOMove(impactPos, 0.4f).SetEase(Ease.InQuad));
+        seq.Append(attackerTransform.DOMove(impactPos, attackDuration).SetEase(Ease.InQuad));
         seq.Join(attackerTransform.DORotate(new Vector3(0, 0, 5f), 0.2f));
 
         seq.AppendCallback(() =>
@@ -230,9 +252,9 @@ public class AnimationManager : MonoBehaviour
             if (attackPlaceholder != null && attackerTransform != null)
             {
                 Vector3 returnTarget = attackPlaceholder.transform.position;
-                attackerTransform.DOMove(returnTarget, 0.4f).SetEase(Ease.OutQuad);
-                attackerTransform.DORotate(Vector3.zero, 0.4f).SetEase(Ease.OutQuad);
-                attackerTransform.DOScale(Vector3.one, 0.4f).SetEase(Ease.OutQuad);
+                attackerTransform.DOMove(returnTarget, attackDuration).SetEase(Ease.OutQuad);
+                attackerTransform.DORotate(Vector3.zero, attackDuration).SetEase(Ease.OutQuad);
+                attackerTransform.DOScale(Vector3.one, attackDuration).SetEase(Ease.OutQuad);
             }
         });
 
@@ -272,10 +294,7 @@ public class AnimationManager : MonoBehaviour
             LayoutRebuilder.ForceRebuildLayoutImmediate(cardTransform.parent as RectTransform);
 
         cardTransform.DOKill();
-        cardTransform.DOScale(Vector3.zero, 0.3f)
-            .SetEase(Ease.InBack)
-            .SetLink(cardTransform.gameObject)
-            .OnComplete(() => onComplete?.Invoke());
+        cardTransform.DOScale(Vector3.zero, deathDuration).SetEase(Ease.InBack).SetLink(cardTransform.gameObject).OnComplete(() => onComplete?.Invoke());
     }
 
     public void MoveToField(Transform cardTransform, Transform targetField, float duration)
@@ -317,26 +336,5 @@ public class AnimationManager : MonoBehaviour
             cg.blocksRaycasts = true;
             cg.interactable = true;
         }
-    }
-
-    public void PlayHeroDeath(Transform heroTransform, System.Action onComplete)
-    {
-        if (heroTransform == null)
-        {
-            onComplete?.Invoke();
-            return;
-        }
-
-        GlobalBusyCount++;
-
-        Sequence seq = DOTween.Sequence();
-
-        seq.Append(heroTransform.DOShakePosition(1f, 30, 50, 90, false, true));
-
-        seq.OnComplete(() =>
-        {
-            GlobalBusyCount--;
-            onComplete?.Invoke();
-        });
     }
 }

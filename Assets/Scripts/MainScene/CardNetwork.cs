@@ -337,7 +337,7 @@ public class CardNetwork : NetworkBehaviour
                 if (ctrl != null)
                 {
                     ctrl.self.isPlaced = true; ctrl.Info.ShowCard(ctrl.self);
-                    if (ctrl.Ability != null) ctrl.Ability.OnApplyEffect(ctrl.self, ctrl.isPlayerCard, ctrl.Info);
+                    if (ctrl.Ability != null) ctrl.Ability.OnApplyEffect(ctrl.self);
                     var dm2 = FindFirstObjectByType<DeckManager>(); Transform targetField = (ownerClientId == (NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0UL)) ? dm2.PlayerField : dm2.EnemyField; if (targetField != null) { uiClone.transform.SetParent(targetField, false); StartCoroutine(ForceClonePosition(uiClone.transform, fieldIndex.Value)); }
                     var gm2 = GameManager.Instance; if (gm2 != null) { if (ownerClientId == (NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0UL)) { if (gm2.playerHandCards.Contains(ctrl)) gm2.playerHandCards.Remove(ctrl); if (!gm2.playerFieldCards.Contains(ctrl)) gm2.playerFieldCards.Add(ctrl); } else { if (gm2.enemyHandCards.Contains(ctrl)) gm2.enemyHandCards.Remove(ctrl); if (!gm2.enemyFieldCards.Contains(ctrl)) gm2.enemyFieldCards.Add(ctrl); } }
                 }

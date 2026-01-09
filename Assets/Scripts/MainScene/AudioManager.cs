@@ -7,11 +7,7 @@ public class AudioManager : MonoBehaviour
     [SerializeField] private AudioSource sfxSource;
 
     [Header("Clips")]
-    public AudioClip placeCardClip;
-    public AudioClip attackImpactClip;
-    public AudioClip heroHitClip;
-    public AudioClip drawCardClip;
-    public AudioClip spellCastClip;
+    public AudioClip placeCardClip, attackImpactClip, heroHitClip, drawCardClip, spellCastClip;
 
     private void Awake()
     {

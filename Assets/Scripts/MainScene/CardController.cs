@@ -41,7 +41,7 @@ public class CardController : MonoBehaviour
         info.UpdateDescription(self);
 
         if (ability != null)
-            ability.OnApplyEffect(self, isPlayerCard, info);
+            ability.OnApplyEffect(self);
     }
 
     public void OnCast(int slotIndex = -1)
@@ -432,7 +432,7 @@ public class CardController : MonoBehaviour
 
         if (target != null)
         {
-            target.ability.OnApplyEffect(target.self, target.isPlayerCard, info);
+            target.ability.OnApplyEffect(target.self);
             target.CheckForAlive();
         }
 
@@ -496,7 +496,7 @@ public class CardController : MonoBehaviour
     {
         self.abilities = IntToAbilities(mask);
         if (ability != null)
-            ability.OnApplyEffect(self, isPlayerCard, info);
+            ability.OnApplyEffect(self);
 
         info.UpdateDescription(self);
     }
@@ -665,7 +665,7 @@ public class CardController : MonoBehaviour
         }
 
         if (ability != null)
-            ability.OnApplyEffect(self, isPlayerCard, info);
+            ability.OnApplyEffect(self);
     }
 
     public void AnimateOpponentSpellAndDestroy()

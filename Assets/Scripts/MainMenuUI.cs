@@ -11,7 +11,8 @@ public class MainMenuUI : MonoBehaviour
 
     private void Start()
     {
-        bool isFullscreen = PlayerPrefs.GetInt("Fullscreen", 1) == 1;
+        bool isFullscreen = PlayerPrefs.GetInt("Fullscreen", 0) == 1;
+
         Screen.fullScreen = isFullscreen;
 
         if (fullscreenToggle != null)

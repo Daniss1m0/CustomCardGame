@@ -61,7 +61,6 @@ public class GameManager : MonoBehaviour
 
     private void OnClientDisconnect(ulong clientId)
     {
-        // Логика для СЕРВЕРА (если вышел кто-то из клиентов)
         if (NetworkManager.Singleton.IsServer)
         {
             if (clientId != NetworkManager.ServerClientId)
@@ -81,7 +80,7 @@ public class GameManager : MonoBehaviour
 
                     currentGame.enemy.hp = 0;
                     UIManager.Instance.UpdateHPAndMana();
-                    CheckForResult(); // Это покажет экран победы
+                    CheckForResult();
                     isMatchInProgress = false;
                 }
                 else
@@ -92,17 +91,13 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            Debug.Log("[GameManager] Connection to Host lost.");
-
             if (isMatchInProgress && !IsGameOver)
             {
                 Debug.Log("Host left. Client wins locally.");
 
                 currentGame.enemy.hp = 0;
                 UIManager.Instance.UpdateHPAndMana();
-
                 CheckForResult();
-
                 isMatchInProgress = false;
             }
             else
@@ -360,21 +355,14 @@ public class GameManager : MonoBehaviour
 
     public void Attack(CardController attacker, CardController defender)
     {
-        if (attacker == null || defender == null) 
-            return;
-
-        if (!attacker.self.canAttack) 
-            return;
-
-        if (!defender.self.isPlaced) 
-            return;
+        if (attacker == null || defender == null) return;
+        if (!attacker.self.canAttack) return;
+        if (!defender.self.isPlaced) return;
 
         if (attacker.isPlayerCard)
         {
-            if (enemyFieldCards.Exists(x => x.self.IsProvocation) && !defender.self.IsProvocation)
-                return;
-            else if (playerFieldCards.Exists(x => x.self.IsProvocation) && !defender.self.IsProvocation)
-                return;
+            if (enemyFieldCards.Exists(x => x.self.IsProvocation) && !defender.self.IsProvocation) return;
+            else if (playerFieldCards.Exists(x => x.self.IsProvocation) && !defender.self.IsProvocation) return;
         }
         CardsFight(attacker, defender);
     }
@@ -484,8 +472,10 @@ public class GameManager : MonoBehaviour
         }
         foreach (var card in targets)
         {
-            if (attacker.self.isSpell) card.Info.HighlightAsSpellTarget(highlight);
-            else card.Info.HighlightAsTarget(highlight);
+            if (attacker.self.isSpell) 
+                card.Info.HighlightAsSpellTarget(highlight);
+            else 
+                card.Info.HighlightAsTarget(highlight);
         }
     }
 
@@ -551,15 +541,19 @@ public class GameManager : MonoBehaviour
             if (UIManager.Instance != null) UIManager.Instance.SetEndTurnInteractable(amOwner);
             CheckCardsForManaAvailability();
         }
-        if (AnimationManager.Instance != null) AnimationManager.Instance.EnqueueVisual(turnChangeAction);
-        else turnChangeAction();
+        if (AnimationManager.Instance != null)
+            AnimationManager.Instance.EnqueueVisual(turnChangeAction);
+        else 
+            turnChangeAction();
     }
 
     private void OnTurnTimeChanged(int oldTime, int newTime) { if (UIManager.Instance != null) UIManager.Instance.UpdateTurnTime(newTime); }
 
     public void UpdateStateNetworkIfServer()
     {
-        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer) return;
+        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer)
+            return;
+
         if (turnManager == null) turnManager = FindFirstObjectByType<TurnManager>();
         if (turnManager == null) return;
         try { turnManager.SetPlayerManaServer(currentGame.player.mana); } catch { }
@@ -582,11 +576,34 @@ public class GameManager : MonoBehaviour
             int pMana = turnManager.playerMana.Value; int eMana = turnManager.enemyMana.Value;
             int pHP = turnManager.playerHP.Value; int eHP = turnManager.enemyHP.Value;
 
-            if (pendingRestartSync) { if (pHP > 0 && eHP > 0) pendingRestartSync = false; else return; }
+            if (pendingRestartSync)
+            {
+                if (pHP <= 0 || eHP <= 0)
+                    pendingRestartSync = false;
+                else if (pHP > 0 && eHP > 0)
+                    pendingRestartSync = false;
+                else
+                    return;
+            }
 
-            if (localIsPlayerOwner) { currentGame.player.mana = pMana; currentGame.enemy.mana = eMana; currentGame.player.hp = pHP; currentGame.enemy.hp = eHP; }
-            else { currentGame.player.mana = eMana; currentGame.enemy.mana = pMana; currentGame.player.hp = eHP; currentGame.enemy.hp = pHP; }
-            UIManager.Instance.UpdateHPAndMana(); CheckCardsForManaAvailability(); CheckForResult();
+            if (localIsPlayerOwner) 
+            {
+                currentGame.player.mana = pMana; 
+                currentGame.enemy.mana = eMana; 
+                currentGame.player.hp = pHP; 
+                currentGame.enemy.hp = eHP; 
+            }
+            else 
+            { 
+                currentGame.player.mana = eMana; 
+                currentGame.enemy.mana = pMana; 
+                currentGame.player.hp = eHP; 
+                currentGame.enemy.hp = pHP; 
+            }
+
+            UIManager.Instance.UpdateHPAndMana();
+            CheckCardsForManaAvailability();
+            CheckForResult();
         }
         if (AnimationManager.Instance != null) AnimationManager.Instance.EnqueueVisual(updateStatsAction);
         else updateStatsAction();
@@ -620,11 +637,13 @@ public class GameManager : MonoBehaviour
     {
         if (NetworkManager.Singleton != null) 
             NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnect;
+
         if (turnManager != null) 
         { 
             turnManager.currentTurnOwner.OnValueChanged -= OnCurrentTurnOwnerChanged; 
-            turnManager.turnTimeRemaining.OnValueChanged -= OnTurnTimeChanged; 
+            turnManager.turnTimeRemaining.OnValueChanged -= OnTurnTimeChanged;
         }
+
         if (Instance == this) 
             Instance = null;
     }
@@ -634,11 +653,13 @@ public class GameManager : MonoBehaviour
         if (IsGameOver) 
             return;
 
-        Debug.Log("Surrendering...");
-
         if (NetworkManager.Singleton.IsServer)
         {
             currentGame.player.hp = 0;
+
+            if (turnManager != null)
+                turnManager.StopServerTurnLoop();
+
             UpdateStateNetworkIfServer();
             UIManager.Instance.UpdateHPAndMana();
             CheckForResult();

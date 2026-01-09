@@ -1904,7 +1904,7 @@ GameObject:
   - component: {fileID: 451876104}
   - component: {fileID: 451876103}
   m_Layer: 5
-  m_Name: Surrender Button
+  m_Name: Surrender Panel Button
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5614,9 +5614,10 @@ MonoBehaviour:
   readyButton: {fileID: 470171778}
   restartBtn: {fileID: 1943423828}
   surrenderButton: {fileID: 1324790088}
+  surrenderPanel: {fileID: 197314226}
+  surrenderPanelButton: {fileID: 451876101}
   readyPanel: {fileID: 93446846}
   result: {fileID: 1202712388}
-  surrenderPanel: {fileID: 197314226}
 --- !u!4 &1140106807
 Transform:
   m_ObjectHideFlags: 0

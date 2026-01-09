@@ -9,7 +9,7 @@ public class UIManager : MonoBehaviour
 
     public TextMeshProUGUI playerManaTxt, enemyManaTxt, playerHPTxt, enemyHPTxt, resultTxt, turnTimeTxt, readyStatusText, restartBtnText;
     public Button endTurnBtn, readyButton, restartBtn, surrenderButton;
-    public GameObject readyPanel, result, surrenderPanel;
+    public GameObject surrenderPanel, surrenderPanelButton, readyPanel, result;
 
     private void Awake()
     {
@@ -30,25 +30,20 @@ public class UIManager : MonoBehaviour
         if (readyPanel != null)
         {
             readyPanel.SetActive(true);
-            if (readyButton != null) 
+            if (readyButton != null)
                 readyButton.interactable = true;
-            if (readyStatusText != null) 
+            if (readyStatusText != null)
                 readyStatusText.text = "READY";
         }
 
         if (surrenderButton != null)
             surrenderButton.onClick.AddListener(OnSurrenderButton);
-    }
 
-    public void OnSurrenderButton()
-    {
-        if (GameManager.Instance != null && !GameManager.Instance.IsGameOver)
-        {
-            if (surrenderPanel != null)
-                surrenderPanel.SetActive(false);
+        if (surrenderPanelButton != null)
+            surrenderPanelButton.SetActive(false);
 
-            GameManager.Instance.Surrender();
-        }
+        if (surrenderPanel != null)
+            surrenderPanel.SetActive(false);
     }
 
     public void StartGame()
@@ -58,17 +53,9 @@ public class UIManager : MonoBehaviour
 
         result.SetActive(false);
         UpdateHPAndMana();
-    }
 
-    public void UpdateHPAndMana()
-    {
-        if (GameManager.Instance == null || GameManager.Instance.currentGame == null)
-            return;
-
-        playerManaTxt.text = GameManager.Instance.currentGame.player.mana.ToString();
-        enemyManaTxt.text = GameManager.Instance.currentGame.enemy.mana.ToString();
-        playerHPTxt.text = GameManager.Instance.currentGame.player.hp.ToString();
-        enemyHPTxt.text = GameManager.Instance.currentGame.enemy.hp.ToString();
+        if (surrenderPanelButton != null)
+            surrenderPanelButton.SetActive(true);
     }
 
     public void ShowResult()
@@ -88,6 +75,40 @@ public class UIManager : MonoBehaviour
 
         if (restartBtnText != null)
             restartBtnText.text = "RESTART?";
+
+        if (surrenderPanelButton != null)
+            surrenderPanelButton.SetActive(false);
+
+        if (surrenderPanel != null)
+            surrenderPanel.SetActive(false);
+    }
+
+    public void OnSurrenderPanelButton()
+    {
+        if (surrenderPanel != null)
+            surrenderPanel.SetActive(!surrenderPanel.activeSelf);
+    }
+
+    public void OnSurrenderButton()
+    {
+        if (GameManager.Instance != null && !GameManager.Instance.IsGameOver)
+        {
+            if (surrenderPanel != null)
+                surrenderPanel.SetActive(false);
+
+            GameManager.Instance.Surrender();
+        }
+    }
+
+    public void UpdateHPAndMana()
+    {
+        if (GameManager.Instance == null || GameManager.Instance.currentGame == null)
+            return;
+
+        playerManaTxt.text = GameManager.Instance.currentGame.player.mana.ToString();
+        enemyManaTxt.text = GameManager.Instance.currentGame.enemy.mana.ToString();
+        playerHPTxt.text = GameManager.Instance.currentGame.player.hp.ToString();
+        enemyHPTxt.text = GameManager.Instance.currentGame.enemy.hp.ToString();
     }
 
     public void UpdateRestartText(int votes)
@@ -128,17 +149,12 @@ public class UIManager : MonoBehaviour
 
     private void UpdateEndTurnTextAlpha(bool interactable)
     {
-        if (endTurnBtn == null) 
+        if (endTurnBtn == null)
             return;
 
         var txt = endTurnBtn.GetComponentInChildren<TextMeshProUGUI>();
         if (txt != null)
             txt.alpha = interactable ? 1f : 0.1f;
-    }
-
-    public void OnSurrenderPanelButton()
-    {
-        surrenderPanel.SetActive(!surrenderPanel.activeSelf);
     }
 
     public void OnReadyButton()

@@ -331,7 +331,7 @@ public class AnimationManager : MonoBehaviour
 
         Sequence seq = DOTween.Sequence();
 
-        seq.Append(heroTransform.DOShakePosition(0.5f, 30, 50, 90, false, true));
+        seq.Append(heroTransform.DOShakePosition(1f, 30, 50, 90, false, true));
 
         seq.OnComplete(() =>
         {

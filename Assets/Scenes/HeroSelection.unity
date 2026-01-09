@@ -203,8 +203,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 932104545}
-        m_TargetAssemblyTypeName: DeckSelectionUI, Assembly-CSharp
-        m_MethodName: OnPlayButton
+        m_TargetAssemblyTypeName: HeroSelectionManager, Assembly-CSharp
+        m_MethodName: OnPlayBtn
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1382,8 +1382,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 06509a7e0f80b2f478fb3e080dd484c7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  heroImage: {fileID: 1191883424}
-  heroSprites:
+  heroImg: {fileID: 1191883424}
+  heroS:
   - {fileID: -6803223489722007895, guid: 8ad08bf0c7a61154798555c72485e378, type: 3}
   - {fileID: 4312126842197289597, guid: 2a0b65d8b64832d40b5d1af79e04fcde, type: 3}
   - {fileID: 2087544068632207014, guid: 50b5e0dda8a85684e907c4673f2c18fa, type: 3}
@@ -2109,8 +2109,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 932104545}
-        m_TargetAssemblyTypeName: HeroSelectionUI, Assembly-CSharp
-        m_MethodName: LoadMainMenu
+        m_TargetAssemblyTypeName: HeroSelectionManager, Assembly-CSharp
+        m_MethodName: OnBackBtn
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

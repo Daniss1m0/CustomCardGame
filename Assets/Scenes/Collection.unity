@@ -544,7 +544,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 519420033}
         m_TargetAssemblyTypeName: CollectionManager, Assembly-CSharp
-        m_MethodName: LoadMainMenu
+        m_MethodName: OnBackBtn
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -743,9 +743,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CollectionManager
   cardsPerPage: 8
-  cardPrefab: {fileID: 979882027150900141, guid: a26a0db67b713d549a10ed908a8a3b8f, type: 3}
-  cardGrid: {fileID: 1156293710}
-  pageButtons:
+  cardPfb: {fileID: 979882027150900141, guid: a26a0db67b713d549a10ed908a8a3b8f, type: 3}
+  cardGrd: {fileID: 1156293710}
+  pageBtns:
   - {fileID: 727461330}
   - {fileID: 1512727766}
   - {fileID: 1021331779}

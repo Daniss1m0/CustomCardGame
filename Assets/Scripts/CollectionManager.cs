@@ -1,31 +1,24 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
-using Unity.Netcode;
+using Unity.Netcode; // For NetworkObject
 
 public class CollectionManager : MonoBehaviour
 {
     public int cardsPerPage;
-    public GameObject cardPrefab;
-    public Transform cardGrid;
-    public List<Button> pageButtons;
+    public GameObject cardPfb;
+    public Transform cardGrd;
+    public List<Button> pageBtns;
 
     private int currentPage = 0;
     private List<Card> allCards;
-    private List<GameObject> currentCardObjects = new();
+    private List<GameObject> currentCardObjs = new();
 
-    void Start()
+    private void Start()
     {
-        if (cardGrid != null)
-            for (int i = cardGrid.childCount - 1; i >= 0; i--)
-                DestroyImmediate(cardGrid.GetChild(i).gameObject);
-
-        if (CardDatabase.AllCards == null || CardDatabase.AllCards.Count == 0)
-        {
-            var cardManager = FindFirstObjectByType<CardManager>();
-            if (cardManager != null)
-                cardManager.Awake();
-        }
+        if (cardGrd != null)
+            for (int i = cardGrd.childCount - 1; i >= 0; i--)
+                DestroyImmediate(cardGrd.GetChild(i).gameObject);
 
         if (CardDatabase.AllCards != null)
             allCards = new List<Card>(CardDatabase.AllCards);
@@ -33,30 +26,30 @@ public class CollectionManager : MonoBehaviour
             allCards = new List<Card>();
 
         ShowPage(0);
-        SetupButtons();
+        SetupPageBtns();
     }
 
-    void SetupButtons()
+    private void SetupPageBtns()
     {
-        for (int i = 0; i < pageButtons.Count; i++)
+        for (int i = 0; i < pageBtns.Count; i++)
         {
             int pageIndex = i;
-            pageButtons[i].onClick.RemoveAllListeners();
-            pageButtons[i].onClick.AddListener(() => ShowPage(pageIndex));
+            pageBtns[i].onClick.RemoveAllListeners();
+            pageBtns[i].onClick.AddListener(() => ShowPage(pageIndex));
         }
     }
 
-    void ShowPage(int pageIndex)
+    private void ShowPage(int pageIndex)
     {
         currentPage = pageIndex;
 
-        foreach (GameObject go in currentCardObjects)
-            if (go != null) 
+        foreach (GameObject go in currentCardObjs)
+            if (go != null)
                 Destroy(go);
 
-        currentCardObjects.Clear();
+        currentCardObjs.Clear();
 
-        if (allCards == null || allCards.Count == 0) 
+        if (allCards.Count == 0)
             return;
 
         int start = pageIndex * cardsPerPage;
@@ -64,7 +57,7 @@ public class CollectionManager : MonoBehaviour
 
         for (int i = start; i < end; i++)
         {
-            GameObject cardGO = Instantiate(cardPrefab, cardGrid, false);
+            GameObject cardGO = Instantiate(cardPfb, cardGrd, false);
 
             cardGO.transform.localScale = Vector3.one;
             cardGO.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
@@ -75,29 +68,29 @@ public class CollectionManager : MonoBehaviour
             }
 
             SetupCardUI(cardGO, allCards[i]);
-            currentCardObjects.Add(cardGO);
+            currentCardObjs.Add(cardGO);
         }
 
-        UpdatePageButtons();
+        UpdatePageBtns();
     }
 
-    void UpdatePageButtons()
+    private void UpdatePageBtns()
     {
-        for (int i = 0; i < pageButtons.Count; i++)
+        for (int i = 0; i < pageBtns.Count; i++)
         {
-            if (!pageButtons[i].TryGetComponent<CanvasGroup>(out var canvasGroup))
-                canvasGroup = pageButtons[i].gameObject.AddComponent<CanvasGroup>();
+            if (!pageBtns[i].TryGetComponent<CanvasGroup>(out var canvasGroup))
+                canvasGroup = pageBtns[i].gameObject.AddComponent<CanvasGroup>();
 
-            pageButtons[i].gameObject.SetActive(true);
+            pageBtns[i].gameObject.SetActive(true);
 
             bool isCurrent = (i == currentPage);
 
             canvasGroup.alpha = isCurrent ? 1f : 0.5f;
-            pageButtons[i].interactable = !isCurrent;
+            pageBtns[i].interactable = !isCurrent;
         }
     }
 
-    void SetupCardUI(GameObject cardGO, Card card)
+    private void SetupCardUI(GameObject cardGO, Card card)
     {
         if (cardGO.TryGetComponent<CardNetwork>(out var netScript)) 
             DestroyImmediate(netScript);
@@ -130,15 +123,9 @@ public class CollectionManager : MonoBehaviour
             info.SetHighlight(false);
 
             if (cardGO.TryGetComponent<CanvasGroup>(out var cg))
-            {
-                cg.blocksRaycasts = false;
                 cg.alpha = 1f;
-            }
         }
     }
 
-    public void LoadMainMenu()
-    {
-        UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
-    }
+    public void OnBackBtn() => UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
 }

@@ -18,7 +18,7 @@ public class HeroVisualSync : NetworkBehaviour
         if (IsServer)
             NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnect;
 
-        int myIndexToSend = HeroSelectionUI.SelectedHeroIndexStatic;
+        int myIndexToSend = HeroSelectionManager.SelectedHeroIdx;
         if (myIndexToSend == -1)
             myIndexToSend = PlayerPrefs.GetInt("SelectedHeroIndex", 0);
 

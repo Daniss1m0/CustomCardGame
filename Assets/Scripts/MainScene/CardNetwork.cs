@@ -14,15 +14,13 @@ public class CardNetwork : NetworkBehaviour
     public NetworkVariable<bool> isPlaced = new();
     public NetworkVariable<bool> canAttack = new();
     public NetworkVariable<int> cardDataIndex = new();
-    public NetworkVariable<ulong> ownerClientIdNet = new();
-
     public NetworkVariable<int> spellType = new((int)SpellType.None, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     public NetworkVariable<int> spellTarget = new((int)TargetType.None, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     public NetworkVariable<int> spellPower = new(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
-
     public NetworkVariable<int> placedOnTurn = new(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     public NetworkVariable<int> fieldIndex = new(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     public NetworkVariable<int> abilitiesNet = new(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    public NetworkVariable<ulong> ownerClientIdNet = new();
 
     public System.Action<bool> onCanAttackForceUpdate;
     public event System.Action<ulong> onNetworkDespawn;

@@ -8,10 +8,10 @@ public class CardInfo : MonoBehaviour
 {
     public Image targetImage;
 
-    [SerializeField] private Color normalColor, targetColor, spellTargetColor;
+    [SerializeField] private Color normalCol, targetCol, spellTargetCol;
     [SerializeField] private TextMeshProUGUI nameTxt, attackTxt, healthTxt, manaCostTxt, descriptionTxt;
     [SerializeField] private Image logo;
-    [SerializeField] private GameObject hideState, highlightState, descriptionBackground, manaGem;
+    [SerializeField] private GameObject hideState, highlightState, descriptionBg, manaGem;
 
     private CanvasGroup canvasGroup;
 
@@ -22,14 +22,14 @@ public class CardInfo : MonoBehaviour
 
         canvasGroup = GetComponent<CanvasGroup>();
 
-        if (targetImage != null && normalColor.a == 0f)
-            normalColor = targetImage.color;
+        if (targetImage != null && normalCol.a == 0f)
+            normalCol = targetImage.color;
 
-        if (targetColor.a == 0f)
-            targetColor = new Color(1f, 0.522f, 0.522f, 1f);
+        if (targetCol.a == 0f)
+            targetCol = new Color(1f, 0.522f, 0.522f, 1f);
 
-        if (spellTargetColor.a == 0f)
-            spellTargetColor = new Color(1f, 0.522f, 0.522f, 1f);
+        if (spellTargetCol.a == 0f)
+            spellTargetCol = new Color(1f, 0.522f, 0.522f, 1f);
     }
 
     public void ShowCard(Card card)
@@ -86,13 +86,16 @@ public class CardInfo : MonoBehaviour
         if (manaGem != null)
             manaGem.SetActive(false);
 
-        if (nameTxt != null) 
+        if (nameTxt != null)
             nameTxt.text = "";
-        if (attackTxt != null) 
+
+        if (attackTxt != null)
             attackTxt.text = "";
-        if (healthTxt != null) 
+
+        if (healthTxt != null)
             healthTxt.text = "";
-        if (manaCostTxt != null) 
+
+        if (manaCostTxt != null)
             manaCostTxt.text = "";
 
         if (logo != null)
@@ -104,7 +107,8 @@ public class CardInfo : MonoBehaviour
 
     public void UpdateStats(Card card)
     {
-        if (card == null) return;
+        if (card == null)
+            return;
 
         if (attackTxt != null)
             attackTxt.text = card.isSpell ? "" : card.attack.ToString();
@@ -158,10 +162,10 @@ public class CardInfo : MonoBehaviour
 
         descriptionTxt.text = finalText;
 
-        if (descriptionBackground != null)
+        if (descriptionBg != null)
         {
             bool hasContent = !string.IsNullOrEmpty(finalText);
-            descriptionBackground.SetActive(hasContent);
+            descriptionBg.SetActive(hasContent);
         }
     }
 
@@ -173,12 +177,12 @@ public class CardInfo : MonoBehaviour
 
     public void HighlightAsTarget(bool active)
     {
-        HighlightHelper.SetTargetHighlight(targetImage, active, normalColor, targetColor);
+        HighlightHelper.SetTargetHighlight(targetImage, active, normalCol, targetCol);
     }
 
     public void HighlightAsSpellTarget(bool active)
     {
-        HighlightHelper.SetSpellTargetHighlight(targetImage, active, normalColor, spellTargetColor);
+        HighlightHelper.SetSpellTargetHighlight(targetImage, active, normalCol, spellTargetCol);
     }
 
     public void SetAvailability(bool hasMana, bool isPlayerTurn)
@@ -190,7 +194,10 @@ public class CardInfo : MonoBehaviour
                 canvasGroup.alpha = 0.5f;
                 canvasGroup.blocksRaycasts = false;
             }
-            if (highlightState != null) highlightState.SetActive(false);
+
+            if (highlightState != null)
+                highlightState.SetActive(false);
+
             return;
         }
 

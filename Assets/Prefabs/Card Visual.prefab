@@ -277,9 +277,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   targetImage: {fileID: 8010141085867091004}
-  normalColor: {r: 0.63522005, g: 0.63522005, b: 0.63522005, a: 0}
-  targetColor: {r: 1, g: 0.52156866, b: 0.52156866, a: 0}
-  spellTargetColor: {r: 1, g: 0.52156866, b: 0.52156866, a: 0}
+  normalCol: {r: 0.63529414, g: 0.63529414, b: 0.63529414, a: 0}
+  targetCol: {r: 1, g: 0.52156866, b: 0.52156866, a: 0}
+  spellTargetCol: {r: 1, g: 0.52156866, b: 0.52156866, a: 0}
   nameTxt: {fileID: 2580415682543168692}
   attackTxt: {fileID: 7161421386551249376}
   healthTxt: {fileID: 4148953900855694397}
@@ -288,7 +288,7 @@ MonoBehaviour:
   logo: {fileID: 4113880327878377550}
   hideState: {fileID: 6265578838841928748}
   highlightState: {fileID: 6244740830932838734}
-  descriptionBackground: {fileID: 3555026918107320436}
+  descriptionBg: {fileID: 3555026918107320436}
   manaGem: {fileID: 646756674717231504}
 --- !u!114 &2815972047722565428
 MonoBehaviour:

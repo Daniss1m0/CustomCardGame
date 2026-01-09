@@ -9,7 +9,7 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
 
     public Transform defaultParent, tempParent;
 
-    private int startIndex;
+    private int startIdx;
     private bool isDraggable;
     private Vector2 pointerOffsetCanvas;
     private Camera mainCamera;
@@ -17,7 +17,7 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
     private RectTransform rt, canvasRect;
     private Canvas rootCanvas;
 
-    void Awake()
+    private void Awake()
     {
         rt = GetComponent<RectTransform>();
 
@@ -40,8 +40,7 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        var controller = GetComponent<CardController>();
-        if (controller == null)
+        if (!TryGetComponent<CardController>(out var controller))
             return;
 
         if (GameManager.Instance.IsGameOver)
@@ -49,6 +48,7 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
 
         if (defaultParent == null)
             defaultParent = transform.parent;
+
         if (tempParent == null)
             tempParent = defaultParent;
 
@@ -64,7 +64,7 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
         if (!isDraggable)
             return;
 
-        startIndex = transform.GetSiblingIndex();
+        startIdx = transform.GetSiblingIndex();
 
         if (controller.self.isSpell || controller.self.canAttack)
             GameManager.Instance.HighlightTargets(controller, true);
@@ -75,7 +75,8 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
             if (rootCanvas == null)
             {
                 var go = GameObject.Find("Canvas");
-                if (go != null) rootCanvas = go.GetComponent<Canvas>();
+                if (go != null)
+                    rootCanvas = go.GetComponent<Canvas>();
             }
             if (rootCanvas != null)
                 canvasRect = rootCanvas.GetComponent<RectTransform>();
@@ -98,9 +99,7 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
         }
 
         if (rootCanvas != null)
-        {
             transform.SetParent(rootCanvas.transform, true);
-        }
         else if (defaultParent != null)
         {
             var targetParent = defaultParent.parent;
@@ -121,8 +120,7 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
             pointerOffsetCanvas = Vector2.zero;
         }
 
-        var cg = GetComponent<CanvasGroup>();
-        if (cg != null)
+        if (TryGetComponent<CanvasGroup>(out var cg))
             cg.blocksRaycasts = false;
     }
 
@@ -141,8 +139,7 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
         else
             transform.position += (Vector3)eventData.delta;
 
-        var controller = GetComponent<CardController>();
-        if (controller == null)
+        if (!TryGetComponent<CardController>(out var controller))
             return;
 
         if (!controller.self.isSpell)
@@ -170,15 +167,13 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
         if (!isDraggable)
             return;
 
-        var controller = GetComponent<CardController>();
-        if (controller != null)
+        if (TryGetComponent<CardController>(out var controller))
             GameManager.Instance.HighlightTargets(controller, false);
 
         if (defaultParent != null)
             transform.SetParent(defaultParent, false);
 
-        var cg = GetComponent<CanvasGroup>();
-        if (cg != null)
+        if (TryGetComponent<CanvasGroup>(out var cg))
             cg.blocksRaycasts = true;
 
         if (cardTemp != null)
@@ -231,7 +226,7 @@ public class CardMovement : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
         }
 
         if (cardTemp.transform.parent == defaultParent)
-            newIndex = startIndex;
+            newIndex = startIdx;
 
         cardTemp.transform.SetSiblingIndex(Mathf.Max(0, newIndex));
     }

@@ -566,47 +566,55 @@ public class GameManager : MonoBehaviour
 
     private void ApplyNetworkStateValues()
     {
-        if (turnManager == null || NetworkManager.Singleton == null) return;
+        if (turnManager == null || NetworkManager.Singleton == null)
+            return;
+
         void updateStatsAction()
         {
             currentGame ??= new Game();
+
             ulong playerOwnerClientId = turnManager.playerOwner.Value;
             if (playerOwnerClientId == 0 && NetworkManager.Singleton != null) playerOwnerClientId = NetworkManager.ServerClientId;
             bool localIsPlayerOwner = NetworkManager.Singleton.LocalClientId == playerOwnerClientId;
-            int pMana = turnManager.playerMana.Value; int eMana = turnManager.enemyMana.Value;
-            int pHP = turnManager.playerHP.Value; int eHP = turnManager.enemyHP.Value;
+
+            int pMana = turnManager.playerMana.Value;
+            int eMana = turnManager.enemyMana.Value;
+            int pHP = turnManager.playerHP.Value;
+            int eHP = turnManager.enemyHP.Value;
 
             if (pendingRestartSync)
             {
                 if (pHP <= 0 || eHP <= 0)
-                    pendingRestartSync = false;
-                else if (pHP > 0 && eHP > 0)
-                    pendingRestartSync = false;
-                else
                     return;
+
+                if (pHP > 0 && eHP > 0)
+                    pendingRestartSync = false;
             }
 
-            if (localIsPlayerOwner) 
+            if (localIsPlayerOwner)
             {
-                currentGame.player.mana = pMana; 
-                currentGame.enemy.mana = eMana; 
-                currentGame.player.hp = pHP; 
-                currentGame.enemy.hp = eHP; 
+                currentGame.player.mana = pMana;
+                currentGame.enemy.mana = eMana;
+                currentGame.player.hp = pHP;
+                currentGame.enemy.hp = eHP;
             }
-            else 
-            { 
-                currentGame.player.mana = eMana; 
-                currentGame.enemy.mana = pMana; 
-                currentGame.player.hp = eHP; 
-                currentGame.enemy.hp = pHP; 
+            else
+            {
+                currentGame.player.mana = eMana;
+                currentGame.enemy.mana = pMana;
+                currentGame.player.hp = eHP;
+                currentGame.enemy.hp = pHP;
             }
 
             UIManager.Instance.UpdateHPAndMana();
             CheckCardsForManaAvailability();
             CheckForResult();
         }
-        if (AnimationManager.Instance != null) AnimationManager.Instance.EnqueueVisual(updateStatsAction);
-        else updateStatsAction();
+
+        if (AnimationManager.Instance != null)
+            AnimationManager.Instance.EnqueueVisual(updateStatsAction);
+        else
+            updateStatsAction();
     }
 
     private ulong GetOtherClientOf(ulong clientId)
@@ -648,10 +656,32 @@ public class GameManager : MonoBehaviour
             Instance = null;
     }
 
+    public void HandleSurrenderServer(ulong clientId)
+    {
+        if (!NetworkManager.Singleton.IsServer) 
+            return;
+
+        Debug.Log($"Player {clientId} surrendered via RPC.");
+
+        if (clientId != NetworkManager.ServerClientId)
+            currentGame.enemy.hp = 0;
+        else
+            currentGame.player.hp = 0;
+
+        if (turnManager != null)
+            turnManager.StopServerTurnLoop();
+
+        UpdateStateNetworkIfServer();
+        UIManager.Instance.UpdateHPAndMana();
+        CheckForResult();
+    }
+
     public void Surrender()
     {
-        if (IsGameOver) 
+        if (IsGameOver)
             return;
+
+        Debug.Log("Surrendering...");
 
         if (NetworkManager.Singleton.IsServer)
         {
@@ -666,8 +696,8 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            if (MatchmakingManager.Instance != null)
-                MatchmakingManager.Instance.DisconnectAndReturnToMenu();
+            if (turnManager != null)
+                turnManager.PlayerSurrenderServerRpc();
         }
     }
 }

@@ -7,39 +7,19 @@ using Unity.Netcode;
 public class TurnManager : NetworkBehaviour
 {
     public int turnTimeDefault = 30;
-
-    public NetworkVariable<ulong> currentTurnOwner = new(0UL, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
-    public NetworkVariable<int> turnTimeRemaining = new(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
-    public NetworkVariable<int> playerMana = new(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
-    public NetworkVariable<int> enemyMana = new(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
-    public NetworkVariable<int> playerHP = new(30, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
-    public NetworkVariable<int> enemyHP = new(30, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
-    public NetworkVariable<ulong> playerOwner = new(0UL, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
-    public NetworkVariable<int> playerDeckCount = new(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
-    public NetworkVariable<int> enemyDeckCount = new(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
-    public NetworkVariable<int> restartVotes = new(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
-    public NetworkVariable<int> readyPlayersCount = new(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    public NetworkVariable<int> turnTimeRemaining = new(0), playerMana = new(0), enemyMana = new(0), playerHP = new(30), enemyHP = new(30), playerDeckCount = new(0), enemyDeckCount = new(0), restartVotes = new(0),  readyPlayersCount = new(0);
+    public NetworkVariable<ulong> currentTurnOwner = new(0UL), playerOwner = new(0UL);
 
     private HashSet<ulong> readyPlayerIds = new();
     private Coroutine serverTurnCoroutine;
 
     public override void OnNetworkSpawn()
     {
-        base.OnNetworkSpawn();
-
         if (IsServer)
         {
             turnTimeRemaining.Value = 0;
             NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnect;
         }
-
-        turnTimeRemaining.OnValueChanged += OnTurnTimeRemainingChanged;
-        playerMana.OnValueChanged += OnPlayerManaChanged;
-        enemyMana.OnValueChanged += OnEnemyManaChanged;
-        playerOwner.OnValueChanged += OnPlayerOwnerChanged;
-
-        playerHP.OnValueChanged += (oldV, newV) => { };
-        enemyHP.OnValueChanged += (oldV, newV) => { };
 
         playerDeckCount.OnValueChanged += (oldV, newV) => UpdateDeckVisuals();
         enemyDeckCount.OnValueChanged += (oldV, newV) => UpdateDeckVisuals();
@@ -47,17 +27,14 @@ public class TurnManager : NetworkBehaviour
         readyPlayersCount.OnValueChanged += (oldV, newV) =>
         {
             if (newV >= 2)
-                if (GameManager.Instance != null)
-                    GameManager.Instance.StartGame();
+                GameManager.Instance.StartGame();
 
-            if (UIManager.Instance != null)
-                UIManager.Instance.UpdateReadyStatus(newV);
+            UIManager.Instance.UpdateReadyStatus(newV);
         };
 
         restartVotes.OnValueChanged += (oldV, newV) =>
         {
-            if (UIManager.Instance != null)
-                UIManager.Instance.UpdateRestartText(newV);
+            UIManager.Instance.UpdateRestartText(newV);
         };
     }
 
@@ -73,8 +50,6 @@ public class TurnManager : NetworkBehaviour
 
         playerDeckCount.OnValueChanged -= (oldV, newV) => UpdateDeckVisuals();
         enemyDeckCount.OnValueChanged -= (oldV, newV) => UpdateDeckVisuals();
-
-        base.OnNetworkDespawn();
     }
 
     private void OnClientDisconnect(ulong clientId)
@@ -94,27 +69,6 @@ public class TurnManager : NetworkBehaviour
         }
     }
 
-    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
-    public void PlayerReadyServerRpc(RpcParams rpcParams = default)
-    {
-        ulong senderId = rpcParams.Receive.SenderClientId;
-
-        if (!readyPlayerIds.Contains(senderId))
-        {
-            readyPlayerIds.Add(senderId);
-            readyPlayersCount.Value = readyPlayerIds.Count;
-        }
-    }
-
-    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
-    public void RequestRestartVoteServerRpc()
-    {
-        restartVotes.Value++;
-
-        if (restartVotes.Value >= 2)
-            PerformFullRestart();
-    }
-
     private void PerformFullRestart()
     {
         restartVotes.Value = 0;
@@ -122,20 +76,11 @@ public class TurnManager : NetworkBehaviour
         readyPlayersCount.Value = 0;
         StopServerTurnLoop();
 
-        if (GameManager.Instance != null)
-            GameManager.Instance.CleanupNetworkCards();
+        GameManager.Instance.CleanupNetworkCards();
 
         TriggerRestartClientRpc();
 
-        if (GameManager.Instance != null)
-            GameManager.Instance.StartGame();
-    }
-
-    [ClientRpc]
-    private void TriggerRestartClientRpc()
-    {
-        if (GameManager.Instance != null)
-            GameManager.Instance.ResetClientState();
+        GameManager.Instance.StartGame();
     }
 
     private void OnTurnTimeRemainingChanged(int oldV, int newV) { }
@@ -160,12 +105,53 @@ public class TurnManager : NetworkBehaviour
         UpdateDeckVisuals();
     }
 
-    public void SetCurrentTurnOwner(ulong ownerClientId) { if (!IsServer) return; currentTurnOwner.Value = ownerClientId; }
-    public void SetPlayerManaServer(int value) { if (!IsServer) return; playerMana.Value = value; }
-    public void SetEnemyManaServer(int value) { if (!IsServer) return; enemyMana.Value = value; }
-    public void SetPlayerHPServer(int value) { if (!IsServer) return; playerHP.Value = value; }
-    public void SetEnemyHPServer(int value) { if (!IsServer) return; enemyHP.Value = value; }
-    public void SetPlayerOwnerServer(ulong ownerClientId) { if (!IsServer) return; playerOwner.Value = ownerClientId; }
+    public void SetCurrentTurnOwner(ulong ownerClientId) 
+    { 
+        if (!IsServer)
+            return;
+
+        currentTurnOwner.Value = ownerClientId;
+    }
+
+    public void SetPlayerManaServer(int value) 
+    { 
+        if (!IsServer)
+            return;
+
+        playerMana.Value = value;
+    }
+
+    public void SetEnemyManaServer(int value) 
+    { 
+        if (!IsServer)
+            return;
+
+        enemyMana.Value = value;
+    }
+
+    public void SetPlayerHPServer(int value) 
+    {
+        if (!IsServer)
+            return;
+        
+        playerHP.Value = value;
+    }
+
+    public void SetEnemyHPServer(int value) 
+    {
+        if (!IsServer)
+            return;
+
+        enemyHP.Value = value;
+    }
+
+    public void SetPlayerOwnerServer(ulong ownerClientId) 
+    {
+        if (!IsServer)
+            return;
+        
+        playerOwner.Value = ownerClientId;
+    }
 
     public void StartServerTurnLoop()
     {
@@ -188,6 +174,7 @@ public class TurnManager : NetworkBehaviour
             StopCoroutine(serverTurnCoroutine);
             serverTurnCoroutine = null;
         }
+
         turnTimeRemaining.Value = 0;
     }
 
@@ -201,11 +188,38 @@ public class TurnManager : NetworkBehaviour
                 yield return new WaitForSeconds(1f);
                 turnTimeRemaining.Value = Mathf.Max(0, turnTimeRemaining.Value - 1);
             }
-            if (GameManager.Instance != null)
-                GameManager.Instance.ChangeTurn();
+
+            GameManager.Instance.ChangeTurn();
 
             yield return null;
         }
+    }
+
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    public void PlayerReadyServerRpc(RpcParams rpcParams = default)
+    {
+        ulong senderId = rpcParams.Receive.SenderClientId;
+
+        if (!readyPlayerIds.Contains(senderId))
+        {
+            readyPlayerIds.Add(senderId);
+            readyPlayersCount.Value = readyPlayerIds.Count;
+        }
+    }
+
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    public void RequestRestartVoteServerRpc()
+    {
+        restartVotes.Value++;
+
+        if (restartVotes.Value >= 2)
+            PerformFullRestart();
+    }
+
+    [ClientRpc]
+    private void TriggerRestartClientRpc()
+    {
+        GameManager.Instance.ResetClientState();
     }
 
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
@@ -218,17 +232,27 @@ public class TurnManager : NetworkBehaviour
         if (sender != currentTurnOwner.Value)
             return;
 
-        if (GameManager.Instance != null)
-            GameManager.Instance.ChangeTurn();
+        GameManager.Instance.ChangeTurn();
     }
 
     [ClientRpc]
     public void NotifyClientsOwnerClientRpc(ulong ownerClientId)
     {
         bool amOwner = NetworkManager.Singleton != null && NetworkManager.Singleton.LocalClientId == ownerClientId;
-        if (UIManager.Instance != null)
-            UIManager.Instance.SetEndTurnInteractable(amOwner);
+        
+        UIManager.Instance.SetEndTurnInteractable(amOwner);
 
-        GameManager.Instance?.CheckCardsForManaAvailability();
+        GameManager.Instance.CheckCardsForManaAvailability();
+    }
+
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    public void PlayerSurrenderServerRpc(RpcParams rpcParams = default)
+    {
+        if (!IsServer)
+            return;
+
+        ulong senderId = rpcParams.Receive.SenderClientId;
+
+        GameManager.Instance.HandleSurrenderServer(senderId);
     }
 }

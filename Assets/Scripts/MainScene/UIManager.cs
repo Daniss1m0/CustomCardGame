@@ -1,15 +1,14 @@
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
-using UnityEngine.SceneManagement;
 
 public class UIManager : MonoBehaviour
 {
     public static UIManager Instance;
 
-    public TextMeshProUGUI playerManaTxt, enemyManaTxt, playerHPTxt, enemyHPTxt, resultTxt, turnTimeTxt, readyStatusText, restartBtnText;
-    public Button endTurnBtn, readyButton, restartBtn, surrenderButton;
-    public GameObject surrenderPanel, surrenderPanelButton, readyPanel, result;
+    public TextMeshProUGUI playerManaTxt, enemyManaTxt, playerHPTxt, enemyHPTxt, resultTxt, turnTimeTxt, readyStatusTxt, restartBtnTxt;
+    public Button endTurnBtn, readyBtn, restartBtn, surrenderBtn;
+    public GameObject surrenderPanel, surrenderPanelBtn, readyPanel, result;
 
     private void Awake()
     {
@@ -30,17 +29,17 @@ public class UIManager : MonoBehaviour
         if (readyPanel != null)
         {
             readyPanel.SetActive(true);
-            if (readyButton != null)
-                readyButton.interactable = true;
-            if (readyStatusText != null)
-                readyStatusText.text = "READY";
+            if (readyBtn != null)
+                readyBtn.interactable = true;
+            if (readyStatusTxt != null)
+                readyStatusTxt.text = "READY";
         }
 
-        if (surrenderButton != null)
-            surrenderButton.onClick.AddListener(OnSurrenderButton);
+        if (surrenderBtn != null)
+            surrenderBtn.onClick.AddListener(OnSurrenderButton);
 
-        if (surrenderPanelButton != null)
-            surrenderPanelButton.SetActive(false);
+        if (surrenderPanelBtn != null)
+            surrenderPanelBtn.SetActive(false);
 
         if (surrenderPanel != null)
             surrenderPanel.SetActive(false);
@@ -48,14 +47,12 @@ public class UIManager : MonoBehaviour
 
     public void StartGame()
     {
-        if (readyPanel != null)
-            readyPanel.SetActive(false);
+        readyPanel.SetActive(false);
 
         result.SetActive(false);
         UpdateHPAndMana();
 
-        if (surrenderPanelButton != null)
-            surrenderPanelButton.SetActive(true);
+        surrenderPanelBtn.SetActive(true);
     }
 
     public void ShowResult()
@@ -73,28 +70,19 @@ public class UIManager : MonoBehaviour
         if (restartBtn != null)
             restartBtn.interactable = true;
 
-        if (restartBtnText != null)
-            restartBtnText.text = "RESTART?";
+        if (restartBtnTxt != null)
+            restartBtnTxt.text = "RESTART?";
 
-        if (surrenderPanelButton != null)
-            surrenderPanelButton.SetActive(false);
+        surrenderPanelBtn.SetActive(false);
 
-        if (surrenderPanel != null)
-            surrenderPanel.SetActive(false);
-    }
-
-    public void OnSurrenderPanelButton()
-    {
-        if (surrenderPanel != null)
-            surrenderPanel.SetActive(!surrenderPanel.activeSelf);
+        surrenderPanel.SetActive(false);
     }
 
     public void OnSurrenderButton()
     {
         if (GameManager.Instance != null && !GameManager.Instance.IsGameOver)
         {
-            if (surrenderPanel != null)
-                surrenderPanel.SetActive(false);
+            surrenderPanel.SetActive(false);
 
             GameManager.Instance.Surrender();
         }
@@ -113,12 +101,12 @@ public class UIManager : MonoBehaviour
 
     public void UpdateRestartText(int votes)
     {
-        if (restartBtnText != null)
+        if (restartBtnTxt != null)
         {
             if (votes == 0)
-                restartBtnText.text = "RESTART?";
+                restartBtnTxt.text = "RESTART?";
             else
-                restartBtnText.text = $"RESTART: {votes}/2";
+                restartBtnTxt.text = $"RESTART: {votes}/2";
         }
     }
 
@@ -159,20 +147,19 @@ public class UIManager : MonoBehaviour
 
     public void OnReadyButton()
     {
-        if (readyButton != null)
-            readyButton.interactable = false;
+        if (readyBtn != null)
+            readyBtn.interactable = false;
 
-        if (GameManager.Instance != null)
-            GameManager.Instance.SendPlayerReady();
+        GameManager.Instance.SendPlayerReady();
 
-        if (readyStatusText != null)
-            readyStatusText.text = "READY...";
+        if (readyStatusTxt != null)
+            readyStatusTxt.text = "READY...";
     }
 
     public void UpdateReadyStatus(int readyCount)
     {
-        if (readyStatusText != null && readyPanel.activeSelf)
-            readyStatusText.text = $"READY ({readyCount}/2)";
+        if (readyStatusTxt != null && readyPanel.activeSelf)
+            readyStatusTxt.text = $"READY ({readyCount}/2)";
     }
 
     public void OnRestartButton()
@@ -184,9 +171,7 @@ public class UIManager : MonoBehaviour
             GameManager.Instance.SendRestartVote();
     }
 
-    public void OnBackToMenuButton()
-    {
-        if (MatchmakingManager.Instance != null)
-            MatchmakingManager.Instance.DisconnectAndReturnToMenu();
-    }
+    public void OnSurrenderPanelButton() => surrenderPanel.SetActive(!surrenderPanel.activeSelf);
+
+    public void OnBackToMenuButton() => MatchmakingManager.Instance.DisconnectAndReturnToMenu();
 }

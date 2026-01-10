@@ -53,24 +53,22 @@ public class DropPlace : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoi
             return;
         }
 
-        int dropIndex = -1;
+        int dropIdx = -1;
         bool foundTemp = false;
         foreach (Transform child in transform)
             if (child.name == "Card Temp")
             {
-                dropIndex = child.GetSiblingIndex();
+                dropIdx = child.GetSiblingIndex();
                 foundTemp = true;
                 break;
             }
 
         if (!foundTemp)
-            dropIndex = transform.childCount;
+            dropIdx = transform.childCount;
 
-        if (card && GameManager.Instance.IsMyTurn &&
-            GameManager.Instance.currentGame.player.mana >= card.self.manaCost &&
-            !card.self.isPlaced)
+        if (card && GameManager.Instance.IsMyTurn && GameManager.Instance.currentGame.player.mana >= card.self.manaCost && !card.self.isPlaced)
         {
-            bool success = GameManager.Instance.PlayCard(card, true, dropIndex);
+            bool success = GameManager.Instance.PlayCard(card, true, dropIdx);
 
             if (success)
                 if (card.Movement != null)

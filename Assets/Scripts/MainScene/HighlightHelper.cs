@@ -3,27 +3,18 @@ using UnityEngine.UI;
 
 public static class HighlightHelper
 {
-    public static void SetTargetHighlight(Image background, bool active, Color normalColor, Color targetColor)
+    public static void SetTargetHighlight(Image bg, bool active, Color normalCol, Color targetCol)
     {
-        if (background == null) 
-            return;
-
-        background.color = active ? targetColor : normalColor;
+        bg.color = active ? targetCol : normalCol;
     }
 
-    public static void SetSpellTargetHighlight(Image background, bool active, Color normalColor, Color spellTargetColor)
+    public static void SetSpellTargetHighlight(Image bg, bool active, Color normalCol, Color spellTargetCol)
     {
-        if (background == null) 
-            return;
-
-        background.color = active ? spellTargetColor : normalColor;
+        bg.color = active ? spellTargetCol : normalCol;
     }
 
     public static void SetManaAvailability(CanvasGroup canvasGroup, bool available)
     {
-        if (canvasGroup == null) 
-            return;
-
         canvasGroup.alpha = available ? 1f : 0.5f;
     }
 }

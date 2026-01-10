@@ -4,33 +4,33 @@ using Unity.Netcode;
 
 public class HeroVisualSync : NetworkBehaviour
 {
-    public Sprite[] allHeroSprites;
-    public Image bottomHeroImage, topHeroImage;
+    public Sprite[] allHeroS;
+    public Image bottomHeroImg, topHeroImg;
 
-    public NetworkVariable<int> hostHeroIndex = new(-1, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
-    public NetworkVariable<int> clientHeroIndex = new(-1, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    public NetworkVariable<int> hostHeroIdx = new(-1, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    public NetworkVariable<int> clientHeroIdx = new(-1, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
     public override void OnNetworkSpawn()
     {
-        hostHeroIndex.OnValueChanged += (oldV, newV) => UpdateUI();
-        clientHeroIndex.OnValueChanged += (oldV, newV) => UpdateUI();
+        hostHeroIdx.OnValueChanged += (oldV, newV) => UpdateUI();
+        clientHeroIdx.OnValueChanged += (oldV, newV) => UpdateUI();
 
         if (IsServer)
             NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnect;
 
-        int myIndexToSend = HeroSelectionManager.SelectedHeroIdx;
-        if (myIndexToSend == -1)
-            myIndexToSend = PlayerPrefs.GetInt("SelectedHeroIndex", 0);
+        int myIdxToSend = HeroSelectionManager.SelectedHeroIdx;
+        if (myIdxToSend == -1)
+            myIdxToSend = PlayerPrefs.GetInt("SelectedHeroIndex", 0);
 
-        SubmitHeroIndexServerRpc(myIndexToSend);
+        SubmitHeroIndexServerRpc(myIdxToSend);
 
         UpdateUI();
     }
 
     public override void OnNetworkDespawn()
     {
-        hostHeroIndex.OnValueChanged -= (oldV, newV) => UpdateUI();
-        clientHeroIndex.OnValueChanged -= (oldV, newV) => UpdateUI();
+        hostHeroIdx.OnValueChanged -= (oldV, newV) => UpdateUI();
+        clientHeroIdx.OnValueChanged -= (oldV, newV) => UpdateUI();
 
         if (IsServer && NetworkManager.Singleton != null)
             NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnect;
@@ -41,13 +41,13 @@ public class HeroVisualSync : NetworkBehaviour
     private void OnClientDisconnect(ulong clientId)
     {
         if (clientId != NetworkManager.ServerClientId)
-            clientHeroIndex.Value = -1;
+            clientHeroIdx.Value = -1;
     }
 
     public void ResetClientVisuals()
     {
         if (IsServer)
-            clientHeroIndex.Value = -1;
+            clientHeroIdx.Value = -1;
     }
 
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
@@ -56,31 +56,31 @@ public class HeroVisualSync : NetworkBehaviour
         ulong senderId = rpcParams.Receive.SenderClientId;
 
         if (senderId == NetworkManager.ServerClientId)
-            hostHeroIndex.Value = index;
+            hostHeroIdx.Value = index;
         else
-            clientHeroIndex.Value = index;
+            clientHeroIdx.Value = index;
     }
 
     private void UpdateUI()
     {
         if (IsServer)
         {
-            UpdateAvatarVisuals(bottomHeroImage, hostHeroIndex.Value);
-            UpdateAvatarVisuals(topHeroImage, clientHeroIndex.Value);
+            UpdateAvatarVisuals(bottomHeroImg, hostHeroIdx.Value);
+            UpdateAvatarVisuals(topHeroImg, clientHeroIdx.Value);
         }
         else
         {
-            UpdateAvatarVisuals(bottomHeroImage, clientHeroIndex.Value);
-            UpdateAvatarVisuals(topHeroImage, hostHeroIndex.Value);
+            UpdateAvatarVisuals(bottomHeroImg, clientHeroIdx.Value);
+            UpdateAvatarVisuals(topHeroImg, hostHeroIdx.Value);
         }
     }
 
-    private void UpdateAvatarVisuals(Image targetImage, int heroIndex)
+    private void UpdateAvatarVisuals(Image targetImage, int heroIdx)
     {
         if (targetImage == null)
             return;
 
-        if (heroIndex < 0)
+        if (heroIdx < 0)
         {
             targetImage.sprite = null;
 
@@ -90,7 +90,7 @@ public class HeroVisualSync : NetworkBehaviour
         }
         else
         {
-            targetImage.sprite = GetSpriteSafe(heroIndex);
+            targetImage.sprite = GetSpriteSafe(heroIdx);
 
             var c = targetImage.color;
             c.a = 1f;
@@ -98,14 +98,14 @@ public class HeroVisualSync : NetworkBehaviour
         }
     }
 
-    private Sprite GetSpriteSafe(int index)
+    private Sprite GetSpriteSafe(int idx)
     {
-        if (allHeroSprites == null || allHeroSprites.Length == 0)
+        if (allHeroS == null || allHeroS.Length == 0)
             return null;
 
-        if (index >= 0 && index < allHeroSprites.Length)
-            return allHeroSprites[index];
+        if (idx >= 0 && idx < allHeroS.Length)
+            return allHeroS[idx];
 
-        return allHeroSprites[0];
+        return allHeroS[0];
     }
 }

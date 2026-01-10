@@ -3348,6 +3348,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 05462ef6ec6f672478f4de97aabf0ab3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AnimationManager
+  drawDuration: 0.5
+  attackDuration: 0.4
+  deathDuration: 0.3
+  cardScaleAmount: 1.5
+  centerScreenYOffset: 250
 --- !u!1 &710591087
 GameObject:
   m_ObjectHideFlags: 0
@@ -5413,8 +5418,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TurnNetworkManager
   ShowTopMostFoldoutHeaderGroup: 1
   turnTimeDefault: 30
-  currentTurnOwner:
-    m_InternalValue: 0
   turnTimeRemaining:
     m_InternalValue: 0
   playerMana:
@@ -5425,8 +5428,6 @@ MonoBehaviour:
     m_InternalValue: 30
   enemyHP:
     m_InternalValue: 30
-  playerOwner:
-    m_InternalValue: 0
   playerDeckCount:
     m_InternalValue: 0
   enemyDeckCount:
@@ -5434,6 +5435,10 @@ MonoBehaviour:
   restartVotes:
     m_InternalValue: 0
   readyPlayersCount:
+    m_InternalValue: 0
+  currentTurnOwner:
+    m_InternalValue: 0
+  playerOwner:
     m_InternalValue: 0
 --- !u!1 &1131776796
 GameObject:
@@ -5608,14 +5613,14 @@ MonoBehaviour:
   enemyHPTxt: {fileID: 1546779915}
   resultTxt: {fileID: 540705658}
   turnTimeTxt: {fileID: 1910776032}
-  readyStatusText: {fileID: 1701172139}
-  restartBtnText: {fileID: 1365302346}
+  readyStatusTxt: {fileID: 1701172139}
+  restartBtnTxt: {fileID: 1365302346}
   endTurnBtn: {fileID: 1082041107}
-  readyButton: {fileID: 470171778}
+  readyBtn: {fileID: 470171778}
   restartBtn: {fileID: 1943423828}
-  surrenderButton: {fileID: 1324790088}
+  surrenderBtn: {fileID: 1324790088}
   surrenderPanel: {fileID: 197314226}
-  surrenderPanelButton: {fileID: 451876101}
+  surrenderPanelBtn: {fileID: 451876101}
   readyPanel: {fileID: 93446846}
   result: {fileID: 1202712388}
 --- !u!4 &1140106807
@@ -7973,18 +7978,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HeroVisualSync
   ShowTopMostFoldoutHeaderGroup: 1
-  allHeroSprites:
+  allHeroS:
   - {fileID: -6803223489722007895, guid: 8ad08bf0c7a61154798555c72485e378, type: 3}
   - {fileID: 4312126842197289597, guid: 2a0b65d8b64832d40b5d1af79e04fcde, type: 3}
   - {fileID: 2087544068632207014, guid: 50b5e0dda8a85684e907c4673f2c18fa, type: 3}
   - {fileID: 1343106029614499668, guid: da17412e12c3e7b45aeee60795f63c73, type: 3}
   - {fileID: 7043740384229649278, guid: a57d9995466983d4da270bb7c1b47406, type: 3}
   - {fileID: -643460706143854965, guid: 66991938ff3eb5e4492f2b8563e074d6, type: 3}
-  bottomHeroImage: {fileID: 228459498}
-  topHeroImage: {fileID: 856375456}
-  hostHeroIndex:
+  bottomHeroImg: {fileID: 228459498}
+  topHeroImg: {fileID: 856375456}
+  hostHeroIdx:
     m_InternalValue: -1
-  clientHeroIndex:
+  clientHeroIdx:
     m_InternalValue: -1
 --- !u!4 &1782222968
 Transform:

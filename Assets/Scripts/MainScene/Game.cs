@@ -8,7 +8,7 @@ public class Game
 
     public Game()
     {
-        player = new(); //player.manaPool = 10; ///example of setting mana pool for testing
+        player = new(); //player.manaPool = 10; //for testing
         enemy = new();
 
         playerDeck = GiveDeckCard();
@@ -18,7 +18,7 @@ public class Game
     private List<Card> GiveDeckCard()
     {
         List<Card> list = new();
-            //CardDatabase.AllCards[8].GetCopy() //example manual add of a specific card
+        //CardDatabase.AllCards[8].GetCopy() //for testing
 
         for (int i = 0; i < 20; i++)
         {

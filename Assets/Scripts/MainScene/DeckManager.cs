@@ -28,7 +28,7 @@ public class DeckManager : MonoBehaviour
     public Transform EnemyHand => enemyHand;
     public GameObject VisualCardPrefab => visualCardPrefab;
 
-    private void Shuffle<T>(List<T> list)
+    private void Shuffle<T>(List<T> list) //Fisher-Yates shuffle
     {
         int n = list.Count;
         for (int i = n - 1; i > 0; i--)

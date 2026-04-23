@@ -81,6 +81,8 @@ public class GameManager : MonoBehaviour
 
         currentGame = new Game();
 
+        ApplyNetworkStateValues();
+
         if (deckManager == null)
             deckManager = FindAnyObjectByType<DeckManager>();
 
